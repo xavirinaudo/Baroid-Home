@@ -7,7 +7,7 @@ import { INITIAL_DATA_REFINED } from './data/initialData';
 
 const App = () => {
     const [sectors, setSectors] = useState(() => {
-        const saved = localStorage.getItem('baroid_hub_data_v5');
+        const saved = localStorage.getItem('baroid_hub_data_v6');
         if (!saved) return INITIAL_DATA_REFINED;
         try {
             const parsed = JSON.parse(saved);
@@ -70,6 +70,7 @@ const App = () => {
                 'baroid_fluid_systems_v4',
                 'baroid_calc_tabs_v4',
                 'baroid_treatment_config',
+                'baroid_hub_data_v6',
                 'baroid_hub_data_v5',
                 'baroid_calc_tabs_v2',
                 'baroid_card_size',
@@ -119,7 +120,7 @@ const App = () => {
     }, [notes]);
 
     useEffect(() => {
-        localStorage.setItem('baroid_hub_data_v5', JSON.stringify(sectors));
+        localStorage.setItem('baroid_hub_data_v6', JSON.stringify(sectors));
     }, [sectors]);
 
     useEffect(() => {

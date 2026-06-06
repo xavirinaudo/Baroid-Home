@@ -99,7 +99,7 @@ export const INITIAL_DATA_REFINED = [
           {
             "id": "l_saf_seg_pdf",
             "name": "Tabla de Segregación (PDF)",
-            "url": "/documents/Tabla de segregacion.pdf"
+            "url": "documents/Tabla de segregacion.pdf"
           }
         ]
       },
@@ -438,44 +438,29 @@ export const INITIAL_DATA_REFINED = [
         "name": "Auditorías & Checklists",
         "links": [
           {
-            "id": "l_qa_checklist_zip",
-            "name": "Checklists de Auditorías (ZIP)",
-            "url": "/documents/checklist.zip"
+            "id": "l_qa_ch_lavaojos",
+            "name": "Inspección de Estaciones Lavaojos y Duchas de Emergencia",
+            "url": "https://halliburton.service-now.com/hms?sys_kb_id=d36c21cb1b364a9017bacb7f034bcb44&id=kb_article_view&sysparm_rank=1&sysparm_tsqueryId=e9557178334f7a101ee71e173e5c7b3e"
           },
           {
-            "id": "l_qa_ch_1",
-            "name": "Estación Lavaojos",
-            "url": "https://halliburton.service-now.com/hms?sys_kb_id=d36c21cb1b364a9017bacb7f034bcb44&id=kb_article_view&sysparm_rank=1&sysparm_tsqueryId=ce04f74a2b2e72d87b31f161fe91bf70"
+            "id": "l_qa_ch_contenedores",
+            "name": "Inspección Trimestral de Contenedores Secundarios",
+            "url": "https://halliburton.service-now.com/hms?sys_kb_id=782c99c347d1ee10d49f5131e36d43c9&id=kb_article_view&sysparm_rank=1&sysparm_tsqueryId=5d8579bc334f7a101ee71e173e5c7b8f"
           },
           {
-            "id": "l_qa_ch_2",
-            "name": "Bandejas - Contenedores Secundarios",
-            "url": "https://halliburton.service-now.com/hms?sys_kb_id=782c99c347d1ee10d49f5131e36d43c9&id=kb_article_view&sysparm_rank=1&sysparm_tsqueryId=50283bc22baab2d87b31f161fe91bf25"
-          },
-          {
-            "id": "l_qa_ch_3",
-            "name": "Kit De Primeros Auxilios",
-            "url": "https://halliburton.service-now.com/hms?sys_kb_id=17d1a7532b4f6a107b31f161fe91bfdb&id=kb_article_view&sysparm_rank=1&sysparm_tsqueryId=5328f7862baab2d87b31f161fe91bf0a"
-          },
-          {
-            "id": "l_qa_ch_4",
+            "id": "l_qa_ch_extintores",
             "name": "Inspección de Extintores",
-            "url": "https://halliburton.service-now.com/hms?sys_kb_id=cd7ed4622bbd2a501581fdf2fe91bf9e&id=kb_article_view&sysparm_rank=1&sysparm_tsqueryId=47587b422beab2d87b31f161fe91bf52"
+            "url": "https://halliburton.service-now.com/hms?sys_kb_id=cd7ed4622bbd2a501581fdf2fe91bf9e&id=kb_article_view&sysparm_rank=1&sysparm_tsqueryId=beb53174338f7a101ee71e173e5c7b43"
           },
           {
-            "id": "l_qa_ch_5",
-            "name": "Inspección de Estaciones Lavaojos",
-            "url": "https://halliburton.service-now.com/hms?sys_kb_id=d36c21cb1b364a9017bacb7f034bcb44&id=kb_article_view&sysparm_rank=1&sysparm_tsqueryId=31687fc22beab2d87b31f161fe91bfd2"
+            "id": "l_qa_ch_derrames",
+            "name": "Inspeccion del Kit de Emergencia para Derrames",
+            "url": "https://halliburton.service-now.com/hms?sys_kb_id=451c39781b63c2d407872fc42a4bcb92&id=kb_article_view&sysparm_rank=1&sysparm_tsqueryId=6da279b8330b7a101ee71e173e5c7b69"
           },
           {
-            "id": "l_qa_ch_6",
-            "name": "Inspeccion del Kit Antiderrames",
-            "url": "https://halliburton.service-now.com/hms?sys_kb_id=451c39781b63c2d407872fc42a4bcb92&id=kb_article_view&sysparm_rank=1&sysparm_tsqueryId=bf68ff462beab2d87b31f161fe91bf99"
-          },
-          {
-            "id": "v_trailer",
-            "name": "Inspección de Trailer",
-            "url": "https://nam10.safelinks.protection.outlook.com/?url=https%3A%2F%2Fhalliburton.service-now.com%2Fhms%3Fsys_kb_id%3D45b045824738d61080e583f8536d4360%26id%3Dkb_article_view%26sysparm_rank%3D1%26sysparm_tsqueryId%3Da7fcb8d92b033a101581fdf2fe91bf9d&data=05%7C02%7CXavierCustodio.Rinaudo2%40halliburton.com%7C8cd1d1639efc442b2c4108de6a844c17%7Cb7be76866f974db79081a23cf09a96b5%7C0%7C0%7C639065313781407699%7CUnknown%7CTWFpbGZsb3d8eyJFbXB0eU1hcGkiOnRydWUsIlYiOiIwLjAuMDAwMCIsIlAiOiJXaW4zMiIsIkFOIjoiTWFpbCIsIldUIjoyfQ%3D%3D%7C0%7C%7C%7C&sdata=SjF0cGF%2FdSXMSEIkQ8CA9aV6d0MeUvVAk4r%2BXoa0l54%3D&reserved=0"
+            "id": "l_qa_ch_trailers",
+            "name": "Lista de Verificacion de Trailers",
+            "url": "https://halliburton.service-now.com/hms?sys_kb_id=45b045824738d61080e583f8536d4360&id=kb_article_view&sysparm_rank=1&sysparm_tsqueryId=a9035ff02b0732107b31f161fe91bf88"
           }
         ]
       },
@@ -536,7 +521,7 @@ export const INITIAL_DATA_REFINED = [
           {
             "id": "l_soft_guide_pdf",
             "name": "Guía Paso a Paso Descarga Norma API (PDF)",
-            "url": "/documents/Guía Paso a Paso Descarga Norma API.pdf"
+            "url": "documents/Guía Paso a Paso Descarga Norma API.pdf"
           }
         ]
       }
@@ -585,7 +570,7 @@ export const INITIAL_DATA_REFINED = [
           {
             "id": "l_hr_structure_pptx",
             "name": "Estructura Personal BAROID 2026 (PPTX)",
-            "url": "/documents/Estructura Personal BAROID 2026.pptx"
+            "url": "documents/Estructura Personal BAROID 2026.pptx"
           }
         ]
       }
