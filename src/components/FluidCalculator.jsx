@@ -36,18 +36,30 @@ const FluidCalculator = ({ isEditing }) => {
 
   // Treatment Visibility State
   const [treatmentConfig, setTreatmentConfig] = useState(() => {
-    const saved = localStorage.getItem('baroid_treatment_config');
-    return saved ? JSON.parse(saved) : [
+    const DEFAULT_TREATMENT = [
       { id: 'lime', label: 'Cal (Limpiar Carb.)', visible: true },
       { id: 'sodaAsh', label: 'Soda Ash (Rem. Ca++)', visible: true },
       { id: 'sodiumBicarb', label: 'Bicarb. (Rem. Ca++)', visible: true }
     ];
+    const saved = localStorage.getItem('baroid_treatment_config');
+    if (!saved) return DEFAULT_TREATMENT;
+    try {
+      const parsed = JSON.parse(saved);
+      const merged = [...parsed];
+      DEFAULT_TREATMENT.forEach(defTreat => {
+        if (!merged.some(t => t.id === defTreat.id)) {
+          merged.push(defTreat);
+        }
+      });
+      return merged;
+    } catch (e) {
+      return DEFAULT_TREATMENT;
+    }
   });
 
   // Tabs Configuration State (Order and Visibility)
   const [tabsConfig, setTabsConfig] = useState(() => {
-    const saved = localStorage.getItem('baroid_calc_tabs_v4');
-    return saved ? JSON.parse(saved) : [
+    const DEFAULT_TABS = [
       { id: 'conv', label: 'Conversor de Unidades', icon: 'repeat', visible: true },
       { id: 'barite', label: 'Ajuste de Densidad', icon: 'arrow-up-circle', visible: true },
       { id: 'mixing', label: 'Mezcla (Balance Masa)', icon: 'blend', visible: true },
@@ -58,6 +70,20 @@ const FluidCalculator = ({ isEditing }) => {
       { id: 'pfmf', label: 'Pf/Mf & Tratamiento', icon: 'beaker', visible: true },
       { id: 'lgs', label: 'Dilución LGS', icon: 'percent', visible: true }
     ];
+    const saved = localStorage.getItem('baroid_calc_tabs_v4');
+    if (!saved) return DEFAULT_TABS;
+    try {
+      const parsed = JSON.parse(saved);
+      const merged = [...parsed];
+      DEFAULT_TABS.forEach(defTab => {
+        if (!merged.some(t => t.id === defTab.id)) {
+          merged.push(defTab);
+        }
+      });
+      return merged;
+    } catch (e) {
+      return DEFAULT_TABS;
+    }
   });
 
   useEffect(() => {
@@ -101,8 +127,11 @@ const FluidCalculator = ({ isEditing }) => {
 
   const getHydrostatic = () => {
     if (!eng.dens || !eng.depth) return 0;
-    const dppg = unitMode === 'field' ? parseFloat(eng.dens) : glToPPG(parseFloat(eng.dens));
-    const dft = mToFt(parseFloat(eng.depth));
+    const densVal = parseFloat(eng.dens);
+    const depthVal = parseFloat(eng.depth);
+    if (isNaN(densVal) || isNaN(depthVal)) return 0;
+    const dppg = unitMode === 'field' ? densVal : glToPPG(densVal);
+    const dft = mToFt(depthVal);
     return (0.052 * dppg * dft).toFixed(2);
   };
 
@@ -114,9 +143,10 @@ const FluidCalculator = ({ isEditing }) => {
     let sg1 = bariteUnits.dens === 'gL' ? parseFloat(d1) / 1000 : parseFloat(d1) / 8.33;
     let sg2 = bariteUnits.dens === 'gL' ? parseFloat(d2) / 1000 : parseFloat(d2) / 8.33;
 
+    if (isNaN(v_m3) || isNaN(sg1) || isNaN(sg2)) return 0;
     if (sg2 <= sg1) return 0;
     const sgB = parseFloat(barite.sg) || 4.2;
-    if (sg2 >= sgB) return 0;
+    if (isNaN(sgB) || sg2 >= sgB) return 0;
 
     const tons = v_m3 * (sg2 - sg1) / (sgB - sg2) * sgB;
     return tons.toFixed(2);
@@ -149,13 +179,18 @@ const FluidCalculator = ({ isEditing }) => {
     const pMPD = parseFloat(mpdSBP || 0);
     const totalExtraPressure = (isNaN(pSafe) ? 0 : pSafe) + (isNaN(pValve) ? 0 : pValve) + (isNaN(pMPD) ? 0 : pMPD);
 
-    if (ds <= dm) return { volReq: 0, volFinal: 0, tons: 0, volInitial: 0, currentCap: c };
+    if (isNaN(dm) || isNaN(ds) || isNaN(l) || ds <= dm) {
+      return { volReq: 0, volFinal: 0, tons: 0, volInitial: 0, currentCap: c };
+    }
 
     const dm_ppg = unitMode === 'field' ? dm : glToPPG(dm);
     const ds_ppg = unitMode === 'field' ? ds : glToPPG(ds);
     const l_ft = unitMode === 'field' ? l : mToFt(l);
 
-    const hSlug_ft = (l_ft * dm_ppg * 0.052 + totalExtraPressure) / (0.052 * (ds_ppg - dm_ppg));
+    const denominator = 0.052 * (ds_ppg - dm_ppg);
+    if (denominator <= 0) return { volReq: 0, volFinal: 0, tons: 0, volInitial: 0, currentCap: c };
+
+    const hSlug_ft = (l_ft * dm_ppg * 0.052 + totalExtraPressure) / denominator;
     const vSlugReq_bbl = hSlug_ft * cField_local;
 
     const vSlugReq = unitMode === 'field' ? vSlugReq_bbl : bblToM3(vSlugReq_bbl);
@@ -165,9 +200,11 @@ const FluidCalculator = ({ isEditing }) => {
     const sg_mud = dm_ppg / 8.33;
     const sg_barite = 4.2;
 
-    const volInitial = vFinal * (sg_barite - sg_slug) / (sg_barite - sg_mud);
+    const denInitial = sg_barite - sg_mud;
+    const volInitial = denInitial <= 0 ? 0 : vFinal * (sg_barite - sg_slug) / denInitial;
 
-    const lbsPerBbl = (1470 * (ds_ppg - dm_ppg)) / (35.0 - ds_ppg);
+    const denLbs = 35.0 - ds_ppg;
+    const lbsPerBbl = denLbs <= 0 ? 0 : (1470 * (ds_ppg - dm_ppg)) / denLbs;
     const vol_bbl_initial = unitMode === 'field' ? volInitial : m3ToBbl(volInitial);
     const totalLbs = lbsPerBbl * vol_bbl_initial;
     const totalTons = totalLbs / 2204.62;
@@ -188,7 +225,7 @@ const FluidCalculator = ({ isEditing }) => {
     const vo = parseFloat(vOil) || 0;
     const vw = parseFloat(vWater) || 0;
 
-    if (vo + vw > 100) {
+    if (isNaN(vo) || isNaN(vw) || vo < 0 || vw < 0 || vo + vw > 100) {
       return {
         current: '0/0',
         addOil: 0,
@@ -207,7 +244,7 @@ const FluidCalculator = ({ isEditing }) => {
     const currentRatioOil = (vo / total) * 100;
     const currentRatioWater = (vw / total) * 100;
 
-    const target = parseFloat(targetRatio);
+    const target = parseFloat(targetRatio) || 80;
     const targetPerm = 100 - target;
 
     const rw = vw / total;
@@ -215,8 +252,8 @@ const FluidCalculator = ({ isEditing }) => {
     const pw = targetPerm / 100;
     const po = target / 100;
 
-    const addOil = Math.max(0, (rw / pw) - rw - ro);
-    const addWater = Math.max(0, (ro / po) - rw - ro);
+    const addOil = pw <= 0 ? 0 : Math.max(0, (rw / pw) - rw - ro);
+    const addWater = po <= 0 ? 0 : Math.max(0, (ro / po) - rw - ro);
 
     return {
       current: `${currentRatioOil.toFixed(1)}/${currentRatioWater.toFixed(1)}`,
@@ -234,7 +271,7 @@ const FluidCalculator = ({ isEditing }) => {
     const mf = parseFloat(titration.mf) || 0;
     const ca = parseFloat(titration.ca) || 0;
 
-    if (pf > mf) {
+    if (isNaN(pf) || isNaN(mf) || isNaN(ca) || pf < 0 || mf < 0 || ca < 0 || pf > mf) {
       return {
         oh: '-',
         co3: '-',
@@ -283,7 +320,9 @@ const FluidCalculator = ({ isEditing }) => {
     const current = parseFloat(cmw);
     const depth = parseFloat(tvd);
 
-    if (target <= current) return { surface: 0, total: 0, hydrostatic: 0, surfacePSI: 0 };
+    if (isNaN(target) || isNaN(current) || isNaN(depth) || target <= current) {
+      return { surface: 0, total: 0, hydrostatic: 0, surfacePSI: 0 };
+    }
 
     let surface = 0;
     let hydro = 0;
@@ -314,8 +353,10 @@ const FluidCalculator = ({ isEditing }) => {
       if (f.vol && f.dens) {
         const v = parseFloat(f.vol);
         const d = parseFloat(f.dens);
-        totalVol += v;
-        totalMass += v * d;
+        if (!isNaN(v) && !isNaN(d) && v >= 0 && d >= 0) {
+          totalVol += v;
+          totalMass += v * d;
+        }
       }
     });
     if (totalVol === 0) return { dens: 0, vol: 0 };
@@ -331,6 +372,9 @@ const FluidCalculator = ({ isEditing }) => {
     const con2 = parseFloat(c2);
     const conf = parseFloat(cf);
 
+    if (isNaN(vol1) || isNaN(con1) || isNaN(con2) || isNaN(conf)) {
+      return { v2: 0, vf: 0, factor: 0, invalid: true, msg: 'Ingrese valores numéricos válidos.' };
+    }
     if (vol1 < 0 || con1 < 0 || con2 < 0 || conf < 0) {
       return { v2: 0, vf: 0, factor: 0, invalid: true, msg: 'Los valores no pueden ser negativos.' };
     }
@@ -344,7 +388,10 @@ const FluidCalculator = ({ isEditing }) => {
       return { v2: 0, vf: 0, factor: 0, invalid: true, msg: 'La concentración objetivo (Cf) debe ser menor a la del lodo actual (C1).' };
     }
 
-    const factor = (con1 - conf) / (conf - con2);
+    const denominator = conf - con2;
+    if (denominator <= 0) return { v2: 0, vf: 0, factor: 0, invalid: true, msg: 'La concentración objetivo (Cf) debe superar la del diluyente (C2).' };
+
+    const factor = (con1 - conf) / denominator;
     const v2 = vol1 * factor;
     const vf = vol1 + v2;
 

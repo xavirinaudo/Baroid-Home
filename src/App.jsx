@@ -8,7 +8,29 @@ import { INITIAL_DATA_REFINED } from './data/initialData';
 const App = () => {
     const [sectors, setSectors] = useState(() => {
         const saved = localStorage.getItem('baroid_hub_data_v5');
-        return saved ? JSON.parse(saved) : INITIAL_DATA_REFINED;
+        if (!saved) return INITIAL_DATA_REFINED;
+        try {
+            const parsed = JSON.parse(saved);
+            const merged = [...parsed];
+            INITIAL_DATA_REFINED.forEach(defSector => {
+                if (!merged.some(s => s.id === defSector.id)) {
+                    merged.push(defSector);
+                } else {
+                    const existingSectorIndex = merged.findIndex(s => s.id === defSector.id);
+                    const existingSector = merged[existingSectorIndex];
+                    const mergedSubsectors = [...(existingSector.subsectors || [])];
+                    (defSector.subsectors || []).forEach(defSub => {
+                        if (!mergedSubsectors.some(sub => sub.id === defSub.id)) {
+                            mergedSubsectors.push(defSub);
+                        }
+                    });
+                    merged[existingSectorIndex] = { ...existingSector, subsectors: mergedSubsectors };
+                }
+            });
+            return merged;
+        } catch (e) {
+            return INITIAL_DATA_REFINED;
+        }
     });
     const [activeSector, setActiveSector] = useState(sectors[0]?.id || 'sec_hr');
     const [searchQuery, setSearchQuery] = useState('');
@@ -319,6 +341,7 @@ const App = () => {
                     setCardSize={setCardSize}
                     darkMode={darkMode}
                     setDarkMode={setDarkMode}
+                    addLink={addLink}
                 />
                 <Modal
                     showModal={showModal}

@@ -30,7 +30,8 @@ const MainContent = ({
     cardSize,
     setCardSize,
     darkMode,
-    setDarkMode
+    setDarkMode,
+    addLink
 }) => {
     return (
         <main className="flex-1 min-h-screen p-12 overflow-x-hidden relative text-left">
@@ -107,7 +108,7 @@ const MainContent = ({
                                                                 trackLinkClick('pdf_upload');
                                                                 const sec_pdf = sectors.find(s => s.id === 'sec_pdf');
                                                                 if (sec_pdf && sec_pdf.subsectors.length > 0) {
-                                                                    window.baroidAddPdf(sec_pdf.id, sec_pdf.subsectors[0].id, file.name.replace('.pdf', ''), event.target.result);
+                                                                    addLink(sec_pdf.id, sec_pdf.subsectors[0].id, file.name.replace('.pdf', ''), event.target.result);
                                                                 }
                                                             };
                                                             reader.readAsDataURL(file);
