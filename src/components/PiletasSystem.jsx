@@ -467,7 +467,7 @@ const PiletasSystem = ({ isEditing }) => {
     });
 
     return (
-        <div className="animate-fade-in space-y-4 pb-32 select-none" onMouseMove={handleMouseMove} onMouseUp={handleMouseUp}>
+        <div className="animate-fade-in space-y-4 pb-32 select-none" onMouseMove={handleMouseMove} onMouseUp={handleMouseUp} onTouchMove={handleMouseMove} onTouchEnd={handleMouseUp}>
             {/* Simplified Header */}
             <div className="bg-white dark:bg-slate-900/80 p-6 rounded-[3rem] border border-zinc-100 dark:border-zinc-800 shadow-sm flex flex-col gap-6">
                 <div className="flex flex-wrap items-center justify-between gap-4">
@@ -564,29 +564,31 @@ const PiletasSystem = ({ isEditing }) => {
             )}
 
             {/* FREE LAYOUT CANVAS */}
-            <div
-                id="piletas-canvas"
-                onMouseDown={(e) => handleMouseDown(e)}
-                onMouseMove={handleMouseMove}
-                onMouseUp={handleMouseUp}
-                onMouseLeave={handleMouseUp}
-                className="relative bg-zinc-50 dark:bg-slate-950/40 rounded-[4rem] border-2 border-zinc-100 dark:border-zinc-800 min-h-[1200px] shadow-inner p-10 mb-20 overflow-visible"
-                style={{ cursor: (draggingPitId || resizingPitId) ? (resizingPitId ? 'se-resize' : 'grabbing') : 'default' }}
-            >
-                <div className="absolute inset-0 opacity-[0.08] pointer-events-none" style={{ backgroundImage: 'radial-gradient(#52525b 1.5px, transparent 1.5px)', backgroundSize: '40px 40px' }}></div>
+            <div className="w-full overflow-x-auto custom-scrollbar no-scrollbar-at-rest rounded-[4rem]">
+                <div
+                    id="piletas-canvas"
+                    onMouseDown={(e) => handleMouseDown(e)}
+                    onMouseMove={handleMouseMove}
+                    onMouseUp={handleMouseUp}
+                    onMouseLeave={handleMouseUp}
+                    onTouchStart={(e) => handleMouseDown(e)}
+                    className="relative bg-zinc-50 dark:bg-slate-950/40 rounded-[4rem] border-2 border-zinc-100 dark:border-zinc-800 min-h-[1200px] shadow-inner p-10 mb-20 overflow-visible"
+                    style={{ cursor: (draggingPitId || resizingPitId) ? (resizingPitId ? 'se-resize' : 'grabbing') : 'default' }}
+                >
+                    <div className="absolute inset-0 opacity-[0.08] pointer-events-none" style={{ backgroundImage: 'radial-gradient(#52525b 1.5px, transparent 1.5px)', backgroundSize: '40px 40px' }}></div>
 
-                {/* Selection Box Overlay */}
-                {selectionBox && (
-                    <div
-                        className="absolute bg-blue-500/10 border border-blue-500/50 z-[100] pointer-events-none rounded-sm"
-                        style={{
-                            left: selectionBox.x - (document.getElementById('piletas-canvas')?.getBoundingClientRect().left || 0),
-                            top: selectionBox.y - (document.getElementById('piletas-canvas')?.getBoundingClientRect().top || 0),
-                            width: selectionBox.w,
-                            height: selectionBox.h
-                        }}
-                    />
-                )}
+                    {/* Selection Box Overlay */}
+                    {selectionBox && (
+                        <div
+                            className="absolute bg-blue-500/10 border border-blue-500/50 z-[100] pointer-events-none rounded-sm"
+                            style={{
+                                left: selectionBox.x - (document.getElementById('piletas-canvas')?.getBoundingClientRect().left || 0),
+                                top: selectionBox.y - (document.getElementById('piletas-canvas')?.getBoundingClientRect().top || 0),
+                                width: selectionBox.w,
+                                height: selectionBox.h
+                            }}
+                        />
+                    )}
 
                 {pits.map(p => {
                     const isSelected = selectedIds.includes(p.id);
@@ -607,6 +609,7 @@ const PiletasSystem = ({ isEditing }) => {
                             key={p.id}
                             id={`pit-${p.id}`}
                             onMouseDown={(e) => handleMouseDown(e, p.id)}
+                            onTouchStart={(e) => handleMouseDown(e, p.id)}
                             className={`absolute ${isSelected ? 'ring-4 ring-blue-500/30 rounded-[22px]' : ''}`}
                             style={{
                                 left: `${p.x}px`,
@@ -743,6 +746,7 @@ const PiletasSystem = ({ isEditing }) => {
                         </div>
                     );
                 })}
+                </div>
             </div>
         </div>
     );
