@@ -23,18 +23,29 @@ const Sidebar = ({
   setShowModal,
   setModalData,
   cardSize,
-  setCardSize
+  setCardSize,
+  isMobileSidebarOpen,
+  setIsMobileSidebarOpen
 }) => {
   return (
-    <aside className="w-80 sidebar-bg h-screen flex flex-col sticky top-0 z-50 overflow-hidden shrink-0">
-      <div className="p-10 flex items-center gap-4">
-        <div className="w-12 h-12 bg-halliburton-red rounded-2xl flex items-center justify-center shadow-lg shadow-red-900/30">
-          <Icon name="activity" size={24} className="text-white" />
+    <aside className={`fixed inset-y-0 left-0 z-50 lg:relative lg:translate-x-0 w-80 sidebar-bg h-screen flex flex-col transition-transform duration-300 ease-in-out shrink-0 ${isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      <div className="p-10 flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-halliburton-red rounded-2xl flex items-center justify-center shadow-lg shadow-red-900/30">
+            <Icon name="activity" size={24} className="text-white" />
+          </div>
+          <div className="overflow-hidden">
+            <h1 className="text-xl font-black tracking-tighter text-zinc-800 dark:text-white uppercase italic truncate">Baroid Hub</h1>
+            <span className="text-[9px] font-bold text-halliburton-red uppercase tracking-[0.3em] truncate block">Field Operations</span>
+          </div>
         </div>
-        <div className="overflow-hidden">
-          <h1 className="text-xl font-black tracking-tighter text-halliburton-dark dark:text-white uppercase italic truncate">Baroid Hub</h1>
-          <span className="text-[9px] font-bold text-halliburton-red uppercase tracking-[0.3em] truncate block">Field Operations</span>
-        </div>
+        <button
+          onClick={() => setIsMobileSidebarOpen(false)}
+          className="lg:hidden p-2 text-zinc-400 hover:text-halliburton-red transition-colors"
+          title="Cerrar Menú"
+        >
+          <Icon name="x" size={20} />
+        </button>
       </div>
 
       <div className="px-6 mb-8 group">
@@ -53,7 +64,7 @@ const Sidebar = ({
 
       <div className="flex-1 overflow-y-auto custom-scrollbar px-4 space-y-1 pb-10">
         <button
-          onClick={() => { setActiveSector('favorites'); setSearchQuery(''); }}
+          onClick={() => { setActiveSector('favorites'); setSearchQuery(''); setIsMobileSidebarOpen(false); }}
           className={`w-full flex items-center gap-4 px-4 py-4 rounded-xl text-sm font-semibold transition-all hover:bg-zinc-50 dark:hover:bg-slate-800/50 ${activeSector === 'favorites' && !searchQuery ? 'sidebar-item-active shadow-lg' : 'text-zinc-600 dark:text-zinc-400'}`}
         >
           <Icon name="heart" size={18} />
@@ -70,7 +81,7 @@ const Sidebar = ({
         </div>
 
         <button
-          onClick={() => { setActiveSector('calculator'); setSearchQuery(''); }}
+          onClick={() => { setActiveSector('calculator'); setSearchQuery(''); setIsMobileSidebarOpen(false); }}
           className={`w-full flex items-center gap-4 px-4 py-4 rounded-xl text-sm font-semibold transition-all hover:bg-zinc-50 dark:hover:bg-slate-800/50 ${activeSector === 'calculator' && !searchQuery ? 'sidebar-item-active shadow-lg' : 'text-zinc-600 dark:text-zinc-400'}`}
         >
           <Icon name="calculator" size={18} />
@@ -78,7 +89,7 @@ const Sidebar = ({
         </button>
 
         <button
-          onClick={() => { setActiveSector('inventory'); setSearchQuery(''); }}
+          onClick={() => { setActiveSector('inventory'); setSearchQuery(''); setIsMobileSidebarOpen(false); }}
           className={`w-full flex items-center gap-4 px-4 py-4 rounded-xl text-sm font-semibold transition-all hover:bg-zinc-50 dark:hover:bg-slate-800/50 ${activeSector === 'inventory' && !searchQuery ? 'sidebar-item-active shadow-lg' : 'text-zinc-600 dark:text-zinc-400'}`}
         >
           <Icon name="clipboard-check" size={18} />
@@ -86,7 +97,7 @@ const Sidebar = ({
         </button>
 
         <button
-          onClick={() => { setActiveSector('piletas'); setSearchQuery(''); }}
+          onClick={() => { setActiveSector('piletas'); setSearchQuery(''); setIsMobileSidebarOpen(false); }}
           className={`w-full flex items-center gap-4 px-4 py-4 rounded-xl text-sm font-semibold transition-all hover:bg-zinc-50 dark:hover:bg-slate-800/50 ${activeSector === 'piletas' && !searchQuery ? 'sidebar-item-active shadow-lg' : 'text-zinc-600 dark:text-zinc-400'}`}
         >
           <Icon name="layout" size={18} />
@@ -99,7 +110,7 @@ const Sidebar = ({
         {sectors.map(sec => (
           <div key={sec.id} className="group relative">
             <button
-              onClick={() => { setActiveSector(sec.id); setSearchQuery(''); }}
+              onClick={() => { setActiveSector(sec.id); setSearchQuery(''); setIsMobileSidebarOpen(false); }}
               className={`w-full flex items-center gap-4 px-4 py-4 rounded-xl text-sm font-semibold transition-all hover:bg-zinc-50 dark:hover:bg-slate-800/50 ${activeSector === sec.id && !searchQuery ? 'sidebar-item-active' : 'text-zinc-600 dark:text-zinc-400'}`}
             >
               <Icon name={sec.icon} size={18} style={{ color: (activeSector === sec.id && !searchQuery) ? '#CC0000' : '#8E979D' }} />

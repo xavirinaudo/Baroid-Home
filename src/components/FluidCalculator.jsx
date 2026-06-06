@@ -387,6 +387,16 @@ const FluidCalculator = ({ isEditing }) => {
     return tons.toFixed(2);
   };
 
+  const getMixDensificationVolFinal = () => {
+    const mixRes = getMixingResult();
+    const vol = parseFloat(mixRes.vol) || 0;
+    const tons = parseFloat(getMixDensificationTons()) || 0;
+    if (tons <= 0) return vol.toFixed(2);
+    const sgB = parseFloat(mixBariteSg) || 4.2;
+    const addedVol = (tons / sgB) * (mixUnits.vol === 'bbl' ? 6.2898 : 1);
+    return (vol + addedVol).toFixed(2);
+  };
+
   const getLGSResult = () => {
     const { v1, c1, c2, cf } = lgs;
     if (!v1 || !c1 || !c2 || !cf) return { v2: 0, vf: 0, factor: 0, invalid: false, msg: '' };
@@ -827,6 +837,33 @@ const FluidCalculator = ({ isEditing }) => {
                   <Icon name="plus" size={16} />
                   Agregar Fluido a la Mezcla
                 </button>
+
+                <div className="pt-6 border-t border-zinc-100 dark:border-zinc-800/50 space-y-4">
+                  <h5 className="text-[12px] font-black text-halliburton-red uppercase tracking-widest italic">Ajuste de Densidad de la Mezcla (Opcional)</h5>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">D. Objetivo ({mixUnits.dens})</label>
+                      <input
+                        type="number"
+                        value={mixTargetDens}
+                        onChange={e => setMixTargetDens(e.target.value)}
+                        className="w-full bg-white dark:bg-slate-800 border-2 border-zinc-200 dark:border-zinc-700 rounded-xl p-3 text-sm font-bold focus:border-halliburton-red outline-none transition-all shadow-inner"
+                        placeholder="Ej: 10.0"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">SG Densificante</label>
+                      <input
+                        type="number"
+                        value={mixBariteSg}
+                        onChange={e => setMixBariteSg(e.target.value)}
+                        className="w-full bg-white dark:bg-slate-800 border-2 border-zinc-200 dark:border-zinc-700 rounded-xl p-3 text-sm font-bold focus:border-halliburton-red outline-none transition-all shadow-inner"
+                        placeholder="4.2"
+                        step="0.01"
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           )}
@@ -1143,6 +1180,34 @@ const FluidCalculator = ({ isEditing }) => {
                   </div>
                   <Icon name="database" size={32} className="text-white/10" />
                 </div>
+
+                {parseFloat(getMixDensificationTons()) > 0 && (
+                  <div className="pt-6 border-t border-white/10 space-y-4 animate-fade-in">
+                    <span className="text-[12px] font-black uppercase tracking-[0.3em] text-zinc-500 block">Ajuste con Densificante</span>
+                    <div className="grid grid-cols-1 gap-4">
+                      <div className="p-6 bg-white/5 rounded-[2rem] border border-white/10 flex items-center justify-between">
+                        <div>
+                          <span className="text-[11px] font-black text-halliburton-red uppercase block mb-1">Densificante Requerido</span>
+                          <div className="flex items-baseline gap-2">
+                            <h5 className="text-4xl font-black italic text-halliburton-red">{getMixDensificationTons()}</h5>
+                            <span className="text-xs font-bold opacity-40 uppercase">Tons métricas</span>
+                          </div>
+                        </div>
+                        <Icon name="arrow-up-circle" size={32} className="text-white/10" />
+                      </div>
+                      <div className="p-6 bg-white/5 rounded-[2rem] border border-white/10 flex items-center justify-between">
+                        <div>
+                          <span className="text-[11px] font-black text-halliburton-red uppercase block mb-1">Volumen Final Ajustado</span>
+                          <div className="flex items-baseline gap-2">
+                            <h5 className="text-4xl font-black italic">{getMixDensificationVolFinal()}</h5>
+                            <span className="text-xs font-bold opacity-40 uppercase">{mixUnits.vol}</span>
+                          </div>
+                        </div>
+                        <Icon name="database" size={32} className="text-white/10" />
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}

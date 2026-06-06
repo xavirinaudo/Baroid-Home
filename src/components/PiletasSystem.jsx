@@ -283,6 +283,11 @@ const PiletasSystem = ({ isEditing }) => {
     };
 
     const handleMouseDown = (e, id = null) => {
+        const isTouch = e.type.startsWith('touch');
+        const eventClientX = isTouch ? e.touches[0].clientX : e.clientX;
+        const eventClientY = isTouch ? e.touches[0].clientY : e.clientY;
+        const eventShiftKey = isTouch ? false : e.shiftKey;
+
         if (e.target.closest('input') || e.target.closest('button') || e.target.closest('select')) return;
 
         if (id) {
@@ -290,7 +295,7 @@ const PiletasSystem = ({ isEditing }) => {
             let nextSelection = selectedIds;
             const isNowSelected = selectedIds.includes(id);
 
-            if (e.shiftKey) {
+            if (eventShiftKey) {
                 nextSelection = isNowSelected ? selectedIds.filter(i => i !== id) : [...selectedIds, id];
                 setSelectedIds(nextSelection);
             } else if (!isNowSelected) {
@@ -309,26 +314,34 @@ const PiletasSystem = ({ isEditing }) => {
             const pit = pits.find(p => p.id === id);
             if (e.target.closest('.resize-handle')) {
                 setResizingPitId(id);
-                setResizeStart({ w: pit.w, h: pit.h, x: e.clientX, y: e.clientY });
+                setResizeStart({ w: pit.w, h: pit.h, x: eventClientX, y: eventClientY });
             } else {
                 setDraggingPitId(id);
-                setDragOffset({ x: e.clientX - pit.x, y: e.clientY - pit.y });
+                setDragOffset({ x: eventClientX - pit.x, y: eventClientY - pit.y });
             }
         } else {
-            if (!e.shiftKey) setSelectedIds([]);
-            setSelectionBox({ x: e.clientX, y: e.clientY, startX: e.clientX, startY: e.clientY, w: 0, h: 0 });
+            if (!eventShiftKey) setSelectedIds([]);
+            setSelectionBox({ x: eventClientX, y: eventClientY, startX: eventClientX, startY: eventClientY, w: 0, h: 0 });
         }
     };
 
     const handleMouseMove = (e) => {
+        const isTouch = e.type.startsWith('touch');
+        const eventClientX = isTouch ? e.touches[0].clientX : e.clientX;
+        const eventClientY = isTouch ? e.touches[0].clientY : e.clientY;
+
+        if (isTouch && (draggingPitId || resizingPitId)) {
+            if (e.cancelable) e.preventDefault();
+        }
+
         const canvasEl = document.getElementById('piletas-canvas');
         if (!canvasEl) return;
         const canvasRect = canvasEl.getBoundingClientRect();
         const margin = 20;
 
         if (selectionBox) {
-            const currentX = e.clientX;
-            const currentY = e.clientY;
+            const currentX = eventClientX;
+            const currentY = eventClientY;
             const x = Math.min(currentX, selectionBox.startX);
             const y = Math.min(currentY, selectionBox.startY);
             const w = Math.abs(currentX - selectionBox.startX);
@@ -350,8 +363,8 @@ const PiletasSystem = ({ isEditing }) => {
             }).map(p => p.id);
             setSelectedIds(pitsInBox);
         } else if (draggingPitId && groupStartStates) {
-            const dx = e.clientX - (groupStartStates[draggingPitId].x + dragOffset.x);
-            const dy = e.clientY - (groupStartStates[draggingPitId].y + dragOffset.y);
+            const dx = eventClientX - (groupStartStates[draggingPitId].x + dragOffset.x);
+            const dy = eventClientY - (groupStartStates[draggingPitId].y + dragOffset.y);
 
             setPits(prevPits => prevPits.map(p => {
                 if (selectedIds.includes(p.id) && groupStartStates[p.id]) {
@@ -365,8 +378,8 @@ const PiletasSystem = ({ isEditing }) => {
                 return p;
             }));
         } else if (resizingPitId && groupStartStates) {
-            const dx = e.clientX - resizeStart.x;
-            const dy = e.clientY - resizeStart.y;
+            const dx = eventClientX - resizeStart.x;
+            const dy = eventClientY - resizeStart.y;
 
             setPits(prevPits => prevPits.map(p => {
                 if (selectedIds.includes(p.id) && groupStartStates[p.id]) {

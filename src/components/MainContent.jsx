@@ -31,12 +31,48 @@ const MainContent = ({
     setCardSize,
     darkMode,
     setDarkMode,
-    addLink
+    addLink,
+    setIsMobileSidebarOpen
 }) => {
     return (
-        <main className="flex-1 min-h-screen p-12 overflow-x-hidden relative text-left">
-            {/* Top Controls Overlay */}
-            <div className="absolute top-8 right-12 z-40 flex items-center gap-4">
+        <main className="flex-1 min-h-screen p-4 md:p-8 lg:p-12 overflow-x-hidden relative text-left">
+            {/* Mobile Header Bar */}
+            <div className="flex lg:hidden items-center justify-between gap-4 mb-6 bg-white dark:bg-slate-900 p-4 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-md">
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={() => setIsMobileSidebarOpen(true)}
+                        className="p-3 bg-zinc-50 dark:bg-slate-800 rounded-2xl text-zinc-500 dark:text-zinc-300 hover:text-halliburton-red hover:scale-105 active:scale-95 transition-transform"
+                        title="Abrir Menú"
+                    >
+                        <Icon name="menu" size={20} />
+                    </button>
+                    <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 bg-halliburton-red rounded-xl flex items-center justify-center shadow-md">
+                            <Icon name="activity" size={16} className="text-white" />
+                        </div>
+                        <span className="text-sm font-black uppercase tracking-wider text-zinc-800 dark:text-white italic">Baroid Hub</span>
+                    </div>
+                </div>
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={() => setCardSize(cardSize === 'large' ? 'small' : 'large')}
+                        className="p-2.5 bg-zinc-50 dark:bg-slate-800 rounded-xl text-zinc-500 dark:text-zinc-400"
+                        title="Cambiar Vista"
+                    >
+                        <Icon name={cardSize === 'large' ? "grid-3x3" : "layout-grid"} size={16} />
+                    </button>
+                    <button
+                        onClick={() => setDarkMode(!darkMode)}
+                        className="p-2.5 bg-zinc-50 dark:bg-slate-800 rounded-xl text-zinc-500 dark:text-zinc-400"
+                        title={darkMode ? "Modo Claro" : "Modo Oscuro"}
+                    >
+                        <Icon name={darkMode ? "sun" : "moon"} size={16} />
+                    </button>
+                </div>
+            </div>
+
+            {/* Top Controls Overlay (Desktop only) */}
+            <div className="hidden lg:flex absolute top-8 right-12 z-40 items-center gap-4">
                 <div className="flex bg-white/80 dark:bg-slate-900/80 backdrop-blur-md p-1.5 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-xl">
                     <button
                         onClick={() => setCardSize('large')}
@@ -63,16 +99,16 @@ const MainContent = ({
             </div>
 
             <div className={cardSize === 'small' ? "max-w-[1400px] mx-auto" : "max-w-6xl mx-auto"}>
-                <header className="mb-14">
+                <header className="mb-10 lg:mb-14">
                     {(!searchQuery && activeSector !== 'favorites' && activeSector !== 'calculator' && activeSector !== 'inventory' && activeSector !== 'piletas') && <GreetingDashboard />}
-                    <div className="space-y-4">
+                    <div className="space-y-3 lg:space-y-4">
                         <div className="flex items-center gap-3">
                             <div className="w-1.5 h-6 bg-halliburton-red rounded-full"></div>
                             <span className="text-[12px] font-bold text-halliburton-red uppercase tracking-widest">
                                 {activeSector === 'favorites' ? 'Acceso Rápido' : (activeSector === 'calculator' ? 'Ingeniería' : (activeSector === 'inventory' ? 'Auditoría' : (activeSector === 'piletas' ? 'Volumen Activo' : (sectors.find(s => s.id === activeSector)?.name || 'Explorar'))))}
                             </span>
                         </div>
-                        <h2 className="text-5xl font-black uppercase italic leading-none tracking-tighter text-zinc-800 dark:text-white truncate">
+                        <h2 className="text-3xl lg:text-5xl font-black uppercase italic leading-none tracking-tighter text-zinc-800 dark:text-white truncate">
                             {activeSector === 'favorites' ? 'Mis Favoritos' : (activeSector === 'calculator' ? 'Calculadora de Fluidos' : (activeSector === 'inventory' ? 'Conciliación de Inventario' : (activeSector === 'piletas' ? 'Sistema de Piletas' : (sectors.find(s => s.id === activeSector)?.name || 'Directorio'))))}
                         </h2>
                     </div>

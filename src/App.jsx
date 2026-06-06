@@ -11,7 +11,8 @@ const App = () => {
         if (!saved) return INITIAL_DATA_REFINED;
         try {
             const parsed = JSON.parse(saved);
-            const merged = [...parsed];
+            const filtered = parsed.filter(s => s.id !== 'sec_pdf');
+            const merged = [...filtered];
             INITIAL_DATA_REFINED.forEach(defSector => {
                 if (!merged.some(s => s.id === defSector.id)) {
                     merged.push(defSector);
@@ -20,8 +21,25 @@ const App = () => {
                     const existingSector = merged[existingSectorIndex];
                     const mergedSubsectors = [...(existingSector.subsectors || [])];
                     (defSector.subsectors || []).forEach(defSub => {
-                        if (!mergedSubsectors.some(sub => sub.id === defSub.id)) {
+                        const existingSubIndex = mergedSubsectors.findIndex(sub => sub.id === defSub.id);
+                        if (existingSubIndex === -1) {
                             mergedSubsectors.push(defSub);
+                        } else {
+                            const existingSub = mergedSubsectors[existingSubIndex];
+                            const mergedLinks = [...(existingSub.links || [])];
+                            (defSub.links || []).forEach(defLink => {
+                                const existingLinkIndex = mergedLinks.findIndex(l => l.id === defLink.id);
+                                if (existingLinkIndex === -1) {
+                                    mergedLinks.push(defLink);
+                                } else {
+                                    mergedLinks[existingLinkIndex] = {
+                                        ...defLink,
+                                        isFavorite: mergedLinks[existingLinkIndex].isFavorite,
+                                        lastUsed: mergedLinks[existingLinkIndex].lastUsed || defLink.lastUsed
+                                    };
+                                }
+                            });
+                            mergedSubsectors[existingSubIndex] = { ...existingSub, links: mergedLinks };
                         }
                     });
                     merged[existingSectorIndex] = { ...existingSector, subsectors: mergedSubsectors };
@@ -41,6 +59,7 @@ const App = () => {
     const [cardSize, setCardSize] = useState(() => localStorage.getItem('baroid_card_size') || 'large');
     const [darkMode, setDarkMode] = useState(() => localStorage.getItem('baroid_dark_mode') === 'true');
     const [notes, setNotes] = useState(() => localStorage.getItem('baroid_notes') || '');
+    const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
     const searchInputRef = useRef(null);
     const fileInputRef = useRef(null);
 
@@ -235,8 +254,6 @@ const App = () => {
         setShowModal(null);
     };
 
-    window.baroidAddPdf = addLink;
-
     const deleteItem = (type, sid, subsid = null, lid = null) => {
         if (!confirm(`¿Eliminar ${type}?`)) return;
         if (type === 'sector') setSectors(prev => prev.filter(s => s.id !== sid));
@@ -301,7 +318,13 @@ const App = () => {
 
     return (
         <div className="bg-[var(--h-bg)] min-h-screen transition-colors duration-300 flex justify-center">
-            <div className="flex w-full max-w-[1600px] relative shadow-2xl">
+            <div className="flex flex-col lg:flex-row w-full max-w-[1600px] relative shadow-2xl">
+                {isMobileSidebarOpen && (
+                    <div
+                        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden animate-fade-in"
+                        onClick={() => setIsMobileSidebarOpen(false)}
+                    />
+                )}
                 <Sidebar
                     sectors={sectors}
                     setActiveSector={setActiveSector}
@@ -325,6 +348,8 @@ const App = () => {
                     setModalData={setModalData}
                     cardSize={cardSize}
                     setCardSize={setCardSize}
+                    isMobileSidebarOpen={isMobileSidebarOpen}
+                    setIsMobileSidebarOpen={setIsMobileSidebarOpen}
                 />
                 <MainContent
                     displaySectors={displaySectors}
@@ -342,6 +367,7 @@ const App = () => {
                     darkMode={darkMode}
                     setDarkMode={setDarkMode}
                     addLink={addLink}
+                    setIsMobileSidebarOpen={setIsMobileSidebarOpen}
                 />
                 <Modal
                     showModal={showModal}
