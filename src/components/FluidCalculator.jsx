@@ -34,6 +34,10 @@ const FluidCalculator = ({ isEditing }) => {
   // LGS Dilution State
   const [lgs, setLgs] = useState({ v1: '', c1: '', c2: '', cf: '' });
 
+  // Mixing Densification State
+  const [mixTargetDens, setMixTargetDens] = useState('');
+  const [mixBariteSg, setMixBariteSg] = useState('4.2');
+
   // Treatment Visibility State
   const [treatmentConfig, setTreatmentConfig] = useState(() => {
     const DEFAULT_TREATMENT = [
@@ -131,7 +135,7 @@ const FluidCalculator = ({ isEditing }) => {
     const depthVal = parseFloat(eng.depth);
     if (isNaN(densVal) || isNaN(depthVal)) return 0;
     const dppg = unitMode === 'field' ? densVal : glToPPG(densVal);
-    const dft = mToFt(depthVal);
+    const dft = unitMode === 'field' ? depthVal : mToFt(depthVal);
     return (0.052 * dppg * dft).toFixed(2);
   };
 
@@ -363,6 +367,26 @@ const FluidCalculator = ({ isEditing }) => {
     return { dens: (totalMass / totalVol).toFixed(2), vol: totalVol.toFixed(2) };
   };
 
+  const getMixDensificationTons = () => {
+    const mixRes = getMixingResult();
+    const vol = parseFloat(mixRes.vol) || 0;
+    const d1 = parseFloat(mixRes.dens) || 0;
+    const d2 = parseFloat(mixTargetDens) || 0;
+    const sgB = parseFloat(mixBariteSg) || 4.2;
+
+    if (vol <= 0 || d1 <= 0 || d2 <= 0 || isNaN(vol) || isNaN(d1) || isNaN(d2) || isNaN(sgB)) return 0;
+    if (d2 <= d1) return 0;
+
+    let v_m3 = mixUnits.vol === 'm3' ? vol : bblToM3(vol);
+    let sg1 = mixUnits.dens === 'gL' ? d1 / 1000 : d1 / 8.33;
+    let sg2 = mixUnits.dens === 'gL' ? d2 / 1000 : d2 / 8.33;
+
+    if (sg2 <= sg1 || sg2 >= sgB) return 0;
+
+    const tons = v_m3 * (sg2 - sg1) / (sgB - sg2) * sgB;
+    return tons.toFixed(2);
+  };
+
   const getLGSResult = () => {
     const { v1, c1, c2, cf } = lgs;
     if (!v1 || !c1 || !c2 || !cf) return { v2: 0, vf: 0, factor: 0, invalid: false, msg: '' };
@@ -495,7 +519,7 @@ const FluidCalculator = ({ isEditing }) => {
                 <input type="number" value={eng.dens} onChange={e => setEng({ ...eng, dens: e.target.value })} className="w-full input-style text-xl font-bold" placeholder="0.00" />
               </div>
               <div>
-                <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">Profundidad (metros)</label>
+                <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">Profundidad ({unitMode === 'field' ? 'pies' : 'metros'})</label>
                 <input type="number" value={eng.depth} onChange={e => setEng({ ...eng, depth: e.target.value })} className="w-full input-style text-xl font-bold" placeholder="0.00" />
               </div>
               <div>

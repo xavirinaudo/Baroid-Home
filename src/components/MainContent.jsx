@@ -83,43 +83,7 @@ const MainContent = ({
                             activeSector === 'piletas' ? <PiletasSystem isEditing={isEditing} /> :
                                 displaySectors.map(sec => (
                                     <div key={sec.id} className="space-y-10 animate-fade-in">
-                                        {sec.id === 'sec_pdf' && (
-                                            <div className="bg-halliburton-red/5 dark:bg-red-900/10 border-2 border-dashed border-halliburton-red/30 rounded-[3rem] p-12 text-center group/upload hover:border-halliburton-red/60 transition-all">
-                                                <div className="max-w-md mx-auto">
-                                                    <div className="w-16 h-16 bg-halliburton-red rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-xl group-hover/upload:scale-110 transition-transform">
-                                                        <Icon name="upload-cloud" size={32} className="text-white" />
-                                                    </div>
-                                                    <h3 className="text-xl font-black uppercase italic text-zinc-800 dark:text-white mb-2">Subir Nuevo Documento PDF</h3>
-                                                    <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-8">El archivo se guardará localmente en tu navegador</p>
-                                                    <input
-                                                        type="file"
-                                                        accept=".pdf"
-                                                        id="pdf-upload"
-                                                        className="hidden"
-                                                        onChange={(e) => {
-                                                            const file = e.target.files[0];
-                                                            if (!file) return;
-                                                            if (file.size > 2 * 1024 * 1024) {
-                                                                alert('El archivo es muy pesado (máximo 2MB para almacenamiento local)');
-                                                                return;
-                                                            }
-                                                            const reader = new FileReader();
-                                                            reader.onload = (event) => {
-                                                                trackLinkClick('pdf_upload');
-                                                                const sec_pdf = sectors.find(s => s.id === 'sec_pdf');
-                                                                if (sec_pdf && sec_pdf.subsectors.length > 0) {
-                                                                    addLink(sec_pdf.id, sec_pdf.subsectors[0].id, file.name.replace('.pdf', ''), event.target.result);
-                                                                }
-                                                            };
-                                                            reader.readAsDataURL(file);
-                                                        }}
-                                                    />
-                                                    <label htmlFor="pdf-upload" className="inline-block px-10 py-5 bg-halliburton-red text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-2xl cursor-pointer shadow-xl hover:bg-zinc-800 transition-all hover:scale-105 active:scale-95">
-                                                        Seleccionar Archivo
-                                                    </label>
-                                                </div>
-                                            </div>
-                                        )}
+
                                         {sec.subsectors.map(sub => (
                                             <section key={sub.id} className="group/sub">
                                                 <div className="flex items-center justify-between mb-8 border-b-2 border-zinc-100 dark:border-zinc-800 pb-4">

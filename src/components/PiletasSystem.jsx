@@ -71,8 +71,8 @@ const PiletasSystem = ({ isEditing }) => {
             x: 50,
             y: 50,
             rotated: false,
-            w: 130,
-            h: 220
+            w: 120,
+            h: 105
         };
 
         const nextPits = [...pits, newPit];
@@ -212,7 +212,7 @@ const PiletasSystem = ({ isEditing }) => {
                             <div style="height: 80px; background: #f1f5f9; border-radius: 10px; position: relative; overflow: hidden; border: 1.5px solid #e2e8f0;">
                                 <div style="position: absolute; bottom: 0; left: 0; width: 100%; background: ${c}; height: ${level}%;"></div>
                                 <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;">
-                                    <div style="background: white; border: 2.5px solid black; padding: 4px 10px; border-radius: 10px; font-size: 22px; font-weight: 950; font-family: Outfit; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">${p.vol}</div>
+                                    <div style="background: white; border: 2.5px solid black; padding: 4px 10px; border-radius: 10px; font-size: 22px; font-weight: 950; font-family: Outfit; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">${displayVol(p.vol)}</div>
                                 </div>
                             </div>
                             <div style="margin-top: 10px; background: #0f172a; border-radius: 10px; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center;">
@@ -222,7 +222,7 @@ const PiletasSystem = ({ isEditing }) => {
                                 </div>
                                 <div style="text-align: right;">
                                     <div style="font-size: 7px; font-weight: 900; color: #64748b;">CAP</div>
-                                    <div style="font-size: 17px; font-weight: 950; color: #cbd5e1; font-family: Outfit;">${p.maxVol}</div>
+                                    <div style="font-size: 17px; font-weight: 950; color: #cbd5e1; font-family: Outfit;">${displayVol(p.maxVol)}</div>
                                 </div>
                             </div>
                         </div>
@@ -425,6 +425,22 @@ const PiletasSystem = ({ isEditing }) => {
         return unitMode === 'metric' ? num / 1000 : num / 8.33;
     };
     const getDensLabel = () => unitMode === 'metric' ? 'g/L' : 'ppg';
+
+    const displayVol = (v) => {
+        if (v === '' || v === undefined || v === null) return '';
+        const num = parseFloat(v);
+        if (isNaN(num)) return '';
+        const converted = unitMode === 'metric' ? num : num / 0.158987;
+        return Math.round(converted * 100) / 100;
+    };
+
+    const parseVol = (val) => {
+        if (val === '' || val === undefined || val === null) return '';
+        const num = parseFloat(val);
+        if (isNaN(num)) return '';
+        const converted = unitMode === 'metric' ? num : num * 0.158987;
+        return Math.round(converted * 100) / 100;
+    };
 
     const availableColors = [
         'bg-blue-600', 'bg-halliburton-red', 'bg-zinc-900', 'bg-yellow-500', 'bg-zinc-700', 'bg-sky-400',
@@ -641,8 +657,8 @@ const PiletasSystem = ({ isEditing }) => {
                                             <div className={`flex items-baseline justify-center gap-1 w-full backdrop-blur-[3px] rounded-xl py-1 px-2 border border-white/20 shadow-sm transition-all ${((currentType.color === 'bg-zinc-900' && fillPct > 80) || (currentType.color !== 'bg-zinc-900' && fillPct > 82)) ? 'bg-black/40' : 'bg-black/20 dark:bg-white/10'}`}>
                                                 <input
                                                     type="number"
-                                                    value={p.vol}
-                                                    onChange={e => updatePit(p.id, 'vol', e.target.value)}
+                                                    value={displayVol(p.vol)}
+                                                    onChange={e => updatePit(p.id, 'vol', parseVol(e.target.value))}
                                                     onKeyDown={handleEnter}
                                                     style={{
                                                         fontSize: `${Math.max(18, Math.min(32 * globalScale, innerH > 60 ? 32 * globalScale : innerH * 0.5))}px`,
@@ -676,8 +692,8 @@ const PiletasSystem = ({ isEditing }) => {
                                         <div className="flex flex-col items-end leading-none">
                                             <span className="font-black text-white/50 uppercase tracking-tighter" style={{ fontSize: `${Math.max(9, 8 * globalScale)}px` }}>CAP</span>
                                             <input
-                                                value={p.maxVol}
-                                                onChange={e => updatePit(p.id, 'maxVol', e.target.value)}
+                                                value={displayVol(p.maxVol)}
+                                                onChange={e => updatePit(p.id, 'maxVol', parseVol(e.target.value))}
                                                 style={{ fontSize: `${Math.max(13, 11 * globalScale)}px`, textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
                                                 className="w-12 bg-transparent border-none font-bold text-right text-white p-0 focus:ring-0 leading-none outline-none"
                                             />

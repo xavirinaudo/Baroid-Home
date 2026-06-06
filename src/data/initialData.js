@@ -41,6 +41,12 @@ export const INITIAL_DATA_REFINED = [
             "name": "JM - Journey Management",
             "url": "https://nam10.safelinks.protection.outlook.com/?url=https%3A%2F%2Fapps.powerapps.com%2Fplay%2Fe%2Fdefault-b7be7686-6f97-4db7-9081-a23cf09a96b5%2Fa%2F82ec6e72-c321-4275-9a9d-ea7e904f8b33%3FtenantId%3Db7be7686-6f97-4db7-9081-a23cf09a96b5%26hint%3Dc20bd8a5-1cd7-4bcd-b551-da17e7d225dc%26sourcetime%3D1694715734051%26source%3Dportal&data=05%7C02%7CXavierCustodio.Rinaudo2%40halliburton.com%7Ce40092f404c74d5cf78e08ddbe38fdc5%7Cb7be76866f974db79081a23cf09a96b5%7C0%7C0%7C638875874177981292%7CUnknown%7CTWFpbGZsb3d8eyJFbXB0eU1hcGkiOnRydWUsIlYiOiIwLjAuMDAwMCIsIlAiOiJXaW4zMiIsIkFOIjoiTWFpbCIsIldUIjoyfQ%3D%3D%7C0%7C%7C%7C&sdata=DTRtJKuupPDy2%2Bm%2BFny8fJ8vlBTFTz7f6kRUe4ivMqM%3D&reserved=0",
             "isFavorite": false
+          },
+          {
+            "id": "l_hr_taxi_app",
+            "name": "Taxi App",
+            "url": "https://halliburton.sharepoint.com/sites/lamat/ltbr/SitePages/Home.aspx?xsdata=MDV8MDJ8WGF2aWVyQ3VzdG9kaW8uUmluYXVkbzJAaGFsbGlidXJ0b24uY29tfDAzODFkYjZhZmQ2MDQxNmFhMWI1MDhkZTczYTQ0NTlmfGI3YmU3Njg2NmY5NzRkYjc5MDgxYTIzY2YwOWE5NmI1fDB8MHw2MzkwNzUzNDY1MzcyOTc4MDZ8VW5rbm93bnxUV0ZwYkdac2IzZDhleUpGYlhCMGVVMWhjR2tpT25SeWRXVXNJbFlpT2lJd0xqQXVNREF3TUNJc0lsQWlPaUpYYVc0ek1pSXNJa0ZPSWpvaVRXRnBiQ0lzSWxkVUlqb3lmUT09fDB8fHw%3d&sdata=Yy9HL05PNlU0S2JqWGFpbDVpYVR5ZGYrOWV6NDVHc2p3TzNFdHEyZzJZTT0%3d",
+            "isFavorite": false
           }
         ]
       }
@@ -71,6 +77,12 @@ export const INITIAL_DATA_REFINED = [
             "id": "l_saf_4",
             "name": "One View: Observaciones",
             "url": "https://halliburton-az.us.enablon.io/HALOneView/go.aspx"
+          },
+          {
+            "id": "l_saf_charla_zero",
+            "name": "Charla Zero",
+            "url": "https://teams.microsoft.com/l/meetup-join/19%3ameeting_NTA3ODFiOWItYTBkOS00YWEzLWJhYzYtZTM2NmM1MDY4NzI3%40thread.v2/0?context=%7b%22Tid%22%3a%22b7be7686-6f97-4db7-9081-a23cf09a96b5%22%2c%22Oid%22%3a%22759617f9-d58c-4354-a951-74133cdb5fa1%22%7d",
+            "isFavorite": false
           }
         ]
       },
@@ -404,19 +416,6 @@ export const INITIAL_DATA_REFINED = [
             "url": "https://halliburton.sharepoint.com/sites/BrandCenter"
           }
         ]
-      }
-    ]
-  },
-  {
-    "id": "sec_pdf",
-    "name": "Documentos & Guías PDF",
-    "icon": "file-text",
-    "color": "#CC0000",
-    "subsectors": [
-      {
-        "id": "sub_pdf_user",
-        "name": "Mis Archivos PDF",
-        "links": []
       }
     ]
   }
