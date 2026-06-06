@@ -53,9 +53,9 @@ const GreetingDashboard = () => {
       {/* Bottom Ticker/Reminder Section */}
       <div className="absolute bottom-0 left-0 right-0 h-10 bg-black/10 flex items-center px-10 border-t border-white/5">
         <div className="flex items-center gap-2 animate-fade-in" key={activeIndex}>
-          <Icon name={reminders[activeIndex].icon} size={12} className="text-white/40" />
+          <Icon name={reminders[activeIndex % reminders.length].icon} size={12} className="text-white/40" />
           <span className="text-[9px] font-black uppercase tracking-[0.2em] text-white/30">Recordatorio:</span>
-          <span className="text-[9px] font-bold uppercase tracking-widest text-white/70">{reminders[activeIndex].text}</span>
+          <span className="text-[9px] font-bold uppercase tracking-widest text-white/70">{reminders[activeIndex % reminders.length].text}</span>
         </div>
       </div>
 

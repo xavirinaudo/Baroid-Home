@@ -1038,7 +1038,7 @@ const FluidCalculator = ({ isEditing }) => {
                     </div>
                   ))}
                 </div>
-                {(parseFloat(getPfMfResult().oh) > 500 && Math.abs(2 * parseFloat(titration.pf) - parseFloat(titration.mf)) < 0.2 * parseFloat(titration.mf)) && (
+                {(!getPfMfResult().invalid && parseFloat(getPfMfResult().oh) > 500 && Math.abs(2 * parseFloat(titration.pf) - parseFloat(titration.mf)) < 0.2 * parseFloat(titration.mf)) && (
                   <div className="p-4 bg-orange-500/10 border border-orange-500/20 rounded-2xl text-[9px] font-bold text-orange-400 uppercase tracking-widest text-center">
                     ⚠️ ALERTA: Posible contaminación por Carbonatos. Verificar con Yeso.
                   </div>

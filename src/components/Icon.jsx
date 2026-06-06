@@ -20,10 +20,20 @@ const Icon = ({ name, size = 20, className = "", style = {} }) => {
     else if (pascalName === 'ArrowDown01') TargetIcon = LucideIcons.SortAsc;
     else if (pascalName === 'ArrowUp10') TargetIcon = LucideIcons.SortDesc;
     else if (pascalName === 'SortAsc') TargetIcon = LucideIcons.ArrowDownAZ;
-    else TargetIcon = LucideIcons.HelpCircle; // Default fallback
   }
 
-  return <TargetIcon size={size} className={className} style={style} />;
+  // Ensure TargetIcon is a valid component
+  if (!TargetIcon) {
+    TargetIcon = LucideIcons.CircleHelp || LucideIcons.HelpCircle || LucideIcons.Circle || (() => null);
+  }
+
+  try {
+    return <TargetIcon size={size} className={className} style={style} />;
+  } catch (e) {
+    console.error("Error rendering icon:", name, e);
+    return <span className={className} style={{ width: size, height: size, display: 'inline-block', fontSize: size }}>•</span>;
+  }
 };
 
 export default Icon;
+
