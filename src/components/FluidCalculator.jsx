@@ -877,7 +877,7 @@ const FluidCalculator = ({ isEditing }) => {
                 <div className="p-6 bg-white/5 rounded-3xl border border-white/10 inline-block">
                   <span className="text-[9px] font-black text-zinc-500 uppercase block mb-1">Volumen Final Estimado</span>
                   <p className="text-xl font-black italic">
-                    {(parseFloat(barite.vol || 0) + (getBariteTons() / 4.2 * (bariteUnits.vol === 'bbl' ? 6.2898 : 1))).toFixed(2)} {bariteUnits.vol}
+                    {(parseFloat(barite.vol || 0) + (getBariteTons() / (parseFloat(barite.sg) || 4.2) * (bariteUnits.vol === 'bbl' ? 6.2898 : 1))).toFixed(2)} {bariteUnits.vol}
                   </p>
                 </div>
               </div>
