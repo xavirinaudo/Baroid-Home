@@ -1,8 +1,13 @@
 import React, { useState } from 'react';
 import Icon from './Icon';
+import AccurisGuideModal from './AccurisGuideModal';
 
 const Modal = ({ showModal, setShowModal, modalData, addSector, addSubsector, addLink, updateItem }) => {
   if (!showModal) return null;
+  
+  if (showModal === 'accuris-guide') {
+    return <AccurisGuideModal setShowModal={setShowModal} />;
+  }
   
   const [form, setForm] = useState({
     name: modalData.name || '',

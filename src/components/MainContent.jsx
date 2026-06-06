@@ -142,7 +142,13 @@ const MainContent = ({
                                                                     href={l.url}
                                                                     target="_blank"
                                                                     rel="noopener noreferrer"
-                                                                    onClick={() => trackLinkClick(l.id)}
+                                                                    onClick={(e) => {
+                                                                        trackLinkClick(l.id);
+                                                                        if (l.id === 'l_soft_accuris') {
+                                                                            e.preventDefault();
+                                                                            setShowModal('accuris-guide');
+                                                                        }
+                                                                    }}
                                                                     className="flex items-center gap-4 bg-white dark:bg-slate-800/20 border border-zinc-100 dark:border-zinc-800 p-4 rounded-2xl hover:bg-zinc-50 dark:hover:bg-slate-800/40 transition-all group-hover/list-item:border-halliburton-red/30"
                                                                 >
                                                                     <div className="bg-zinc-50 dark:bg-slate-900 p-2.5 rounded-xl group-hover/list-item:bg-red-50 dark:group-hover/list-item:bg-red-900/20 transition-colors">
@@ -170,7 +176,13 @@ const MainContent = ({
                                                     }>
                                                         {sub.links.map((l, lIdx) => (
                                                             <div key={l.id} className="relative group/card card-entrance" style={{ animationDelay: `${lIdx * 0.1}s` }}>
-                                                                <a href={l.url} target="_blank" rel="noopener noreferrer" onClick={() => trackLinkClick(l.id)} className={`block bg-white dark:bg-slate-800/40 border border-zinc-100 dark:border-zinc-800 card-shadow hover-glow h-full overflow-hidden relative ${cardSize === 'small' ? 'p-5 rounded-3xl' : 'p-8 rounded-[2.5rem]'}`}>
+                                                                <a href={l.url} target="_blank" rel="noopener noreferrer" onClick={(e) => {
+                                                                    trackLinkClick(l.id);
+                                                                    if (l.id === 'l_soft_accuris') {
+                                                                        e.preventDefault();
+                                                                        setShowModal('accuris-guide');
+                                                                    }
+                                                                }} className={`block bg-white dark:bg-slate-800/40 border border-zinc-100 dark:border-zinc-800 card-shadow hover-glow h-full overflow-hidden relative ${cardSize === 'small' ? 'p-5 rounded-3xl' : 'p-8 rounded-[2.5rem]'}`}>
                                                                     <div className={`flex items-center justify-between ${cardSize === 'small' ? 'mb-4' : 'mb-6'}`}>
                                                                         <div className={`bg-zinc-50 dark:bg-slate-900 group-hover/card:bg-red-50 dark:group-hover/card:bg-red-900/20 transition-all duration-500 group-hover/card:rotate-[5deg] ${cardSize === 'small' ? 'p-3 rounded-xl' : 'p-4 rounded-2xl'}`}>
                                                                             <Icon name="file-text" size={24} className="text-halliburton-red" />
