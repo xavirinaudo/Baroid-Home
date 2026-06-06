@@ -11,7 +11,15 @@ const App = () => {
         if (!saved) return INITIAL_DATA_REFINED;
         try {
             const parsed = JSON.parse(saved);
-            const filtered = parsed.filter(s => s.id !== 'sec_pdf');
+            const retiredLinkIds = ['l_hr_structure_pptx', 'l_qa_checklist_zip'];
+            const cleanedParsed = parsed.map(s => ({
+                ...s,
+                subsectors: (s.subsectors || []).map(sub => ({
+                    ...sub,
+                    links: (sub.links || []).filter(l => !retiredLinkIds.includes(l.id))
+                }))
+            }));
+            const filtered = cleanedParsed.filter(s => s.id !== 'sec_pdf');
             const merged = [...filtered];
             INITIAL_DATA_REFINED.forEach(defSector => {
                 if (!merged.some(s => s.id === defSector.id)) {
