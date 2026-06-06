@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import Icon from './Icon';
-import html2pdf from 'html2pdf.js';
 
 const PiletasSystem = ({ isEditing }) => {
     const [unitMode, setUnitMode] = useState('metric'); // 'field', 'metric'
@@ -132,131 +131,6 @@ const PiletasSystem = ({ isEditing }) => {
         });
 
         setPits(newPits);
-    };
-
-    const exportToPDF = () => {
-        const date = new Date().toLocaleString('es-AR', {
-            day: '2-digit', month: '2-digit', year: 'numeric',
-            hour: '2-digit', minute: '2-digit', hour12: false
-        });
-
-        const colorMap = {
-            'bg-blue-600': '#2563eb', 'bg-halliburton-red': '#CC0000', 'bg-zinc-900': '#18181b',
-            'bg-yellow-500': '#eab308', 'bg-zinc-700': '#3f3f46', 'bg-sky-400': '#38bdf8',
-            'bg-orange-600': '#ea580c', 'bg-emerald-600': '#059669', 'bg-amber-500': '#f59e0b',
-            'bg-purple-600': '#9333ea', 'bg-zinc-500': '#71717a'
-        };
-
-        const currentUnit = unitMode === 'metric' ? 'm³' : 'bbl';
-        const totalVolReport = pits.reduce((acc, p) => acc + (parseFloat(p.vol) || 0), 0);
-        const totalMaxReport = pits.reduce((acc, p) => acc + (parseFloat(p.maxVol) || 0), 0);
-        const occupancy = ((totalVolReport / (totalMaxReport || 1)) * 100).toFixed(1);
-
-        const reportContainer = document.createElement('div');
-        reportContainer.id = "pdf-export-container";
-        reportContainer.style.cssText = "position: fixed; top: 0; left: 0; width: 1080px; z-index: -100; opacity: 0.01; padding: 0; margin: 0; background: white; color: black; font-family: 'Inter', sans-serif; pointer-events: none;";
-
-        const innerBody = document.createElement('div');
-        innerBody.style.cssText = "padding: 30px; box-sizing: border-box; width: 100%; color: black; font-family: 'Inter', sans-serif; background: white;";
-
-        const header = `
-            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #CC0000; padding-bottom: 15px; margin-bottom: 20px;">
-                <div style="display: flex; align-items: center; gap: 15px;">
-                    <div style="width: 45px; height: 45px; background: #CC0000; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 950; font-size: 28px; font-family: Outfit;">H</div>
-                    <h1 style="margin: 0; font-size: 24px; font-weight: 950; color: #1e293b; font-family: Outfit;">INVENTARIO DE PILETAS | BAROID</h1>
-                </div>
-                <div style="font-family: Outfit; font-size: 18px; font-weight: 950; color: #CC0000;">${date}</div>
-            </div>
-        `;
-
-        const kpiStrip = `
-            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px;">
-                ${[
-                { l: 'Volumen Total', v: unitMode === 'metric' ? totalVolReport.toFixed(1) : (totalVolReport / 0.158987).toFixed(0), u: currentUnit, c: '#CC0000' },
-                { l: 'Capacidad', v: unitMode === 'metric' ? totalMaxReport.toFixed(1) : (totalMaxReport / 0.158987).toFixed(0), u: currentUnit, c: '#1e293b' },
-                { l: 'Ocupación', v: occupancy, u: '%', c: '#1e293b' },
-                { l: 'Dens. Media', v: displayDens(totalVolReport > 0 ? pits.reduce((acc, p) => acc + (parseFloat(p.vol) || 0) * (parseFloat(p.density) || 1), 0) / totalVolReport : 1), u: getDensLabel(), c: '#1e293b' }
-            ].map(k => `
-                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; padding: 15px; border-radius: 12px; border-left: 5px solid ${k.c};">
-                        <div style="font-size: 9px; font-weight: 900; color: #64748b; text-transform: uppercase; margin-bottom: 5px;">${k.l}</div>
-                        <div style="font-size: 26px; font-weight: 950; color: ${k.c}; font-family: Outfit;">${k.v} <small style="font-size: 12px; color: #94a3b8;">${k.u}</small></div>
-                    </div>
-                `).join('')}
-            </div>
-        `;
-
-        const sysLine = `
-            <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px;">
-                ${fluidSystems.map(sys => {
-            const volS = pits.filter(p => p.type === sys.id).reduce((acc, p) => acc + (parseFloat(p.vol) || 0), 0);
-            if (volS === 0) return '';
-            return `<div style="display: flex; align-items: center; gap: 5px; background: #f8fafc; padding: 4px 10px; border-radius: 6px; border: 1px solid #e2e8f0;">
-                        <div style="width: 8px; height: 8px; border-radius: 2px; background: ${colorMap[sys.color] || sys.color};"></div>
-                        <span style="font-size: 9px; font-weight: 800; color: #475569;">${sys.label}: <strong style="color:#0f172a">${unitMode === 'metric' ? volS.toFixed(1) : (volS / 0.158987).toFixed(0)}</strong></span>
-                    </div>`;
-        }).join('')}
-            </div>
-        `;
-
-        const sortedPits = [...pits].sort((a, b) => (a.y - b.y) || (a.x - b.x)).slice(0, 36);
-        const grid = `
-            <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px;">
-                ${sortedPits.map(p => {
-            const vmax = parseFloat(p.maxVol) || 1;
-            const level = Math.min(((parseFloat(p.vol) || 0) / vmax) * 100, 100);
-            const system = fluidSystems.find(s => s.id === p.type) || fluidSystems[0];
-            const c = colorMap[system.color] || '#333';
-            return `
-                        <div style="border: 2px solid #e2e8f0; border-radius: 15px; padding: 10px; background: white;">
-                            <div style="font-size: 12px; font-weight: 950; text-align: center; font-family: Outfit; border-bottom: 2px solid #f1f5f9; padding-bottom: 6px; margin-bottom: 10px; text-transform: uppercase;">${p.name}</div>
-                            <div style="height: 80px; background: #f1f5f9; border-radius: 10px; position: relative; overflow: hidden; border: 1.5px solid #e2e8f0;">
-                                <div style="position: absolute; bottom: 0; left: 0; width: 100%; background: ${c}; height: ${level}%;"></div>
-                                <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;">
-                                    <div style="background: white; border: 2.5px solid black; padding: 4px 10px; border-radius: 10px; font-size: 22px; font-weight: 950; font-family: Outfit; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">${displayVol(p.vol)}</div>
-                                </div>
-                            </div>
-                            <div style="margin-top: 10px; background: #0f172a; border-radius: 10px; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center;">
-                                <div style="text-align: left;">
-                                    <div style="font-size: 7px; font-weight: 900; color: #64748b;">DENSIDAD</div>
-                                    <div style="font-size: 17px; font-weight: 950; color: white; font-family: Outfit;">${displayDens(p.density)}</div>
-                                </div>
-                                <div style="text-align: right;">
-                                    <div style="font-size: 7px; font-weight: 900; color: #64748b;">CAP</div>
-                                    <div style="font-size: 17px; font-weight: 950; color: #cbd5e1; font-family: Outfit;">${displayVol(p.maxVol)}</div>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-        }).join('')}
-            </div>
-        `;
-
-        innerBody.innerHTML = header + kpiStrip + sysLine + grid;
-        reportContainer.appendChild(innerBody);
-        document.body.appendChild(reportContainer);
-
-        const opt = {
-            margin: 5,
-            filename: `Reporte_Piletas_${date.replace(/[/:\s]/g, '_')}.pdf`,
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: {
-                scale: 2,
-                width: 1080,
-                useCORS: true,
-                backgroundColor: '#ffffff',
-                logging: false
-            },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
-        };
-
-        setTimeout(() => {
-            html2pdf().set(opt).from(reportContainer).save().then(() => {
-                document.body.removeChild(reportContainer);
-            }).catch(err => {
-                console.error("Error capturando PDF:", err);
-                document.body.removeChild(reportContainer);
-            });
-        }, 1500);
     };
 
     const undoReorder = () => {
@@ -494,10 +368,6 @@ const PiletasSystem = ({ isEditing }) => {
 
                         <button onClick={() => setShowFluidStats(!showFluidStats)} className={`px-6 py-3 rounded-xl text-xs font-black uppercase shadow-md flex items-center gap-2 transition-all transform hover:scale-105 ${showFluidStats ? 'bg-halliburton-red text-white' : 'bg-zinc-900 text-white'}`}>
                             <Icon name="bar-chart-2" size={16} /> Ver Dashboard
-                        </button>
-
-                        <button onClick={exportToPDF} className="bg-white dark:bg-slate-800 text-zinc-600 dark:text-zinc-400 px-4 py-2 rounded-xl text-[10px] font-black uppercase shadow-sm border border-zinc-100 dark:border-zinc-700 flex items-center gap-2 hover:bg-zinc-50 dark:hover:bg-slate-700 transition-colors">
-                            <Icon name="file-text" size={14} /> PDF
                         </button>
                     </div>
 

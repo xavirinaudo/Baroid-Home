@@ -566,11 +566,6 @@ export const INITIAL_DATA_REFINED = [
             "id": "l_hr_taxi_app",
             "name": "Taxi App",
             "url": "https://halliburton.sharepoint.com/sites/lamat/ltbr/SitePages/Home.aspx?xsdata=MDV8MDJ8WGF2aWVyQ3VzdG9kaW8uUmluYXVkbzJAaGFsbGlidXJ0b24uY29tfDAzODFkYjZhZmQ2MDQxNmFhMWI1MDhkZTczYTQ0NTlmfGI3YmU3Njg2NmY5NzRkYjc5MDgxYTIzY2YwOWE5NmI1fDB8MHw2MzkwNzUzNDY1MzcyOTc4MDZ8VW5rbm93bnxUV0ZwYkdac2IzZDhleUpGYlhCMGVVMWhjR2tpT25SeWRXVXNJbFlpT2lJd0xqQXVNREF3TUNJc0lsQWlPaUpYYVc0ek1pSXNJa0ZPSWpvaVRXRnBiQ0lzSWxkVUlqb3lmUT09fDB8fHw%3d&sdata=Yy9HL05PNlU0S2JqWGFpbDVpYVR5ZGYrOWV6NDVHc2p3TzNFdHEyZzJZTT0%3d"
-          },
-          {
-            "id": "l_hr_structure_pptx",
-            "name": "Estructura Personal BAROID 2026 (PPTX)",
-            "url": "documents/Estructura Personal BAROID 2026.pptx"
           }
         ]
       }

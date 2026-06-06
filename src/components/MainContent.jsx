@@ -16,6 +16,15 @@ const getDisplayUrl = (url) => {
     }
 };
 
+const resolveUrl = (url) => {
+    if (url && (url.startsWith('documents/') || url.startsWith('/documents/'))) {
+        const cleanUrl = url.startsWith('/') ? url.slice(1) : url;
+        const baseUrl = import.meta.env.BASE_URL || '/';
+        return `${baseUrl.endsWith('/') ? baseUrl : baseUrl + '/'}${cleanUrl}`;
+    }
+    return url;
+};
+
 const MainContent = ({
     displaySectors,
     activeSector,
@@ -139,7 +148,7 @@ const MainContent = ({
                                                         {sub.links.map((l, lIdx) => (
                                                             <div key={l.id} className="relative group/list-item card-entrance" style={{ animationDelay: `${lIdx * 0.05}s` }}>
                                                                 <a
-                                                                    href={l.url}
+                                                                    href={resolveUrl(l.url)}
                                                                     target="_blank"
                                                                     rel="noopener noreferrer"
                                                                     onClick={(e) => {
@@ -176,7 +185,7 @@ const MainContent = ({
                                                     }>
                                                         {sub.links.map((l, lIdx) => (
                                                             <div key={l.id} className="relative group/card card-entrance" style={{ animationDelay: `${lIdx * 0.1}s` }}>
-                                                                <a href={l.url} target="_blank" rel="noopener noreferrer" onClick={(e) => {
+                                                                <a href={resolveUrl(l.url)} target="_blank" rel="noopener noreferrer" onClick={(e) => {
                                                                     trackLinkClick(l.id);
                                                                     if (l.id === 'l_soft_accuris') {
                                                                         e.preventDefault();

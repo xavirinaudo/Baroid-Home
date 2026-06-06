@@ -23,7 +23,7 @@ const FluidCalculator = ({ isEditing }) => {
   const [showAdvancedSlug, setShowAdvancedSlug] = useState(false);
 
   // OWR State
-  const [owr, setOwr] = useState({ vOil: '', vWater: '', targetRatio: '80' });
+  const [owr, setOwr] = useState({ vOil: '', vWater: '', targetRatio: '80', volCondition: '' });
 
   // FIT State
   const [fit, setFit] = useState({ targetEMW: '', currentMW: '', shoeTVD: '' });
@@ -61,20 +61,19 @@ const FluidCalculator = ({ isEditing }) => {
     }
   });
 
-  // Tabs Configuration State (Order and Visibility)
   const [tabsConfig, setTabsConfig] = useState(() => {
     const DEFAULT_TABS = [
       { id: 'conv', label: 'Conversor de Unidades', icon: 'repeat', visible: true },
       { id: 'barite', label: 'Ajuste de Densidad', icon: 'arrow-up-circle', visible: true },
       { id: 'mixing', label: 'Mezcla (Balance Masa)', icon: 'blend', visible: true },
-      { id: 'eng', label: 'Hidrostática & Capacidad', icon: 'droplet', visible: true },
+      { id: 'lgs', label: 'Dilución LGS', icon: 'percent', visible: true },
       { id: 'owr', label: 'Relación Aceite/Agua', icon: 'droplets', visible: true },
+      { id: 'eng', label: 'Hidrostática & Capacidad', icon: 'droplet', visible: true },
       { id: 'slug', label: 'Píldoras (Slugs)', icon: 'flask-conical', visible: true },
       { id: 'fit', label: 'Integridad (FIT)', icon: 'shield-check', visible: true },
-      { id: 'pfmf', label: 'Pf/Mf & Tratamiento', icon: 'beaker', visible: true },
-      { id: 'lgs', label: 'Dilución LGS', icon: 'percent', visible: true }
+      { id: 'pfmf', label: 'Pf/Mf & Tratamiento', icon: 'beaker', visible: true }
     ];
-    const saved = localStorage.getItem('baroid_calc_tabs_v4');
+    const saved = localStorage.getItem('baroid_calc_tabs_v5');
     if (!saved) return DEFAULT_TABS;
     try {
       const parsed = JSON.parse(saved);
@@ -95,7 +94,7 @@ const FluidCalculator = ({ isEditing }) => {
   }, [treatmentConfig]);
 
   useEffect(() => {
-    localStorage.setItem('baroid_calc_tabs_v4', JSON.stringify(tabsConfig));
+    localStorage.setItem('baroid_calc_tabs_v5', JSON.stringify(tabsConfig));
   }, [tabsConfig]);
 
   // Special Hybrid Units for Mixing and Barite
@@ -223,27 +222,16 @@ const FluidCalculator = ({ isEditing }) => {
   };
 
   const getOWRResult = () => {
-    const { vOil, vWater, targetRatio } = owr;
-    if (!vOil && !vWater) return { current: '0/0', addOil: 0, addWater: 0, solids: '-' };
+    const { vOil, vWater, targetRatio, volCondition } = owr;
+    if (!vOil && !vWater) return { current: '0/0', addOil: 0, addWater: 0, solids: '-', finalVol: 0 };
 
     const vo = parseFloat(vOil) || 0;
     const vw = parseFloat(vWater) || 0;
-
-    if (isNaN(vo) || isNaN(vw) || vo < 0 || vw < 0 || vo + vw > 100) {
-      return {
-        current: '0/0',
-        addOil: 0,
-        addWater: 0,
-        oilPct: 0,
-        waterPct: 0,
-        solids: 'Inválido',
-        invalid: true
-      };
-    }
+    const volCond = parseFloat(volCondition) || 1; // Default to 1 to show unit factor if not specified
 
     const solids = (100 - vo - vw).toFixed(1);
     const total = vo + vw;
-    if (total === 0) return { current: '0/0', addOil: 0, addWater: 0, solids: '100' };
+    if (total === 0) return { current: '0/0', addOil: 0, addWater: 0, solids: '100', finalVol: 0 };
 
     const currentRatioOil = (vo / total) * 100;
     const currentRatioWater = (vw / total) * 100;
@@ -256,16 +244,21 @@ const FluidCalculator = ({ isEditing }) => {
     const pw = targetPerm / 100;
     const po = target / 100;
 
-    const addOil = pw <= 0 ? 0 : Math.max(0, (rw / pw) - rw - ro);
-    const addWater = po <= 0 ? 0 : Math.max(0, (ro / po) - rw - ro);
+    const addOilFactor = pw <= 0 ? 0 : Math.max(0, (rw / pw) - rw - ro);
+    const addWaterFactor = po <= 0 ? 0 : Math.max(0, (ro / po) - rw - ro);
+
+    const actualAddOil = addOilFactor * volCond;
+    const actualAddWater = addWaterFactor * volCond;
+    const finalVol = volCondition ? (volCond + actualAddOil + actualAddWater) : 0;
 
     return {
       current: `${currentRatioOil.toFixed(1)}/${currentRatioWater.toFixed(1)}`,
-      addOil: addOil.toFixed(3),
-      addWater: addWater.toFixed(3),
+      addOil: actualAddOil.toFixed(2),
+      addWater: actualAddWater.toFixed(2),
       oilPct: currentRatioOil,
       waterPct: currentRatioWater,
       solids: solids,
+      finalVol: finalVol.toFixed(2),
       invalid: false
     };
   };
@@ -734,6 +727,10 @@ const FluidCalculator = ({ isEditing }) => {
                 </div>
               </div>
               <div>
+                <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">Volumen de Lodo a Acondicionar ({unitMode === 'field' ? 'bbl' : 'm³'})</label>
+                <input type="number" value={owr.volCondition} onChange={e => setOwr({ ...owr, volCondition: e.target.value })} className="w-full input-style text-xl font-bold" placeholder={unitMode === 'field' ? 'Ej: 1000' : 'Ej: 150'} />
+              </div>
+              <div>
                 <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block italic text-halliburton-red">Relación Objetivo (% Aceite)</label>
                 <div className="flex gap-2">
                   {['70', '75', '80', '85', '90'].map(r => (
@@ -1026,16 +1023,34 @@ const FluidCalculator = ({ isEditing }) => {
                 </div>
                 <div className="flex-1 space-y-6">
                   <div>
-                    <span className="text-[10px] font-black text-zinc-500 uppercase block mb-2 tracking-widest">Tratamiento Sugerido (por bbl)</span>
+                    <span className="text-[10px] font-black text-zinc-500 uppercase block mb-2 tracking-widest">
+                      {owr.volCondition ? `Tratamiento Sugerido (para ${owr.volCondition} ${unitMode === 'field' ? 'bbl' : 'm³'})` : `Tratamiento Sugerido (por unidad)`}
+                    </span>
                     {parseFloat(getOWRResult().addOil) > 0 ? (
-                      <div className="p-4 bg-halliburton-red/10 border border-halliburton-red/20 rounded-2xl flex items-center justify-between">
-                        <span className="text-[11px] font-black uppercase tracking-wider text-halliburton-red italic">Agregar Aceite</span>
-                        <span className="text-xl font-black text-white">{getOWRResult().addOil} <small className="text-[10px] opacity-40">BBL</small></span>
+                      <div className="space-y-4">
+                        <div className="p-4 bg-halliburton-red/10 border border-halliburton-red/20 rounded-2xl flex items-center justify-between">
+                          <span className="text-[11px] font-black uppercase tracking-wider text-halliburton-red italic">Agregar Aceite</span>
+                          <span className="text-xl font-black text-white">{getOWRResult().addOil} <small className="text-[10px] opacity-40">{unitMode === 'field' ? 'BBL' : 'M³'}</small></span>
+                        </div>
+                        {parseFloat(owr.volCondition) > 0 && (
+                          <div className="p-4 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between">
+                            <span className="text-[11px] font-black uppercase tracking-wider text-zinc-400 italic">Volumen Final Resultante</span>
+                            <span className="text-xl font-black text-white">{getOWRResult().finalVol} <small className="text-[10px] opacity-40">{unitMode === 'field' ? 'BBL' : 'M³'}</small></span>
+                          </div>
+                        )}
                       </div>
                     ) : parseFloat(getOWRResult().addWater) > 0 ? (
-                      <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-2xl flex items-center justify-between">
-                        <span className="text-[11px] font-black uppercase tracking-wider text-blue-400 italic">Agregar Agua</span>
-                        <span className="text-xl font-black text-white">{getOWRResult().addWater} <small className="text-[10px] opacity-40">BBL</small></span>
+                      <div className="space-y-4">
+                        <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-2xl flex items-center justify-between">
+                          <span className="text-[11px] font-black uppercase tracking-wider text-blue-400 italic">Agregar Agua</span>
+                          <span className="text-xl font-black text-white">{getOWRResult().addWater} <small className="text-[10px] opacity-40">{unitMode === 'field' ? 'BBL' : 'M³'}</small></span>
+                        </div>
+                        {parseFloat(owr.volCondition) > 0 && (
+                          <div className="p-4 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between">
+                            <span className="text-[11px] font-black uppercase tracking-wider text-zinc-400 italic">Volumen Final Resultante</span>
+                            <span className="text-xl font-black text-white">{getOWRResult().finalVol} <small className="text-[10px] opacity-40">{unitMode === 'field' ? 'BBL' : 'M³'}</small></span>
+                          </div>
+                        )}
                       </div>
                     ) : <div className="text-[11px] font-bold text-zinc-400 italic">Relación balanceada u objetivo alcanzado.</div>}
                   </div>

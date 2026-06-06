@@ -68,6 +68,7 @@ const App = () => {
             const keysToRemove = [
                 'baroid_piletas_v8',
                 'baroid_fluid_systems_v4',
+                'baroid_calc_tabs_v5',
                 'baroid_calc_tabs_v4',
                 'baroid_treatment_config',
                 'baroid_hub_data_v6',
