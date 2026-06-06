@@ -1,2 +1,9 @@
+# Ignore local dependencies and build files
+node_modules/
+dist/
+.DS_Store
+*.local
+.env.*.local
+
 # Ignore the Vite subproject folder
 Baroid_PWA/
