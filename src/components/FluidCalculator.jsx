@@ -34,9 +34,27 @@ const FluidCalculator = ({ isEditing }) => {
   // LGS Dilution State
   const [lgs, setLgs] = useState({ v1: '', c1: '', c2: '', cf: '' });
 
+  // LGS Advanced Retort State
+  const [lgsRetort, setLgsRetort] = useState({
+    vWater: '30',
+    vOil: '50',
+    mudWeight: '10.0',
+    mlAgNo3: '12.0',
+    normality: '0.282',
+    mlSample: '2.0',
+    sgLgs: '2.60',
+    sgBarite: '4.20',
+    hasBarite: true
+  });
+
   // Mixing Densification State
   const [mixTargetDens, setMixTargetDens] = useState('');
   const [mixBariteSg, setMixBariteSg] = useState('4.2');
+
+  // Rheology State
+  const [rheo, setRheo] = useState({ vp: '20', yp: '15', tau0: '6' });
+  const [rheoSelectedRpm, setRheoSelectedRpm] = useState(600);
+  const [rheoActiveX, setRheoActiveX] = useState('rate'); // 'rate' or 'rpm'
 
   // Treatment Visibility State
   const [treatmentConfig, setTreatmentConfig] = useState(() => {
@@ -66,14 +84,16 @@ const FluidCalculator = ({ isEditing }) => {
       { id: 'conv', label: 'Conversor de Unidades', icon: 'repeat', visible: true },
       { id: 'barite', label: 'Ajuste de Densidad', icon: 'arrow-up-circle', visible: true },
       { id: 'mixing', label: 'Mezcla (Balance Masa)', icon: 'blend', visible: true },
-      { id: 'lgs', label: 'Dilución LGS', icon: 'percent', visible: true },
+      { id: 'lgs_retort', label: 'Cálculo LGS & Retorta', icon: 'percent', visible: true },
+      { id: 'lgs', label: 'Dilución LGS', icon: 'sliders', visible: true },
       { id: 'owr', label: 'Relación Aceite/Agua', icon: 'droplets', visible: true },
       { id: 'eng', label: 'Hidrostática & Capacidad', icon: 'droplet', visible: true },
       { id: 'slug', label: 'Píldoras (Slugs)', icon: 'flask-conical', visible: true },
       { id: 'fit', label: 'Integridad (FIT)', icon: 'shield-check', visible: true },
-      { id: 'pfmf', label: 'Pf/Mf & Tratamiento', icon: 'beaker', visible: true }
+      { id: 'pfmf', label: 'Pf/Mf & Tratamiento', icon: 'beaker', visible: true },
+      { id: 'rheology', label: 'Perfil Reológico', icon: 'trending-up', visible: true }
     ];
-    const saved = localStorage.getItem('baroid_calc_tabs_v5');
+    const saved = localStorage.getItem('baroid_calc_tabs_v6');
     if (!saved) return DEFAULT_TABS;
     try {
       const parsed = JSON.parse(saved);
@@ -94,7 +114,7 @@ const FluidCalculator = ({ isEditing }) => {
   }, [treatmentConfig]);
 
   useEffect(() => {
-    localStorage.setItem('baroid_calc_tabs_v5', JSON.stringify(tabsConfig));
+    localStorage.setItem('baroid_calc_tabs_v6', JSON.stringify(tabsConfig));
   }, [tabsConfig]);
 
   // Special Hybrid Units for Mixing and Barite
@@ -388,7 +408,131 @@ const FluidCalculator = ({ isEditing }) => {
     const sgB = parseFloat(mixBariteSg) || 4.2;
     const addedVol = (tons / sgB) * (mixUnits.vol === 'bbl' ? 6.2898 : 1);
     return (vol + addedVol).toFixed(2);
+  };  const getLgsRetortResult = () => {
+    const { vWater, vOil, mudWeight, mlAgNo3, normality, mlSample, sgLgs, sgBarite, hasBarite } = lgsRetort;
+
+    const vw = parseFloat(vWater);
+    const vo = parseFloat(vOil);
+    const mw = parseFloat(mudWeight);
+    const ml = parseFloat(mlAgNo3);
+    const norm = parseFloat(normality);
+    const mls = parseFloat(mlSample);
+    const sglg = parseFloat(sgLgs) || 2.60;
+    const sgb = parseFloat(sgBarite) || 4.20;
+
+    if (isNaN(vw) || isNaN(vo) || isNaN(mw) || isNaN(ml) || isNaN(norm) || isNaN(mls) || mls <= 0) {
+      return { invalid: true, msg: 'Ingrese valores numéricos válidos (Volumen de muestra debe ser mayor a 0).' };
+    }
+
+    if (vw < 0 || vo < 0 || mw < 0 || ml < 0 || norm < 0) {
+      return { invalid: true, msg: 'Los valores no pueden ser negativos.' };
+    }
+
+    if (vw + vo > 100) {
+      return { invalid: true, msg: 'La suma de Agua% y Aceite% no puede superar el 100%.' };
+    }
+
+    // 1. Cloruros y Salinidad
+    let factor = norm * 35450;
+    if (Math.abs(norm - 0.282) < 0.005) factor = 10000;
+    else if (Math.abs(norm - 0.0282) < 0.0005) factor = 1000;
+
+    const cl_mgL = (ml * factor) / mls;
+    const nacl_mgL = cl_mgL * 1.648;
+
+    // Brine density in SG
+    const rho_brine = 0.998 + (1.142e-6 * cl_mgL) - (4.926e-13 * Math.pow(cl_mgL, 2));
+
+    // WPS in ppm
+    const wps = nacl_mgL / rho_brine;
+
+    // 2. Corrección de volumen por sal
+    const v_sal = vw * (-3.025e-4 + (5.068e-7 * cl_mgL) + (4.96e-13 * Math.pow(cl_mgL, 2)));
+
+    // Sólidos suspendidos reales volume %
+    const v_ss = Math.max(0, (100 - vw - vo) - v_sal);
+
+    // Volumen real de salmuera %
+    const v_brine = vw + v_sal;
+
+    // 3. Mud weight conversion (to ppg if metric)
+    const mwPpg = unitMode === 'field' ? mw : glToPPG(mw);
+
+    // ASG (Average Solids Gravity)
+    const rho_o = 0.84;
+    let asg = 0;
+    if (v_ss > 0) {
+      asg = ((11.9826 * mwPpg) - (v_brine * rho_brine) - (vo * rho_o)) / v_ss;
+    }
+
+    // 4. LGS %
+    let pctLgs = 0;
+    if (hasBarite && sgb > sglg && v_ss > 0) {
+      pctLgs = ((sgb - asg) / (sgb - sglg)) * v_ss;
+      if (pctLgs < 0) pctLgs = 0;
+      if (pctLgs > v_ss) pctLgs = v_ss;
+    } else {
+      pctLgs = v_ss;
+    }
+
+    const pctBarite = Math.max(0, v_ss - pctLgs);
+
+    // LGS concentration in weight
+    const lgs_ppb = pctLgs * sglg * 3.505;
+    const barite_ppb = pctBarite * sgb * 3.505;
+
+    const lgs_mass = unitMode === 'field' ? lgs_ppb : lgs_ppb * 2.853;
+    const barite_mass = unitMode === 'field' ? barite_ppb : barite_ppb * 2.853;
+
+    return {
+      invalid: false,
+      cl_mgL,
+      nacl_mgL,
+      rho_brine,
+      wps,
+      v_sal,
+      v_ss,
+      v_brine,
+      asg,
+      pctLgs,
+      pctBarite,
+      lgs_mass,
+      barite_mass
+    };
   };
+
+  const lgsRetortResult = getLgsRetortResult();
+
+  // Unit toggle converter for Retort Mud weight
+  useEffect(() => {
+    setLgsRetort(prev => {
+      const mw = parseFloat(prev.mudWeight);
+      if (isNaN(mw) || mw <= 0) return prev;
+      if (unitMode === 'metric') {
+        if (mw < 30) {
+          return { ...prev, mudWeight: (mw * 119.826).toFixed(0) };
+        }
+      } else {
+        if (mw > 30) {
+          return { ...prev, mudWeight: (mw / 119.826).toFixed(2) };
+        }
+      }
+      return prev;
+    });
+  }, [unitMode]);
+
+  // Synchronize computed LGS% from retort to LGS Dilution C1 input
+  useEffect(() => {
+    if (lgsRetortResult && !lgsRetortResult.invalid && lgsRetortResult.pctLgs !== undefined) {
+      setLgs(prev => {
+        const calculatedVal = lgsRetortResult.pctLgs.toFixed(1);
+        if (prev.c1 !== calculatedVal) {
+          return { ...prev, c1: calculatedVal };
+        }
+        return prev;
+      });
+    }
+  }, [lgsRetortResult.pctLgs, lgsRetortResult.invalid]);
 
   const getLGSResult = () => {
     const { v1, c1, c2, cf } = lgs;
@@ -428,6 +572,61 @@ const FluidCalculator = ({ isEditing }) => {
       factor: factor.toFixed(4),
       invalid: false,
       msg: ''
+    };
+  };
+
+  const getRheologyResult = () => {
+    let vp = parseFloat(rheo.vp);
+    let yp = parseFloat(rheo.yp);
+    let tau0 = parseFloat(rheo.tau0);
+
+    if (isNaN(vp) || vp < 1) vp = 20;
+    if (isNaN(yp) || yp < 1) yp = 15;
+    if (isNaN(tau0) || tau0 < 0) tau0 = 6;
+
+    // Base Bingham values
+    const theta300 = vp + yp;
+    const theta600 = theta300 + vp;
+
+    // Validation: prevent tau0 from exceeding or equal to theta300 to avoid negative logs
+    let adjustedTau0 = tau0;
+    let hasAlert = false;
+    if (tau0 >= theta300) {
+      adjustedTau0 = Math.max(0, theta300 - 0.5);
+      hasAlert = true;
+    }
+
+    // Herschel-Bulkley parameters n and K
+    const logRatio = Math.log10((theta600 - adjustedTau0) / (theta300 - adjustedTau0));
+    const n = 3.32 * logRatio;
+    const k = (theta300 - adjustedTau0) / Math.pow(511, n);
+
+    const baseViscosimeterFactor = 1.7023;
+    const speeds = [600, 300, 200, 100, 6, 3];
+    const data = speeds.map(rpm => {
+      const gamma = rpm * baseViscosimeterFactor;
+      const thetaHB = adjustedTau0 + k * Math.pow(gamma, n);
+      const thetaBingham = yp + vp * (rpm / 300);
+      const viscAparente = (thetaHB * 300) / rpm;
+
+      return {
+        rpm,
+        gamma,
+        thetaHB,
+        thetaBingham,
+        viscAparente
+      };
+    });
+
+    return {
+      vp,
+      yp,
+      tau0,
+      adjustedTau0,
+      hasAlert,
+      n,
+      k,
+      data
     };
   };
 
@@ -892,6 +1091,233 @@ const FluidCalculator = ({ isEditing }) => {
               </div>
             </div>
           )}
+
+          {activeSubTab === 'lgs_retort' && (
+            <div className="space-y-6">
+              <h4 className="text-[14px] font-black text-halliburton-red uppercase tracking-widest mb-4 italic">Retorta y Salinidad (LGS)</h4>
+              
+              {/* Section 1: Retorta */}
+              <div className="space-y-4">
+                <h5 className="text-[11px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest border-b border-zinc-100 dark:border-zinc-800 pb-1">1. Datos de Retorta</h5>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-[12px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">% Vol Agua (Vw)</label>
+                    <input type="number" value={lgsRetort.vWater} onChange={e => setLgsRetort({ ...lgsRetort, vWater: e.target.value })} className="w-full input-style text-xl font-bold" placeholder="30" />
+                  </div>
+                  <div>
+                    <label className="text-[12px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">% Vol Aceite (Vo)</label>
+                    <input type="number" value={lgsRetort.vOil} onChange={e => setLgsRetort({ ...lgsRetort, vOil: e.target.value })} className="w-full input-style text-xl font-bold" placeholder="50" />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-[12px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">Densidad Lodo ({unitMode === 'field' ? 'ppg' : 'g/L'})</label>
+                  <input type="number" value={lgsRetort.mudWeight} onChange={e => setLgsRetort({ ...lgsRetort, mudWeight: e.target.value })} className="w-full input-style text-xl font-bold" placeholder="10.0" />
+                </div>
+              </div>
+
+              {/* Section 2: Salinidad */}
+              <div className="space-y-4 pt-2">
+                <h5 className="text-[11px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest border-b border-zinc-100 dark:border-zinc-800 pb-1">2. Titulación por Cloruros</h5>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-[12px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">mL AgNO₃</label>
+                    <input type="number" value={lgsRetort.mlAgNo3} onChange={e => setLgsRetort({ ...lgsRetort, mlAgNo3: e.target.value })} className="w-full input-style text-xl font-bold" placeholder="12.0" />
+                  </div>
+                  <div>
+                    <label className="text-[12px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">mL Muestra</label>
+                    <input type="number" value={lgsRetort.mlSample} onChange={e => setLgsRetort({ ...lgsRetort, mlSample: e.target.value })} className="w-full input-style text-xl font-bold" placeholder="2.0" />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-[12px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">Normalidad AgNO₃ (N)</label>
+                  <div className="flex gap-2">
+                    {['0.0282', '0.282'].map(norm => (
+                      <button
+                        key={norm}
+                        type="button"
+                        onClick={() => setLgsRetort({ ...lgsRetort, normality: norm })}
+                        className={`flex-1 py-3 rounded-xl text-[10px] font-black transition-all border ${lgsRetort.normality === norm ? 'bg-zinc-900 text-white border-zinc-900 shadow-md ring-2 ring-halliburton-red/10' : 'bg-zinc-50 dark:bg-slate-900 text-zinc-400 border-zinc-200 dark:border-zinc-800 hover:border-halliburton-red'}`}
+                      >
+                        {norm} N
+                      </button>
+                    ))}
+                    <input
+                      type="number"
+                      value={['0.0282', '0.282'].includes(lgsRetort.normality) ? '' : lgsRetort.normality}
+                      onChange={e => setLgsRetort({ ...lgsRetort, normality: e.target.value })}
+                      placeholder="Otra..."
+                      className="w-24 bg-white dark:bg-slate-800 border-2 border-zinc-200 dark:border-zinc-700 rounded-xl px-2 text-center text-sm font-bold focus:border-halliburton-red outline-none transition-all"
+                      step="0.0001"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Section 3: Sólidos */}
+              <div className="space-y-4 pt-2">
+                <h5 className="text-[11px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest border-b border-zinc-100 dark:border-zinc-800 pb-1">3. Propiedades de Sólidos</h5>
+                <div className="flex items-center gap-3 py-1">
+                  <input
+                    type="checkbox"
+                    id="hasBarite"
+                    checked={lgsRetort.hasBarite}
+                    onChange={e => setLgsRetort({ ...lgsRetort, hasBarite: e.target.checked })}
+                    className="w-5 h-5 accent-halliburton-red rounded border-zinc-300 dark:border-zinc-700"
+                  />
+                  <label htmlFor="hasBarite" className="text-[12px] font-black text-zinc-700 dark:text-zinc-300 uppercase tracking-widest cursor-pointer select-none">
+                    ¿Contiene Barita (Densificante)?
+                  </label>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-[12px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">SG de LGS</label>
+                    <input type="number" value={lgsRetort.sgLgs} onChange={e => setLgsRetort({ ...lgsRetort, sgLgs: e.target.value })} className="w-full input-style text-xl font-bold" placeholder="2.60" step="0.01" />
+                  </div>
+                  {lgsRetort.hasBarite && (
+                    <div>
+                      <label className="text-[12px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">SG de Barita</label>
+                      <input type="number" value={lgsRetort.sgBarite} onChange={e => setLgsRetort({ ...lgsRetort, sgBarite: e.target.value })} className="w-full input-style text-xl font-bold" placeholder="4.20" step="0.01" />
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeSubTab === 'rheology' && (
+            <div className="space-y-6 animate-fade-in">
+              <div className="flex justify-between items-center mb-4">
+                <h4 className="text-[14px] font-black text-halliburton-red uppercase tracking-widest italic">Parámetros Fijos</h4>
+                <span className="text-[10px] text-zinc-400 font-black uppercase tracking-widest">Unidades API</span>
+              </div>
+
+              {/* Presets */}
+              <div className="bg-zinc-50 dark:bg-slate-900/60 p-4 rounded-3xl border border-zinc-100 dark:border-zinc-800/50 space-y-3">
+                <span className="text-[10px] text-zinc-400 font-black uppercase tracking-widest block">Preajustes Rápidos:</span>
+                <div className="grid grid-cols-2 gap-2">
+                  <button type="button" onClick={() => setRheo({ vp: '18', yp: '12', tau0: '5' })} className="text-[10px] bg-white dark:bg-slate-800 hover:border-halliburton-red border border-zinc-100 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 py-2 px-3 rounded-xl transition-all font-black uppercase tracking-wider">Agua Ligero</button>
+                  <button type="button" onClick={() => setRheo({ vp: '35', yp: '25', tau0: '12' })} className="text-[10px] bg-white dark:bg-slate-800 hover:border-halliburton-red border border-zinc-100 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 py-2 px-3 rounded-xl transition-all font-black uppercase tracking-wider">Densificado</button>
+                  <button type="button" onClick={() => setRheo({ vp: '22', yp: '38', tau0: '18' })} className="text-[10px] bg-white dark:bg-slate-800 hover:border-halliburton-red border border-zinc-100 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 py-2 px-3 rounded-xl transition-all font-black uppercase tracking-wider">Alta Cedencia</button>
+                  <button type="button" onClick={() => setRheo({ vp: '25', yp: '18', tau0: '8' })} className="text-[10px] bg-halliburton-red/10 border border-halliburton-red/20 text-halliburton-red py-2 px-3 rounded-xl transition-all font-black uppercase tracking-wider">Básico</button>
+                </div>
+              </div>
+
+              <div className="space-y-6 pt-2">
+                {/* VP */}
+                <div className="bg-zinc-50 dark:bg-slate-900/40 p-4 rounded-3xl border border-zinc-100 dark:border-zinc-800/50">
+                  <div className="flex justify-between items-center mb-2">
+                    <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest">
+                      Viscosidad Plástica <span className="text-halliburton-red">(VP)</span>
+                    </label>
+                    <span className="text-[10px] font-bold text-zinc-400">cP</span>
+                  </div>
+                  <div className="flex gap-3 items-center">
+                    <button type="button" onClick={() => setRheo(prev => ({ ...prev, vp: Math.max(1, (parseFloat(prev.vp) || 0) - 1).toString() }))} className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 font-bold transition-all hover:bg-zinc-100 dark:hover:bg-slate-700 flex items-center justify-center">-</button>
+                    <input type="range" min="1" max="100" value={parseFloat(rheo.vp) || 20} onChange={e => setRheo(prev => ({ ...prev, vp: e.target.value }))} className="flex-1 h-1.5 bg-zinc-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-halliburton-red" />
+                    <button type="button" onClick={() => setRheo(prev => ({ ...prev, vp: Math.min(100, (parseFloat(prev.vp) || 0) + 1).toString() }))} className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 font-bold transition-all hover:bg-zinc-100 dark:hover:bg-slate-700 flex items-center justify-center">+</button>
+                    <input type="number" min="1" max="100" value={rheo.vp} onChange={e => setRheo(prev => ({ ...prev, vp: e.target.value }))} className="w-18 bg-white dark:bg-slate-800 border-2 border-zinc-200 dark:border-zinc-700 rounded-xl py-2 text-center font-bold text-zinc-800 dark:text-white focus:border-halliburton-red focus:outline-none" />
+                  </div>
+                </div>
+
+                {/* YP */}
+                <div className="bg-zinc-50 dark:bg-slate-900/40 p-4 rounded-3xl border border-zinc-100 dark:border-zinc-800/50">
+                  <div className="flex justify-between items-center mb-2">
+                    <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest">
+                      Punto Cedente <span className="text-halliburton-red">(YP)</span>
+                    </label>
+                    <span className="text-[10px] font-bold text-zinc-400">lb/100ft²</span>
+                  </div>
+                  <div className="flex gap-3 items-center">
+                    <button type="button" onClick={() => setRheo(prev => ({ ...prev, yp: Math.max(1, (parseFloat(prev.yp) || 0) - 1).toString() }))} className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 font-bold transition-all hover:bg-zinc-100 dark:hover:bg-slate-700 flex items-center justify-center">-</button>
+                    <input type="range" min="1" max="100" value={parseFloat(rheo.yp) || 15} onChange={e => setRheo(prev => ({ ...prev, yp: e.target.value }))} className="flex-1 h-1.5 bg-zinc-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-halliburton-red" />
+                    <button type="button" onClick={() => setRheo(prev => ({ ...prev, yp: Math.min(100, (parseFloat(prev.yp) || 0) + 1).toString() }))} className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 font-bold transition-all hover:bg-zinc-100 dark:hover:bg-slate-700 flex items-center justify-center">+</button>
+                    <input type="number" min="1" max="100" value={rheo.yp} onChange={e => setRheo(prev => ({ ...prev, yp: e.target.value }))} className="w-18 bg-white dark:bg-slate-800 border-2 border-zinc-200 dark:border-zinc-700 rounded-xl py-2 text-center font-bold text-zinc-800 dark:text-white focus:border-halliburton-red focus:outline-none" />
+                  </div>
+                </div>
+
+                {/* Tau0 */}
+                <div className="bg-zinc-50 dark:bg-slate-900/40 p-4 rounded-3xl border border-zinc-100 dark:border-zinc-800/50">
+                  <div className="flex justify-between items-center mb-2">
+                    <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest">
+                      Esfuerzo Cedente Real <span className="text-halliburton-red">(τ₀)</span>
+                    </label>
+                    <span className="text-[10px] font-bold text-zinc-400">lb/100ft²</span>
+                  </div>
+                  <div className="flex gap-3 items-center">
+                    <button type="button" onClick={() => setRheo(prev => ({ ...prev, tau0: Math.max(0, (parseFloat(prev.tau0) || 0) - 1).toString() }))} className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 font-bold transition-all hover:bg-zinc-100 dark:hover:bg-slate-700 flex items-center justify-center">-</button>
+                    <input type="range" min="0" max="80" value={parseFloat(rheo.tau0) || 6} onChange={e => setRheo(prev => ({ ...prev, tau0: e.target.value }))} className="flex-1 h-1.5 bg-zinc-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-halliburton-red" />
+                    <button type="button" onClick={() => setRheo(prev => ({ ...prev, tau0: Math.min(80, (parseFloat(prev.tau0) || 0) + 1).toString() }))} className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 font-bold transition-all hover:bg-zinc-100 dark:hover:bg-slate-700 flex items-center justify-center">+</button>
+                    <input type="number" min="0" max="80" value={rheo.tau0} onChange={e => setRheo(prev => ({ ...prev, tau0: e.target.value }))} className="w-18 bg-white dark:bg-slate-800 border-2 border-zinc-200 dark:border-zinc-700 rounded-xl py-2 text-center font-bold text-zinc-800 dark:text-white focus:border-halliburton-red focus:outline-none" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Validaciones matemáticas alerta */}
+              {getRheologyResult().hasAlert && (
+                <div className="p-4 bg-orange-500/10 border border-orange-500/20 rounded-[2rem] text-[10px] font-bold text-orange-400 uppercase tracking-widest leading-relaxed flex gap-2">
+                  <Icon name="alert-triangle" size={14} className="shrink-0 mt-0.5" />
+                  <span>Ajuste técnico: El esfuerzo de cedencia real (τ₀) no puede superar o igualar la lectura θ₃₀₀ ({getRheologyResult().vp + getRheologyResult().yp} lb/100ft²). Se limitó automáticamente a {getRheologyResult().adjustedTau0.toFixed(1)}.</span>
+                </div>
+              )}
+
+              {/* Fann 35 Simulation */}
+              <div className="bg-zinc-50 dark:bg-slate-900/40 border-2 border-zinc-100 dark:border-zinc-800/50 rounded-[2.5rem] p-6 flex items-center gap-4">
+                <div className="relative w-20 h-20 bg-zinc-100 dark:bg-slate-950 rounded-full border border-zinc-200 dark:border-zinc-800 flex items-center justify-center shadow-inner shrink-0">
+                  <div
+                    className="absolute w-14 h-14 border-4 border-dashed border-halliburton-red/30 rounded-full rotor-spinning"
+                    style={{
+                      animationPlayState: rheoSelectedRpm === 0 ? 'paused' : 'running',
+                      '--spin-duration': `${rheoSelectedRpm === 0 ? 0 : Math.max(0.1, 600 / rheoSelectedRpm * 0.5)}s`
+                    }}
+                  ></div>
+                  <div className="absolute w-8 h-8 bg-white dark:bg-slate-900 rounded-full border border-zinc-200 dark:border-zinc-800 flex items-center justify-center">
+                    <span className="text-[10px] font-black text-zinc-800 dark:text-white font-mono">{rheoSelectedRpm}</span>
+                  </div>
+                  <div className="absolute top-1 w-1 h-3 bg-halliburton-red rounded-full"></div>
+                </div>
+                <div>
+                  <h3 className="text-xs font-black text-zinc-700 dark:text-zinc-300 uppercase tracking-widest">Rotor Fann 35</h3>
+                  <p className="text-[9px] text-zinc-400 font-bold uppercase tracking-tight mt-0.5 leading-snug">Simula velocidades para evaluar corte dinámico.</p>
+                  <div className="flex gap-1 mt-2">
+                    {[600, 300, 6, 3].map(v => (
+                      <button
+                        key={v}
+                        type="button"
+                        onClick={() => setRheoSelectedRpm(v)}
+                        className={`text-[9px] px-2.5 py-1.5 rounded-lg font-black uppercase transition-all ${rheoSelectedRpm === v ? 'bg-halliburton-red text-white shadow-md' : 'bg-white dark:bg-slate-800 text-zinc-500 border border-zinc-100 dark:border-zinc-700 hover:border-halliburton-red'}`}
+                      >
+                        {v}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* H-B Constantes */}
+              <div className="bg-zinc-50 dark:bg-slate-900/40 border border-zinc-100 dark:border-zinc-800/50 rounded-[2.5rem] p-6 space-y-4">
+                <h3 className="text-xs font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest flex items-center gap-2">
+                  <Icon name="trending-up" size={14} className="text-emerald-500" />
+                  Índices de Consistencia H-B
+                </h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-white dark:bg-slate-950 p-4 rounded-3xl border border-zinc-100 dark:border-zinc-800/50 shadow-sm flex flex-col justify-between">
+                    <div>
+                      <span className="text-[9px] text-zinc-400 font-black uppercase tracking-wider">Índice n</span>
+                      <h5 className="text-2xl font-black italic text-zinc-800 dark:text-white mt-1">{getRheologyResult().n.toFixed(3)}</h5>
+                    </div>
+                    <span className={`text-[8px] font-black uppercase mt-2 ${getRheologyResult().n < 1 ? 'text-emerald-500' : getRheologyResult().n === 1 ? 'text-zinc-400' : 'text-amber-500'}`}>
+                      {getRheologyResult().n < 1 ? 'Seudoplástico' : getRheologyResult().n === 1 ? 'Newtoniano' : 'Dilatante'}
+                    </span>
+                  </div>
+                  <div className="bg-white dark:bg-slate-950 p-4 rounded-3xl border border-zinc-100 dark:border-zinc-800/50 shadow-sm">
+                    <span className="text-[9px] text-zinc-400 font-black uppercase tracking-wider">Índice K</span>
+                    <h5 className="text-2xl font-black italic text-zinc-800 dark:text-white mt-1">{getRheologyResult().k.toFixed(4)}</h5>
+                    <span className="text-[8px] text-zinc-400 font-bold uppercase tracking-tight block mt-2">lb/100ft²·sⁿ</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Results Side */}
@@ -1289,6 +1715,357 @@ const FluidCalculator = ({ isEditing }) => {
                   </div>
                 )}
               </div>
+            </div>
+          )}
+
+          {activeSubTab === 'lgs_retort' && (
+            <div className="bg-zinc-900 p-10 rounded-[3.5rem] text-white flex flex-col justify-center h-full relative overflow-hidden group">
+              <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform">
+                <Icon name="percent" size={120} />
+              </div>
+
+              <div className="flex justify-between items-start mb-6">
+                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500 block">Análisis Sólidos & Salinidad</span>
+                <button
+                  onClick={() => {
+                    const res = getLgsRetortResult();
+                    if (res.invalid) return;
+                    copyToClipboard(
+                      `ANÁLISIS RETORTA & CLORUROS:\n- WPS (Salinidad): ${res.wps.toFixed(0)} ppm\n- Cloruros: ${res.cl_mgL.toFixed(0)} mg/L\n- Sólidos Suspendidos Totales (Vss): ${res.v_ss.toFixed(2)}%\n- ASG: ${res.asg.toFixed(3)}\n- LGS: ${res.pctLgs.toFixed(2)}% (${res.lgs_mass.toFixed(1)} ${unitMode === 'field' ? 'ppb' : 'kg/m³'})\n- Barita: ${res.pctBarite.toFixed(2)}% (${res.barite_mass.toFixed(1)} ${unitMode === 'field' ? 'ppb' : 'kg/m³'})`
+                    );
+                  }}
+                  className="p-3 bg-white/10 hover:bg-halliburton-red rounded-2xl transition-all shadow-lg flex items-center gap-2 text-[10px] font-black uppercase tracking-widest"
+                >
+                  <Icon name="share-2" size={14} /> Copiar Reporte
+                </button>
+              </div>
+
+              {getLgsRetortResult().invalid ? (
+                <div className="p-5 bg-red-500/10 border border-red-500/20 rounded-2xl text-xs font-bold text-red-400 uppercase tracking-widest text-center">
+                  ⚠️ {getLgsRetortResult().msg}
+                </div>
+              ) : (
+                <div className="space-y-8">
+                  {/* Main metric: Salinity */}
+                  <div className="bg-gradient-to-br from-halliburton-red to-[#a30000] p-6 rounded-[2.5rem] shadow-xl relative overflow-hidden">
+                    <span className="text-[9px] font-black uppercase tracking-[0.3em] opacity-60">Salinidad Fase Acuosa (WPS)</span>
+                    <div className="flex items-baseline gap-2 mt-1">
+                      <h5 className="text-5xl font-black italic">{getLgsRetortResult().wps.toLocaleString('es-AR', { maximumFractionDigits: 0 })}</h5>
+                      <span className="text-lg font-black opacity-60 italic uppercase">PPM</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4 mt-4 pt-4 border-t border-white/10 text-[9px] font-black uppercase tracking-wider text-white/80">
+                      <div>Cloruros: <span className="text-white font-bold">{getLgsRetortResult().cl_mgL.toLocaleString('es-AR', { maximumFractionDigits: 0 })} mg/L</span></div>
+                      <div>NaCl Equiv: <span className="text-white font-bold">{getLgsRetortResult().nacl_mgL.toLocaleString('es-AR', { maximumFractionDigits: 0 })} mg/L</span></div>
+                    </div>
+                  </div>
+
+                  {/* Solids breakdown */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* LGS Card */}
+                    <div className="p-6 bg-white/5 rounded-[2rem] border border-white/10 flex flex-col justify-between">
+                      <div>
+                        <span className="text-[10px] font-black text-halliburton-red uppercase block mb-1 tracking-widest">Sólidos Baja Gravedad (LGS)</span>
+                        <div className="flex items-baseline gap-2">
+                          <h5 className="text-4xl font-black italic text-white">{getLgsRetortResult().pctLgs.toFixed(2)}%</h5>
+                          <span className="text-xs font-bold opacity-40 uppercase">Vol</span>
+                        </div>
+                      </div>
+                      <div className="mt-3 pt-3 border-t border-white/5 flex items-baseline justify-between text-[11px] font-bold text-zinc-400">
+                        <span>Masa:</span>
+                        <span className="text-white font-black">{getLgsRetortResult().lgs_mass.toFixed(1)} {unitMode === 'field' ? 'ppb' : 'kg/m³'}</span>
+                      </div>
+                    </div>
+
+                    {/* Barite/High Gravity Solids Card */}
+                    <div className="p-6 bg-white/5 rounded-[2rem] border border-white/10 flex flex-col justify-between">
+                      <div>
+                        <span className="text-[10px] font-black text-zinc-400 uppercase block mb-1 tracking-widest">Sólidos Densificantes (Barita)</span>
+                        <div className="flex items-baseline gap-2">
+                          <h5 className="text-4xl font-black italic text-zinc-300">{lgsRetort.hasBarite ? getLgsRetortResult().pctBarite.toFixed(2) + '%' : '0.00%'}</h5>
+                          <span className="text-xs font-bold opacity-40 uppercase">Vol</span>
+                        </div>
+                      </div>
+                      <div className="mt-3 pt-3 border-t border-white/5 flex items-baseline justify-between text-[11px] font-bold text-zinc-400">
+                        <span>Masa:</span>
+                        <span className="text-white font-black">{lgsRetort.hasBarite ? getLgsRetortResult().barite_mass.toFixed(1) : '0.0'} {unitMode === 'field' ? 'ppb' : 'kg/m³'}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Detailed physics metrics */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {[
+                      { label: 'ASG (Solids SG)', val: getLgsRetortResult().asg.toFixed(3), color: getLgsRetortResult().asg > 4.2 || getLgsRetortResult().asg < 2.5 ? 'text-yellow-400' : 'text-zinc-200' },
+                      { label: 'Dens. Salmuera', val: getLgsRetortResult().rho_brine.toFixed(3) + ' SG', color: 'text-zinc-300' },
+                      { label: 'Vol. Sal Disuelta', val: getLgsRetortResult().v_sal.toFixed(2) + '%', color: 'text-zinc-400' },
+                      { label: 'Sólidos Reales (Vss)', val: getLgsRetortResult().v_ss.toFixed(2) + '%', color: 'text-zinc-200' }
+                    ].map(m => (
+                      <div key={m.label} className="p-4 bg-white/5 rounded-2xl border border-white/5 text-center">
+                        <span className="text-[8px] font-black text-zinc-500 uppercase block mb-1 tracking-widest leading-tight">{m.label}</span>
+                        <span className={`text-base font-black italic ${m.color}`}>{m.val}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Auto-sync notification */}
+                  <div className="p-4 bg-white/5 border border-white/10 rounded-2xl flex gap-3 items-center">
+                    <div className="p-2 bg-green-500/10 text-green-400 rounded-lg shrink-0">
+                      <Icon name="check" size={16} />
+                    </div>
+                    <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider leading-relaxed">
+                      Sincronización Activa: El valor calculado de LGS ({getLgsRetortResult().pctLgs.toFixed(1)}%) se ha pre-cargado en la pestaña "Dilución LGS" (campo C1).
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+          {activeSubTab === 'rheology' && (
+            <div className="bg-zinc-900 p-10 rounded-[3.5rem] text-white space-y-8 relative overflow-hidden h-full flex flex-col justify-center animate-fade-in">
+              {/* Header and Toggle */}
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-white/5 pb-4">
+                <div>
+                  <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500 block">Reograma Dinámico</span>
+                  <h5 className="text-xl font-black text-white italic mt-1 flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-halliburton-red animate-pulse"></span>
+                    Herschel-Bulkley vs Bingham
+                  </h5>
+                </div>
+                <div className="flex bg-slate-950 p-1 rounded-xl border border-zinc-800">
+                  <button type="button" onClick={() => setRheoActiveX('rate')} className={`text-[10px] px-3.5 py-1.5 rounded-lg transition-all font-black uppercase tracking-wider ${rheoActiveX === 'rate' ? 'bg-halliburton-red text-white shadow-md' : 'text-zinc-500'}`}>Tasa de Corte (s⁻¹)</button>
+                  <button type="button" onClick={() => setRheoActiveX('rpm')} className={`text-[10px] px-3.5 py-1.5 rounded-lg transition-all font-black uppercase tracking-wider ${rheoActiveX === 'rpm' ? 'bg-halliburton-red text-white shadow-md' : 'text-zinc-500'}`}>Velocidad (RPM)</button>
+                </div>
+              </div>
+
+              {/* Dynamic SVG Plot */}
+              {(() => {
+                const rheoRes = getRheologyResult();
+                const isRate = rheoActiveX === 'rate';
+                const maxX = isRate ? 600 * 1.7023 : 600;
+                
+                // Calculate max Y for scaling
+                const maxValHB = rheoRes.adjustedTau0 + rheoRes.k * Math.pow(600 * 1.7023, rheoRes.n);
+                const maxValBingham = rheoRes.yp + rheoRes.vp * (600 / 300);
+                const maxY = Math.max(maxValHB, maxValBingham) * 1.15; // 15% padding
+                
+                // Generate path points for HB curve
+                const pointsHB = [];
+                const steps = 60;
+                for (let i = 0; i <= steps; i++) {
+                  const xVal = (i / steps) * maxX;
+                  const rpm = isRate ? xVal / 1.7023 : xVal;
+                  const gamma = isRate ? xVal : xVal * 1.7023;
+                  const yHB = rheoRes.adjustedTau0 + rheoRes.k * Math.pow(gamma, rheoRes.n);
+                  
+                  // Map to pixels (width 520, height 290; padding left 50, top 20)
+                  const px = 50 + (xVal / maxX) * 520;
+                  const py = 310 - (yHB / maxY) * 290;
+                  pointsHB.push({ px, py, xVal, yVal: yHB });
+                }
+
+                // HB path d attribute
+                const pathHB = pointsHB.map((pt, i) => `${i === 0 ? 'M' : 'L'} ${pt.px.toFixed(1)} ${pt.py.toFixed(1)}`).join(' ');
+                
+                // Area path for gradient fill
+                const areaHB = `${pathHB} L 570 310 L 50 310 Z`;
+
+                // Bingham line coordinates
+                const pxB1 = 50;
+                const pyB1 = 310 - (rheoRes.yp / maxY) * 290;
+                const pxB2 = 570;
+                const pyB2 = 310 - (maxValBingham / maxY) * 290;
+
+                // Ticks
+                const yTicks = [0.25, 0.5, 0.75, 1.0].map(p => ({
+                  val: (p * maxY).toFixed(0),
+                  py: 310 - p * 290
+                }));
+                const xTicks = [0.2, 0.4, 0.6, 0.8, 1.0].map(p => ({
+                  val: (p * maxX).toFixed(0),
+                  px: 50 + p * 520
+                }));
+
+                // Discrete rotor points coordinates
+                const rotorPoints = rheoRes.data.map(d => {
+                  const xVal = isRate ? d.gamma : d.rpm;
+                  return {
+                    rpm: d.rpm,
+                    px: 50 + (xVal / maxX) * 520,
+                    py: 310 - (d.thetaHB / maxY) * 290,
+                    val: d.thetaHB.toFixed(1)
+                  };
+                });
+
+                return (
+                  <div className="space-y-4">
+                    {/* SVG Container */}
+                    <div className="relative bg-zinc-950 rounded-[2rem] border border-white/5 p-4 select-none">
+                      <svg viewBox="0 0 600 350" className="w-full h-auto overflow-visible">
+                        <defs>
+                          <linearGradient id="rheoGradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#CC0000" stopOpacity="0.25" />
+                            <stop offset="100%" stopColor="#CC0000" stopOpacity="0.0" />
+                          </linearGradient>
+                        </defs>
+
+                        {/* Grid lines */}
+                        {yTicks.map(t => (
+                          <line key={t.val} x1="50" y1={t.py} x2="570" y2={t.py} stroke="#ffffff" strokeOpacity="0.05" strokeWidth="1" />
+                        ))}
+                        {xTicks.map(t => (
+                          <line key={t.val} x1={t.px} y1="20" x2={t.px} y2="310" stroke="#ffffff" strokeOpacity="0.05" strokeWidth="1" />
+                        ))}
+
+                        {/* Y-axis Ticks and labels */}
+                        <line x1="50" y1="20" x2="50" y2="310" stroke="#ffffff" strokeOpacity="0.2" strokeWidth="1.5" />
+                        <text x="40" y="313" fill="#8E979D" fontSize="10" textAnchor="end" fontWeight="bold">0</text>
+                        {yTicks.map(t => (
+                          <g key={t.val}>
+                            <line x1="46" y1={t.py} x2="50" y2={t.py} stroke="#ffffff" strokeOpacity="0.2" strokeWidth="1.5" />
+                            <text x="40" y={t.py + 4} fill="#8E979D" fontSize="9" textAnchor="end" fontWeight="bold" fontFamily="monospace">{t.val}</text>
+                          </g>
+                        ))}
+                        <text x="15" y="165" fill="#ffffff" fillOpacity="0.4" fontSize="9" fontWeight="bold" transform="rotate(-90 15 165)" textAnchor="middle" className="uppercase tracking-widest">Esfuerzo Dial (lb/100ft²)</text>
+
+                        {/* X-axis Ticks and labels */}
+                        <line x1="50" y1="310" x2="570" y2="310" stroke="#ffffff" strokeOpacity="0.2" strokeWidth="1.5" />
+                        <text x="50" y="326" fill="#8E979D" fontSize="9" textAnchor="middle" fontWeight="bold" fontFamily="monospace">0</text>
+                        {xTicks.map(t => (
+                          <g key={t.val}>
+                            <line x1={t.px} y1="310" x2={t.px} y2="314" stroke="#ffffff" strokeOpacity="0.2" strokeWidth="1.5" />
+                            <text x={t.px} y="326" fill="#8E979D" fontSize="9" textAnchor="middle" fontWeight="bold" fontFamily="monospace">{t.val}</text>
+                          </g>
+                        ))}
+                        <text x="310" y="344" fill="#ffffff" fillOpacity="0.4" fontSize="9" fontWeight="bold" textAnchor="middle" className="uppercase tracking-widest">
+                          {isRate ? 'Tasa de Deformación / Corte (γ) [s⁻¹]' : 'Velocidad de Rotación [RPM]'}
+                        </text>
+
+                        {/* Curves */}
+                        {/* Area under HB */}
+                        <path d={areaHB} fill="url(#rheoGradient)" />
+
+                        {/* Bingham Line */}
+                        <line x1={pxB1} y1={pyB1} x2={pxB2} y2={pyB2} stroke="#f59e0b" strokeOpacity="0.6" strokeWidth="1.5" strokeDasharray="6 4" />
+
+                        {/* HB Curve */}
+                        <path d={pathHB} fill="none" stroke="#CC0000" strokeWidth="2.5" />
+
+                        {/* Rotor Points */}
+                        {rotorPoints.map(p => (
+                          <g key={p.rpm} className="group/dot cursor-pointer" onClick={() => setRheoSelectedRpm(p.rpm)}>
+                            <circle cx={p.px} cy={p.py} r="5.5" fill="#ef4444" stroke="#ffffff" strokeWidth="1.5" className="transition-all duration-300 hover:r-7" />
+                            <circle cx={p.px} cy={p.py} r="10" fill="transparent" />
+                            <title>{p.rpm} RPM: {p.val} lb/100ft²</title>
+                          </g>
+                        ))}
+                      </svg>
+
+                      {/* Legend overlay */}
+                      <div className="flex flex-wrap gap-4 justify-center text-[9px] font-black uppercase tracking-wider text-zinc-500 mt-2">
+                        <span className="flex items-center gap-1.5 text-halliburton-red">
+                          <span className="w-3 h-1 bg-halliburton-red rounded-full"></span>
+                          Herschel-Bulkley
+                        </span>
+                        <span className="flex items-center gap-1.5 text-amber-500">
+                          <span className="w-3 h-0.5 border-t border-dashed border-amber-500"></span>
+                          Bingham Plastic
+                        </span>
+                        <span className="flex items-center gap-1.5 text-red-400">
+                          <span className="w-2.5 h-2.5 bg-red-500 rounded-full"></span>
+                          Lecturas Dial
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Table and comparison */}
+                    <div className="grid grid-cols-1 md:grid-cols-12 gap-6 pt-4">
+                      {/* Predictions Table */}
+                      <div className="md:col-span-8 space-y-3">
+                        <h3 className="text-xs font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest">Lecturas Dial Estimadas</h3>
+                        <div className="overflow-x-auto rounded-[2rem] border border-white/5 bg-zinc-950 p-4">
+                          <table className="w-full text-left border-collapse text-[11px] uppercase tracking-wider font-bold">
+                            <thead>
+                              <tr className="border-b border-white/5 text-zinc-500">
+                                <th className="pb-3 text-left">Rotor (RPM)</th>
+                                <th className="pb-3 text-right">Lectura Dial (θ-HB)</th>
+                                <th className="pb-3 text-right">Bingham (θ-B)</th>
+                                <th className="pb-3 text-right">Visc. Aparente (cP)</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-white/5 text-zinc-300 font-mono">
+                              {rheoRes.data.map(item => {
+                                const isSelected = item.rpm === rheoSelectedRpm;
+                                return (
+                                  <tr
+                                    key={item.rpm}
+                                    onClick={() => setRheoSelectedRpm(item.rpm)}
+                                    className={`transition-colors cursor-pointer hover:bg-white/5 ${isSelected ? 'bg-white/5 border-l-2 border-halliburton-red font-black text-white' : ''}`}
+                                  >
+                                    <td className="py-2.5 text-left flex items-center gap-1.5">
+                                      {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-halliburton-red"></span>}
+                                      {item.rpm} RPM
+                                    </td>
+                                    <td className="py-2.5 text-right font-black text-halliburton-red">{item.thetaHB.toFixed(2)}</td>
+                                    <td className="py-2.5 text-right text-zinc-500">{item.thetaBingham.toFixed(2)}</td>
+                                    <td className="py-2.5 text-right text-emerald-400">{item.viscAparente.toFixed(1)}</td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+                        <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-widest text-zinc-500 pt-1">
+                          <span>Fórmula H-B: τ = τ₀ + K·γⁿ</span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              let csv = "data:text/csv;charset=utf-8,\uFEFF";
+                              csv += `REOGRAMA VIRTUAL HERSCHEL-BULKLEY\r\n`;
+                              csv += `Parametros Fijos: VP=${rheoRes.vp} cP, YP=${rheoRes.yp} lb/100ft2, Tau0=${rheoRes.tau0} lb/100ft2\r\n\r\n`;
+                              csv += `RPM,Tasa de Corte (s-1),Lectura de Dial (theta-HB),Lectura Bingham (theta-B),Viscosidad Aparente (cP)\r\n`;
+                              rheoRes.data.forEach(d => {
+                                csv += `${d.rpm},${d.gamma.toFixed(3)},${d.thetaHB.toFixed(3)},${d.thetaBingham.toFixed(3)},${d.viscAparente.toFixed(2)}\r\n`;
+                              });
+                              const uri = encodeURI(csv);
+                              const a = document.createElement("a");
+                              a.setAttribute("href", uri);
+                              a.setAttribute("download", `perfil_reologia_fann_vp${rheoRes.vp}_yp${rheoRes.yp}.csv`);
+                              document.body.appendChild(a);
+                              a.click();
+                              document.body.removeChild(a);
+                            }}
+                            className="text-halliburton-red hover:scale-105 transition-transform font-bold flex items-center gap-1"
+                          >
+                            Descargar Datos CSV <Icon name="download" size={12} />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Comparative Card */}
+                      <div className="md:col-span-4 flex flex-col justify-between h-full space-y-4">
+                        <div className="space-y-4">
+                          <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block">Desviación del Modelo</span>
+                          <div>
+                            <span className="text-[9px] font-black text-zinc-500 uppercase tracking-wider">Baja Velocidad (3 RPM):</span>
+                            <div className="flex items-baseline gap-1 mt-1">
+                              <h5 className="text-3xl font-black italic text-orange-400">
+                                +{(( (rheoRes.yp + rheoRes.vp * (3 / 300)) - rheoRes.data.find(i => i.rpm === 3).thetaHB ) / rheoRes.data.find(i => i.rpm === 3).thetaHB * 100).toFixed(1)}%
+                              </h5>
+                              <span className="text-[8px] font-bold text-zinc-500 uppercase">Exceso Bingham</span>
+                            </div>
+                          </div>
+                          <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-tight leading-relaxed">
+                            Bingham suele sobreestimar las pérdidas de carga en el anular en velocidades de corte bajas. El modelo Herschel-Bulkley corrige esta brecha matemática, reduciendo el riesgo de fracturas accidentales.
+                          </p>
+                        </div>
+                        <div className="p-4 bg-white/5 border border-white/10 rounded-2xl text-[9px] font-bold uppercase tracking-wider text-zinc-300 leading-snug">
+                          <span className="text-halliburton-red font-black">Tip de Ingeniería:</span> Utiliza τ₀ para calibrar el esfuerzo de geles en lodos viscosos o densificados.
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           )}
         </div>
