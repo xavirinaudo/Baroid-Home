@@ -83,6 +83,7 @@ const FluidCalculator = ({ isEditing }) => {
     const DEFAULT_TABS = [
       { id: 'conv', label: 'Conversor de Unidades', icon: 'repeat', visible: true },
       { id: 'barite', label: 'Ajuste de Densidad', icon: 'arrow-up-circle', visible: true },
+      { id: 'rheology', label: 'Perfil Reológico', icon: 'trending-up', visible: true },
       { id: 'mixing', label: 'Mezcla (Balance Masa)', icon: 'blend', visible: true },
       { id: 'lgs_retort', label: 'Cálculo LGS & Retorta', icon: 'percent', visible: true },
       { id: 'lgs', label: 'Dilución LGS', icon: 'sliders', visible: true },
@@ -90,10 +91,9 @@ const FluidCalculator = ({ isEditing }) => {
       { id: 'eng', label: 'Hidrostática & Capacidad', icon: 'droplet', visible: true },
       { id: 'slug', label: 'Píldoras (Slugs)', icon: 'flask-conical', visible: true },
       { id: 'fit', label: 'Integridad (FIT)', icon: 'shield-check', visible: true },
-      { id: 'pfmf', label: 'Pf/Mf & Tratamiento', icon: 'beaker', visible: true },
-      { id: 'rheology', label: 'Perfil Reológico', icon: 'trending-up', visible: true }
+      { id: 'pfmf', label: 'Pf/Mf & Tratamiento', icon: 'beaker', visible: true }
     ];
-    const saved = localStorage.getItem('baroid_calc_tabs_v6');
+    const saved = localStorage.getItem('baroid_calc_tabs_v7');
     if (!saved) return DEFAULT_TABS;
     try {
       const parsed = JSON.parse(saved);
@@ -114,7 +114,7 @@ const FluidCalculator = ({ isEditing }) => {
   }, [treatmentConfig]);
 
   useEffect(() => {
-    localStorage.setItem('baroid_calc_tabs_v6', JSON.stringify(tabsConfig));
+    localStorage.setItem('baroid_calc_tabs_v7', JSON.stringify(tabsConfig));
   }, [tabsConfig]);
 
   // Special Hybrid Units for Mixing and Barite
@@ -1260,39 +1260,6 @@ const FluidCalculator = ({ isEditing }) => {
                 </div>
               )}
 
-              {/* Fann 35 Simulation */}
-              <div className="bg-zinc-50 dark:bg-slate-900/40 border-2 border-zinc-100 dark:border-zinc-800/50 rounded-[2.5rem] p-6 flex items-center gap-4">
-                <div className="relative w-20 h-20 bg-zinc-100 dark:bg-slate-950 rounded-full border border-zinc-200 dark:border-zinc-800 flex items-center justify-center shadow-inner shrink-0">
-                  <div
-                    className="absolute w-14 h-14 border-4 border-dashed border-halliburton-red/30 rounded-full rotor-spinning"
-                    style={{
-                      animationPlayState: rheoSelectedRpm === 0 ? 'paused' : 'running',
-                      '--spin-duration': `${rheoSelectedRpm === 0 ? 0 : Math.max(0.1, 600 / rheoSelectedRpm * 0.5)}s`
-                    }}
-                  ></div>
-                  <div className="absolute w-8 h-8 bg-white dark:bg-slate-900 rounded-full border border-zinc-200 dark:border-zinc-800 flex items-center justify-center">
-                    <span className="text-[10px] font-black text-zinc-800 dark:text-white font-mono">{rheoSelectedRpm}</span>
-                  </div>
-                  <div className="absolute top-1 w-1 h-3 bg-halliburton-red rounded-full"></div>
-                </div>
-                <div>
-                  <h3 className="text-xs font-black text-zinc-700 dark:text-zinc-300 uppercase tracking-widest">Rotor Fann 35</h3>
-                  <p className="text-[9px] text-zinc-400 font-bold uppercase tracking-tight mt-0.5 leading-snug">Simula velocidades para evaluar corte dinámico.</p>
-                  <div className="flex gap-1 mt-2">
-                    {[600, 300, 6, 3].map(v => (
-                      <button
-                        key={v}
-                        type="button"
-                        onClick={() => setRheoSelectedRpm(v)}
-                        className={`text-[9px] px-2.5 py-1.5 rounded-lg font-black uppercase transition-all ${rheoSelectedRpm === v ? 'bg-halliburton-red text-white shadow-md' : 'bg-white dark:bg-slate-800 text-zinc-500 border border-zinc-100 dark:border-zinc-700 hover:border-halliburton-red'}`}
-                      >
-                        {v}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
               {/* H-B Constantes */}
               <div className="bg-zinc-50 dark:bg-slate-900/40 border border-zinc-100 dark:border-zinc-800/50 rounded-[2.5rem] p-6 space-y-4">
                 <h3 className="text-xs font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest flex items-center gap-2">
@@ -1822,7 +1789,7 @@ const FluidCalculator = ({ isEditing }) => {
           )}
           {activeSubTab === 'rheology' && (
             <div className="bg-zinc-900 p-10 rounded-[3.5rem] text-white space-y-8 relative overflow-hidden h-full flex flex-col justify-center animate-fade-in">
-              {/* Header and Toggle */}
+              {/* Header */}
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-white/5 pb-4">
                 <div>
                   <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500 block">Reograma Dinámico</span>
@@ -1831,36 +1798,30 @@ const FluidCalculator = ({ isEditing }) => {
                     Herschel-Bulkley vs Bingham
                   </h5>
                 </div>
-                <div className="flex bg-slate-950 p-1 rounded-xl border border-zinc-800">
-                  <button type="button" onClick={() => setRheoActiveX('rate')} className={`text-[10px] px-3.5 py-1.5 rounded-lg transition-all font-black uppercase tracking-wider ${rheoActiveX === 'rate' ? 'bg-halliburton-red text-white shadow-md' : 'text-zinc-500'}`}>Tasa de Corte (s⁻¹)</button>
-                  <button type="button" onClick={() => setRheoActiveX('rpm')} className={`text-[10px] px-3.5 py-1.5 rounded-lg transition-all font-black uppercase tracking-wider ${rheoActiveX === 'rpm' ? 'bg-halliburton-red text-white shadow-md' : 'text-zinc-500'}`}>Velocidad (RPM)</button>
-                </div>
               </div>
 
               {/* Dynamic SVG Plot */}
               {(() => {
                 const rheoRes = getRheologyResult();
-                const isRate = rheoActiveX === 'rate';
-                const maxX = isRate ? 600 * 1.7023 : 600;
+                const maxX = 600;
                 
                 // Calculate max Y for scaling
                 const maxValHB = rheoRes.adjustedTau0 + rheoRes.k * Math.pow(600 * 1.7023, rheoRes.n);
                 const maxValBingham = rheoRes.yp + rheoRes.vp * (600 / 300);
                 const maxY = Math.max(maxValHB, maxValBingham) * 1.15; // 15% padding
                 
-                // Generate path points for HB curve
+                // Generate path points for HB curve (RPM from 0 to 600)
                 const pointsHB = [];
                 const steps = 60;
                 for (let i = 0; i <= steps; i++) {
-                  const xVal = (i / steps) * maxX;
-                  const rpm = isRate ? xVal / 1.7023 : xVal;
-                  const gamma = isRate ? xVal : xVal * 1.7023;
+                  const rpm = (i / steps) * 600;
+                  const gamma = rpm * 1.7023;
                   const yHB = rheoRes.adjustedTau0 + rheoRes.k * Math.pow(gamma, rheoRes.n);
                   
                   // Map to pixels (width 520, height 290; padding left 50, top 20)
-                  const px = 50 + (xVal / maxX) * 520;
+                  const px = 50 + (rpm / maxX) * 520;
                   const py = 310 - (yHB / maxY) * 290;
-                  pointsHB.push({ px, py, xVal, yVal: yHB });
+                  pointsHB.push({ px, py, rpm, yVal: yHB });
                 }
 
                 // HB path d attribute
@@ -1875,29 +1836,34 @@ const FluidCalculator = ({ isEditing }) => {
                 const pxB2 = 570;
                 const pyB2 = 310 - (maxValBingham / maxY) * 290;
 
-                // Ticks
+                // Ticks for Y-axis (regular intervals)
                 const yTicks = [0.25, 0.5, 0.75, 1.0].map(p => ({
                   val: (p * maxY).toFixed(0),
                   py: 310 - p * 290
                 }));
-                const xTicks = [0.2, 0.4, 0.6, 0.8, 1.0].map(p => ({
-                  val: (p * maxX).toFixed(0),
-                  px: 50 + p * 520
-                }));
+
+                // Ticks for X-axis (Only rotor speeds: 3, 6, 100, 200, 300, 600)
+                const xTicks = [
+                  { val: '3', px: 50 + (3 / 600) * 520, dy: 10 },
+                  { val: '6', px: 50 + (6 / 600) * 520, dy: 0 },
+                  { val: '100', px: 50 + (100 / 600) * 520, dy: 0 },
+                  { val: '200', px: 50 + (200 / 600) * 520, dy: 0 },
+                  { val: '300', px: 50 + (300 / 600) * 520, dy: 0 },
+                  { val: '600', px: 50 + (600 / 600) * 520, dy: 0 }
+                ];
 
                 // Discrete rotor points coordinates
                 const rotorPoints = rheoRes.data.map(d => {
-                  const xVal = isRate ? d.gamma : d.rpm;
                   return {
                     rpm: d.rpm,
-                    px: 50 + (xVal / maxX) * 520,
+                    px: 50 + (d.rpm / 600) * 520,
                     py: 310 - (d.thetaHB / maxY) * 290,
                     val: d.thetaHB.toFixed(1)
                   };
                 });
 
                 return (
-                  <div className="space-y-4">
+                  <div className="space-y-6">
                     {/* SVG Container */}
                     <div className="relative bg-zinc-950 rounded-[2rem] border border-white/5 p-4 select-none">
                       <svg viewBox="0 0 600 350" className="w-full h-auto overflow-visible">
@@ -1908,10 +1874,11 @@ const FluidCalculator = ({ isEditing }) => {
                           </linearGradient>
                         </defs>
 
-                        {/* Grid lines */}
+                        {/* Grid lines (Y-axis) */}
                         {yTicks.map(t => (
                           <line key={t.val} x1="50" y1={t.py} x2="570" y2={t.py} stroke="#ffffff" strokeOpacity="0.05" strokeWidth="1" />
                         ))}
+                        {/* Vertical grid lines (X-axis ticks at exact speeds) */}
                         {xTicks.map(t => (
                           <line key={t.val} x1={t.px} y1="20" x2={t.px} y2="310" stroke="#ffffff" strokeOpacity="0.05" strokeWidth="1" />
                         ))}
@@ -1927,17 +1894,16 @@ const FluidCalculator = ({ isEditing }) => {
                         ))}
                         <text x="15" y="165" fill="#ffffff" fillOpacity="0.4" fontSize="9" fontWeight="bold" transform="rotate(-90 15 165)" textAnchor="middle" className="uppercase tracking-widest">Esfuerzo Dial (lb/100ft²)</text>
 
-                        {/* X-axis Ticks and labels */}
+                        {/* X-axis Ticks and labels (Only exact speeds, staggered 3/6) */}
                         <line x1="50" y1="310" x2="570" y2="310" stroke="#ffffff" strokeOpacity="0.2" strokeWidth="1.5" />
-                        <text x="50" y="326" fill="#8E979D" fontSize="9" textAnchor="middle" fontWeight="bold" fontFamily="monospace">0</text>
                         {xTicks.map(t => (
                           <g key={t.val}>
-                            <line x1={t.px} y1="310" x2={t.px} y2="314" stroke="#ffffff" strokeOpacity="0.2" strokeWidth="1.5" />
-                            <text x={t.px} y="326" fill="#8E979D" fontSize="9" textAnchor="middle" fontWeight="bold" fontFamily="monospace">{t.val}</text>
+                            <line x1={t.px} y1="310" x2={t.px} y2={t.dy > 0 ? "322" : "314"} stroke="#ffffff" strokeOpacity="0.2" strokeWidth="1.5" />
+                            <text x={t.px} y={326 + t.dy} fill="#8E979D" fontSize="9" textAnchor="middle" fontWeight="bold" fontFamily="monospace">{t.val}</text>
                           </g>
                         ))}
                         <text x="310" y="344" fill="#ffffff" fillOpacity="0.4" fontSize="9" fontWeight="bold" textAnchor="middle" className="uppercase tracking-widest">
-                          {isRate ? 'Tasa de Deformación / Corte (γ) [s⁻¹]' : 'Velocidad de Rotación [RPM]'}
+                          Velocidad de Rotación [RPM]
                         </text>
 
                         {/* Curves */}
@@ -1977,90 +1943,65 @@ const FluidCalculator = ({ isEditing }) => {
                       </div>
                     </div>
 
-                    {/* Table and comparison */}
-                    <div className="grid grid-cols-1 md:grid-cols-12 gap-6 pt-4">
-                      {/* Predictions Table */}
-                      <div className="md:col-span-8 space-y-3">
-                        <h3 className="text-xs font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest">Lecturas Dial Estimadas</h3>
-                        <div className="overflow-x-auto rounded-[2rem] border border-white/5 bg-zinc-950 p-4">
-                          <table className="w-full text-left border-collapse text-[11px] uppercase tracking-wider font-bold">
-                            <thead>
-                              <tr className="border-b border-white/5 text-zinc-500">
-                                <th className="pb-3 text-left">Rotor (RPM)</th>
-                                <th className="pb-3 text-right">Lectura Dial (θ-HB)</th>
-                                <th className="pb-3 text-right">Bingham (θ-B)</th>
-                                <th className="pb-3 text-right">Visc. Aparente (cP)</th>
-                              </tr>
-                            </thead>
-                            <tbody className="divide-y divide-white/5 text-zinc-300 font-mono">
-                              {rheoRes.data.map(item => {
-                                const isSelected = item.rpm === rheoSelectedRpm;
-                                return (
-                                  <tr
-                                    key={item.rpm}
-                                    onClick={() => setRheoSelectedRpm(item.rpm)}
-                                    className={`transition-colors cursor-pointer hover:bg-white/5 ${isSelected ? 'bg-white/5 border-l-2 border-halliburton-red font-black text-white' : ''}`}
-                                  >
-                                    <td className="py-2.5 text-left flex items-center gap-1.5">
-                                      {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-halliburton-red"></span>}
-                                      {item.rpm} RPM
-                                    </td>
-                                    <td className="py-2.5 text-right font-black text-halliburton-red">{item.thetaHB.toFixed(2)}</td>
-                                    <td className="py-2.5 text-right text-zinc-500">{item.thetaBingham.toFixed(2)}</td>
-                                    <td className="py-2.5 text-right text-emerald-400">{item.viscAparente.toFixed(1)}</td>
-                                  </tr>
-                                );
-                              })}
-                            </tbody>
-                          </table>
-                        </div>
-                        <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-widest text-zinc-500 pt-1">
-                          <span>Fórmula H-B: τ = τ₀ + K·γⁿ</span>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              let csv = "data:text/csv;charset=utf-8,\uFEFF";
-                              csv += `REOGRAMA VIRTUAL HERSCHEL-BULKLEY\r\n`;
-                              csv += `Parametros Fijos: VP=${rheoRes.vp} cP, YP=${rheoRes.yp} lb/100ft2, Tau0=${rheoRes.tau0} lb/100ft2\r\n\r\n`;
-                              csv += `RPM,Tasa de Corte (s-1),Lectura de Dial (theta-HB),Lectura Bingham (theta-B),Viscosidad Aparente (cP)\r\n`;
-                              rheoRes.data.forEach(d => {
-                                csv += `${d.rpm},${d.gamma.toFixed(3)},${d.thetaHB.toFixed(3)},${d.thetaBingham.toFixed(3)},${d.viscAparente.toFixed(2)}\r\n`;
-                              });
-                              const uri = encodeURI(csv);
-                              const a = document.createElement("a");
-                              a.setAttribute("href", uri);
-                              a.setAttribute("download", `perfil_reologia_fann_vp${rheoRes.vp}_yp${rheoRes.yp}.csv`);
-                              document.body.appendChild(a);
-                              a.click();
-                              document.body.removeChild(a);
-                            }}
-                            className="text-halliburton-red hover:scale-105 transition-transform font-bold flex items-center gap-1"
-                          >
-                            Descargar Datos CSV <Icon name="download" size={12} />
-                          </button>
-                        </div>
+                    {/* Table container */}
+                    <div className="space-y-3 pt-2 w-full">
+                      <h3 className="text-xs font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest">Lecturas Dial Estimadas</h3>
+                      <div className="overflow-x-auto rounded-[2rem] border border-white/5 bg-zinc-950 p-4">
+                        <table className="w-full text-left border-collapse text-[11px] uppercase tracking-wider font-bold">
+                          <thead>
+                            <tr className="border-b border-white/5 text-zinc-500">
+                              <th className="pb-3 text-left">Rotor (RPM)</th>
+                              <th className="pb-3 text-right">Lectura Dial (θ-HB)</th>
+                              <th className="pb-3 text-right">Bingham (θ-B)</th>
+                              <th className="pb-3 text-right">Visc. Aparente (cP)</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-white/5 text-zinc-300 font-mono">
+                            {rheoRes.data.map(item => {
+                              const isSelected = item.rpm === rheoSelectedRpm;
+                              return (
+                                <tr
+                                  key={item.rpm}
+                                  onClick={() => setRheoSelectedRpm(item.rpm)}
+                                  className={`transition-colors cursor-pointer hover:bg-white/5 ${isSelected ? 'bg-white/5 border-l-2 border-halliburton-red font-black text-white' : ''}`}
+                                >
+                                  <td className="py-2.5 text-left flex items-center gap-1.5">
+                                    {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-halliburton-red"></span>}
+                                    {item.rpm} RPM
+                                  </td>
+                                  <td className="py-2.5 text-right font-black text-halliburton-red">{item.thetaHB.toFixed(2)}</td>
+                                  <td className="py-2.5 text-right text-zinc-500">{item.thetaBingham.toFixed(2)}</td>
+                                  <td className="py-2.5 text-right text-emerald-400">{item.viscAparente.toFixed(1)}</td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
                       </div>
-
-                      {/* Comparative Card */}
-                      <div className="md:col-span-4 flex flex-col justify-between h-full space-y-4">
-                        <div className="space-y-4">
-                          <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block">Desviación del Modelo</span>
-                          <div>
-                            <span className="text-[9px] font-black text-zinc-500 uppercase tracking-wider">Baja Velocidad (3 RPM):</span>
-                            <div className="flex items-baseline gap-1 mt-1">
-                              <h5 className="text-3xl font-black italic text-orange-400">
-                                +{(( (rheoRes.yp + rheoRes.vp * (3 / 300)) - rheoRes.data.find(i => i.rpm === 3).thetaHB ) / rheoRes.data.find(i => i.rpm === 3).thetaHB * 100).toFixed(1)}%
-                              </h5>
-                              <span className="text-[8px] font-bold text-zinc-500 uppercase">Exceso Bingham</span>
-                            </div>
-                          </div>
-                          <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-tight leading-relaxed">
-                            Bingham suele sobreestimar las pérdidas de carga en el anular en velocidades de corte bajas. El modelo Herschel-Bulkley corrige esta brecha matemática, reduciendo el riesgo de fracturas accidentales.
-                          </p>
-                        </div>
-                        <div className="p-4 bg-white/5 border border-white/10 rounded-2xl text-[9px] font-bold uppercase tracking-wider text-zinc-300 leading-snug">
-                          <span className="text-halliburton-red font-black">Tip de Ingeniería:</span> Utiliza τ₀ para calibrar el esfuerzo de geles en lodos viscosos o densificados.
-                        </div>
+                      <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-widest text-zinc-500 pt-1">
+                        <span>Fórmula H-B: τ = τ₀ + K·γⁿ</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            let csv = "data:text/csv;charset=utf-8,\uFEFF";
+                            csv += `REOGRAMA VIRTUAL HERSCHEL-BULKLEY\r\n`;
+                            csv += `Parametros Fijos: VP=${rheoRes.vp} cP, YP=${rheoRes.yp} lb/100ft2, Tau0=${rheoRes.tau0} lb/100ft2\r\n\r\n`;
+                            csv += `RPM,Tasa de Corte (s-1),Lectura de Dial (theta-HB),Lectura Bingham (theta-B),Viscosidad Aparente (cP)\r\n`;
+                            rheoRes.data.forEach(d => {
+                              csv += `${d.rpm},${d.gamma.toFixed(3)},${d.thetaHB.toFixed(3)},${d.thetaBingham.toFixed(3)},${d.viscAparente.toFixed(2)}\r\n`;
+                            });
+                            const uri = encodeURI(csv);
+                            const a = document.createElement("a");
+                            a.setAttribute("href", uri);
+                            a.setAttribute("download", `perfil_reologia_fann_vp${rheoRes.vp}_yp${rheoRes.yp}.csv`);
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                          }}
+                          className="text-halliburton-red hover:scale-105 transition-transform font-bold flex items-center gap-1"
+                        >
+                          Descargar Datos CSV <Icon name="download" size={12} />
+                        </button>
                       </div>
                     </div>
                   </div>
