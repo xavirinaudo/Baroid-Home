@@ -437,7 +437,11 @@ const FluidCalculator = ({ isEditing }) => {
     if (Math.abs(norm - 0.282) < 0.005) factor = 10000;
     else if (Math.abs(norm - 0.0282) < 0.0005) factor = 1000;
 
-    const cl_mgL = (ml * factor) / mls;
+    if (vw <= 0) {
+      return { invalid: true, msg: 'El porcentaje de agua (Vw) debe ser mayor a 0 para calcular la salinidad.' };
+    }
+
+    const cl_mgL = (ml * factor * 100) / (mls * vw);
     const nacl_mgL = cl_mgL * 1.648;
 
     // Brine density in SG
