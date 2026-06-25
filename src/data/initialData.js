@@ -545,7 +545,7 @@ export const INITIAL_DATA_REFINED = [
           {
             "id": "l_hr_2",
             "name": "Recibo de Sueldo (Firma Digital)",
-            "url": "https://argentinapayslip.halliburton.com/firma-digital/mypaychecks"
+            "url": "https://argentinapayslip.halliburton.com/firma-digital/login?redirect=%2Fpaychecks%2Fmypaychecks"
           },
           {
             "id": "l_hr_3",
