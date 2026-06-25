@@ -1,12 +1,17 @@
 import React, { useState } from 'react';
 import Icon from './Icon';
 import AccurisGuideModal from './AccurisGuideModal';
+import PayslipWarningModal from './PayslipWarningModal';
 
 const Modal = ({ showModal, setShowModal, modalData, addSector, addSubsector, addLink, updateItem }) => {
   if (!showModal) return null;
   
   if (showModal === 'accuris-guide') {
     return <AccurisGuideModal setShowModal={setShowModal} />;
+  }
+
+  if (showModal === 'payslip-warning') {
+    return <PayslipWarningModal setShowModal={setShowModal} modalData={modalData} />;
   }
   
   const [form, setForm] = useState({

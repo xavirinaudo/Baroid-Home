@@ -158,8 +158,8 @@ const MainContent = ({
                                                                             setShowModal('accuris-guide');
                                                                         } else if (l.id === 'l_hr_2') {
                                                                             e.preventDefault();
-                                                                            alert("Recorda que si la pantalla permanece en blanco tenés que apretar la tecla Shift + F5 para recargar la página");
-                                                                            window.open(resolveUrl(l.url), '_blank', 'noopener,noreferrer');
+                                                                            setModalData({ url: resolveUrl(l.url) });
+                                                                            setShowModal('payslip-warning');
                                                                         }
                                                                     }}
                                                                     className="flex items-center gap-4 bg-white dark:bg-slate-800/20 border border-zinc-100 dark:border-zinc-800 p-4 rounded-2xl hover:bg-zinc-50 dark:hover:bg-slate-800/40 transition-all group-hover/list-item:border-halliburton-red/30"
@@ -196,8 +196,8 @@ const MainContent = ({
                                                                         setShowModal('accuris-guide');
                                                                     } else if (l.id === 'l_hr_2') {
                                                                         e.preventDefault();
-                                                                        alert("Recorda que si la pantalla permanece en blanco tenés que apretar la tecla Shift + F5 para recargar la página");
-                                                                        window.open(resolveUrl(l.url), '_blank', 'noopener,noreferrer');
+                                                                        setModalData({ url: resolveUrl(l.url) });
+                                                                        setShowModal('payslip-warning');
                                                                     }
                                                                 }} className={`block bg-white dark:bg-slate-800/40 border border-zinc-100 dark:border-zinc-800 card-shadow hover-glow h-full overflow-hidden relative ${cardSize === 'small' ? 'p-5 rounded-3xl' : 'p-8 rounded-[2.5rem]'}`}>
                                                                     <div className={`flex items-center justify-between ${cardSize === 'small' ? 'mb-4' : 'mb-6'}`}>
