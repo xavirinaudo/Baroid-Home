@@ -1,7 +1,35 @@
 import React, { useState, useEffect } from 'react';
 import Icon from './Icon';
+import { translations } from '../data/translations';
 
-const FluidCalculator = ({ isEditing }) => {
+const FluidCalculator = ({ isEditing, lang }) => {
+  const t = translations[lang] || translations['es'];
+
+  const getTabLabel = (tabId) => {
+    switch (tabId) {
+      case 'conv': return t.tabConv;
+      case 'barite': return t.tabBarite;
+      case 'rheology': return t.tabRheology;
+      case 'mixing': return t.tabMixing;
+      case 'lgs_retort': return t.tabLgsRetort;
+      case 'lgs': return t.tabLgs;
+      case 'owr': return t.tabOwr;
+      case 'eng': return t.tabEng;
+      case 'slug': return t.tabSlug;
+      case 'fit': return t.tabFit;
+      case 'pfmf': return t.tabPfMf;
+      default: return '';
+    }
+  };
+
+  const getTreatmentLabel = (treatId) => {
+    switch (treatId) {
+      case 'lime': return t.pfMfLime;
+      case 'sodaAsh': return t.pfMfSodaAsh;
+      case 'sodiumBicarb': return t.pfMfSodiumBicarb;
+      default: return '';
+    }
+  };
   const [activeSubTab, setActiveSubTab] = useState('conv'); // 'conv', 'barite', 'mixing', 'eng', 'owr', 'slug', 'fit', 'pfmf', 'lgs'
   const [unitMode, setUnitMode] = useState('field');
 
@@ -636,7 +664,7 @@ const FluidCalculator = ({ isEditing }) => {
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text).then(() => {
-      alert("¡Resultado copiado al portapapeles!");
+      alert(t.copySuccess);
     });
   };
 
@@ -670,13 +698,13 @@ const FluidCalculator = ({ isEditing }) => {
             <Icon name="calculator" size={32} className="text-white" />
           </div>
           <div>
-            <h3 className="text-3xl font-black uppercase italic tracking-tighter text-zinc-800 dark:text-white">Ingeniería de Fluidos</h3>
-            <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Soluciones de Fluidos</p>
+            <h3 className="text-3xl font-black uppercase italic tracking-tighter text-zinc-800 dark:text-white">{t.engineeringFluids}</h3>
+            <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">{t.solutionsFluids}</p>
           </div>
         </div>
         <div className="flex bg-zinc-100 dark:bg-slate-800 p-1.5 rounded-2xl border border-zinc-200 dark:border-zinc-700 self-start">
-          <button onClick={() => setUnitMode('field')} className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${unitMode === 'field' ? 'bg-halliburton-red text-white shadow-md' : 'text-zinc-500'}`}>Campo</button>
-          <button onClick={() => setUnitMode('metric')} className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${unitMode === 'metric' ? 'bg-halliburton-red text-white shadow-md' : 'text-zinc-500'}`}>Métrico</button>
+          <button onClick={() => setUnitMode('field')} className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${unitMode === 'field' ? 'bg-halliburton-red text-white shadow-md' : 'text-zinc-500'}`}>{t.unitField}</button>
+          <button onClick={() => setUnitMode('metric')} className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${unitMode === 'metric' ? 'bg-halliburton-red text-white shadow-md' : 'text-zinc-500'}`}>{t.unitMetric}</button>
         </div>
       </div>
 
@@ -697,7 +725,7 @@ const FluidCalculator = ({ isEditing }) => {
                 className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all border ${!tab.visible ? 'opacity-40 border-dashed bg-transparent' : ''} ${activeSubTab === tab.id ? 'bg-zinc-900 text-white border-zinc-900 shadow-md ring-2 ring-halliburton-red/10' : 'bg-white dark:bg-slate-800 text-zinc-500 border-zinc-100 dark:border-zinc-700 hover:border-halliburton-red'}`}
               >
                 <Icon name={tab.icon} size={14} />
-                {tab.label}
+                {getTabLabel(tab.id)}
               </button>
             </div>
           ))}
@@ -719,17 +747,17 @@ const FluidCalculator = ({ isEditing }) => {
         <div className={`${activeSubTab === 'conv' ? 'lg:col-span-7' : 'lg:col-span-5'} bg-white dark:bg-slate-800/40 p-10 rounded-[3.5rem] card-shadow border border-zinc-200 dark:border-zinc-800/50`}>
           {activeSubTab === 'eng' && (
             <div className="space-y-6">
-              <h4 className="text-[14px] font-black text-halliburton-red uppercase tracking-widest mb-4 italic">Parámetros Pozo</h4>
+              <h4 className="text-[14px] font-black text-halliburton-red uppercase tracking-widest mb-4 italic">{t.hydroWellParams}</h4>
               <div>
-                <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">Densidad ({unitMode === 'field' ? 'ppg' : 'g/L'})</label>
+                <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">{t.hydroDensity} ({unitMode === 'field' ? 'ppg' : 'g/L'})</label>
                 <input type="number" value={eng.dens} onChange={e => setEng({ ...eng, dens: e.target.value })} className="w-full input-style text-xl font-bold" placeholder="0.00" />
               </div>
               <div>
-                <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">Profundidad ({unitMode === 'field' ? 'pies' : 'metros'})</label>
+                <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">{t.hydroDepth} ({unitMode === 'field' ? (lang === 'es' ? 'pies' : 'feet') : (lang === 'es' ? 'metros' : 'meters')})</label>
                 <input type="number" value={eng.depth} onChange={e => setEng({ ...eng, depth: e.target.value })} className="w-full input-style text-xl font-bold" placeholder="0.00" />
               </div>
               <div>
-                <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">Diámetro (pulgadas)</label>
+                <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">{t.hydroDiameter}</label>
                 <input type="number" value={eng.diam} onChange={e => setEng({ ...eng, diam: e.target.value })} className="w-full input-style text-xl font-bold" placeholder="0.00" />
               </div>
             </div>
@@ -738,48 +766,48 @@ const FluidCalculator = ({ isEditing }) => {
           {activeSubTab === 'conv' && (
             <div className="space-y-6">
               <div className="flex justify-between items-center mb-4">
-                <h4 className="text-[11px] font-black text-halliburton-red uppercase tracking-widest italic">Valor a Convertir</h4>
+                <h4 className="text-[11px] font-black text-halliburton-red uppercase tracking-widest italic">{t.unitConvTitle}</h4>
                 <button
                   onClick={() => setConvReverse(!convReverse)}
                   className="group flex items-center gap-2 px-4 py-2 bg-zinc-100 dark:bg-slate-900 text-zinc-600 dark:text-zinc-400 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-halliburton-red hover:text-white transition-all shadow-sm border border-zinc-200 dark:border-zinc-800"
                 >
                   <Icon name="repeat" size={12} className="group-hover:rotate-180 transition-transform duration-500" />
-                  {convReverse ? 'Sentido Inverso' : 'Sentido Directo'}
+                  {convReverse ? t.unitConvReverse : t.unitConvForward}
                 </button>
               </div>
               <div className="relative group">
                 <input type="number" value={convVal} onChange={e => setConvVal(e.target.value)} className="w-full input-style text-3xl font-black mb-10 pr-40" placeholder="0.00" />
-                <div className="absolute right-6 top-5 px-3 py-1 bg-zinc-100 dark:bg-slate-900 rounded-lg text-zinc-400 font-black text-[10px] uppercase tracking-widest border border-zinc-200 dark:border-zinc-800 shadow-sm">{convReverse ? 'Hacia Campo' : 'Desde Campo'}</div>
+                <div className="absolute right-6 top-5 px-3 py-1 bg-zinc-100 dark:bg-slate-900 rounded-lg text-zinc-400 font-black text-[10px] uppercase tracking-widest border border-zinc-200 dark:border-zinc-800 shadow-sm">{convReverse ? t.unitConvToField : t.unitConvFromField}</div>
               </div>
               <div className="grid grid-cols-1 gap-3">
                 {[
                   {
-                    label: 'Densidad',
+                    label: t.unitConvDensity,
                     v1: `${(convVal * 1).toFixed(2)} ${convReverse ? 'g/L' : 'ppg'}`,
                     v2: `${convReverse ? glToPPG(convVal || 0).toFixed(2) + ' ppg' : ppgToGL(convVal || 0).toFixed(1) + ' g/L'}`
                   },
                   {
-                    label: 'Volumen',
+                    label: t.unitConvVolume,
                     v1: `${(convVal * 1).toFixed(1)} ${convReverse ? 'm³' : 'bbl'}`,
                     v2: `${convReverse ? m3ToBbl(convVal || 0).toFixed(2) + ' bbl' : bblToM3(convVal || 0).toFixed(2) + ' m³'}`
                   },
                   {
-                    label: 'Longitud',
+                    label: t.unitConvLength,
                     v1: `${(convVal * 1).toFixed(1)} ${convReverse ? 'ft' : 'm'}`,
                     v2: `${convReverse ? ftToM(convVal || 0).toFixed(2) + ' m' : mToFt(convVal || 0).toFixed(1) + ' ft'}`
                   },
                   {
-                    label: 'Presión',
+                    label: t.unitConvPressure,
                     v1: `${(convVal * 1).toFixed(1)} ${convReverse ? 'kg/cm²' : 'psi'}`,
                     v2: `${convReverse ? (convVal / 0.070307).toFixed(1) + ' psi' : psiToKgCm2(convVal || 0).toFixed(2) + ' kg/cm²'}`
                   },
                   {
-                    label: 'Caudal',
+                    label: t.unitConvFlow,
                     v1: `${(convVal * 1).toFixed(1)} ${convReverse ? 'bpm' : 'gpm'}`,
                     v2: `${convReverse ? (convVal * 42).toFixed(1) + ' gpm' : (convVal / 42).toFixed(2) + ' bpm'}`
                   },
                   {
-                    label: 'ROP',
+                    label: t.unitConvRop,
                     v1: `${(convVal * 1).toFixed(1)} ${convReverse ? 'ft/min' : 'm/h'}`,
                     v2: `${convReverse ? (convVal * 60 / 3.28084).toFixed(1) + ' m/h' : (convVal * 3.28084 / 60).toFixed(2) + ' ft/min'}`
                   }
@@ -800,28 +828,28 @@ const FluidCalculator = ({ isEditing }) => {
           {activeSubTab === 'barite' && (
             <div className="space-y-6">
               <div className="flex items-center justify-between mb-6">
-                <h4 className="text-[14px] font-black text-halliburton-red uppercase tracking-widest italic">Ajuste de Densidad</h4>
+                <h4 className="text-[14px] font-black text-halliburton-red uppercase tracking-widest italic">{t.bariteWeightUpTitle}</h4>
                 <div className="flex gap-2 bg-zinc-100 dark:bg-slate-900 p-1.5 rounded-2xl">
                   <button onClick={() => setBariteUnits({ ...bariteUnits, vol: bariteUnits.vol === 'm3' ? 'bbl' : 'm3' })} className="px-6 py-2.5 rounded-xl bg-zinc-800 text-white text-[11px] font-black uppercase shadow-lg hover:scale-105 transition-transform active:scale-95">{bariteUnits.vol}</button>
                   <button onClick={() => setBariteUnits({ ...bariteUnits, dens: bariteUnits.dens === 'ppg' ? 'gL' : 'ppg' })} className="px-6 py-2.5 rounded-xl bg-zinc-800 text-white text-[11px] font-black uppercase shadow-lg hover:scale-105 transition-transform active:scale-95">{bariteUnits.dens}</button>
                 </div>
               </div>
               <div>
-                <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">Volumen Inicial ({bariteUnits.vol})</label>
+                <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">{t.bariteInitialVol} ({bariteUnits.vol})</label>
                 <input type="number" value={barite.vol} onChange={e => setBarite({ ...barite, vol: e.target.value })} className="w-full input-style text-xl font-bold" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">D. Actual ({bariteUnits.dens})</label>
+                  <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">{t.bariteCurrentDens} ({bariteUnits.dens})</label>
                   <input type="number" value={barite.d1} onChange={e => setBarite({ ...barite, d1: e.target.value })} className="w-full input-style" />
                 </div>
                 <div>
-                  <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">D. Final ({bariteUnits.dens})</label>
+                  <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">{t.bariteFinalDens} ({bariteUnits.dens})</label>
                   <input type="number" value={barite.d2} onChange={e => setBarite({ ...barite, d2: e.target.value })} className="w-full input-style" />
                 </div>
               </div>
               <div>
-                <label className="text-[13px] font-black text-halliburton-red uppercase tracking-widest mb-2 block">SG Material</label>
+                <label className="text-[13px] font-black text-halliburton-red uppercase tracking-widest mb-2 block">{t.bariteSg}</label>
                 <input type="number" value={barite.sg} onChange={e => setBarite({ ...barite, sg: e.target.value })} className="w-full input-style text-xl font-bold" placeholder="4.2" step="0.01" />
               </div>
             </div>
@@ -829,18 +857,18 @@ const FluidCalculator = ({ isEditing }) => {
 
           {activeSubTab === 'slug' && (
             <div className="space-y-6">
-              <h4 className="text-[14px] font-black text-halliburton-red uppercase tracking-widest mb-4 italic">Diseño de Píldora Pesada</h4>
+              <h4 className="text-[14px] font-black text-halliburton-red uppercase tracking-widest mb-4 italic">{t.slugHeavyTitle}</h4>
               <div>
-                <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">Longitud Seca Deseada ({unitMode === 'field' ? 'ft' : 'm'})</label>
+                <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">{t.slugLengthSeca} ({unitMode === 'field' ? 'ft' : 'm'})</label>
                 <input type="number" value={slug.lengthSeca} onChange={e => setSlug({ ...slug, lengthSeca: e.target.value })} className="w-full input-style text-xl font-bold" placeholder="0.00" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">ID Drill Pipe (in)</label>
+                  <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">{t.slugIdDp}</label>
                   <input type="number" value={slug.idDP} onChange={e => setSlug({ ...slug, idDP: e.target.value })} className="w-full input-style text-xl font-bold" placeholder="0.00" />
                 </div>
                 <div>
-                  <label className="text-[13px] font-black text-halliburton-red uppercase tracking-widest mb-2 block">Capacidad Calc.</label>
+                  <label className="text-[13px] font-black text-halliburton-red uppercase tracking-widest mb-2 block">{t.slugCapCalc}</label>
                   <div className="w-full bg-zinc-100 dark:bg-slate-900 rounded-xl p-3 text-sm font-black text-zinc-400 border border-zinc-200 dark:border-zinc-800 flex items-center h-[52px]">
                     {getSlugResult().currentCap || '0.000'} <small className="ml-1 opacity-50">{unitMode === 'field' ? 'bbl/ft' : 'm³/m'}</small>
                   </div>
@@ -848,11 +876,11 @@ const FluidCalculator = ({ isEditing }) => {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">Dens. Fluido ({unitMode === 'field' ? 'ppg' : 'g/L'})</label>
+                  <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">{t.slugDensMud} ({unitMode === 'field' ? 'ppg' : 'g/L'})</label>
                   <input type="number" value={slug.densMud} onChange={e => setSlug({ ...slug, densMud: e.target.value })} className="w-full input-style" />
                 </div>
                 <div>
-                  <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">Dens. Píldora ({unitMode === 'field' ? 'ppg' : 'g/L'})</label>
+                  <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">{t.slugDensSlug} ({unitMode === 'field' ? 'ppg' : 'g/L'})</label>
                   <input type="number" value={slug.densSlug} onChange={e => setSlug({ ...slug, densSlug: e.target.value })} className="w-full input-style" />
                 </div>
               </div>
@@ -862,7 +890,7 @@ const FluidCalculator = ({ isEditing }) => {
                   className="w-full flex justify-between items-center mb-2 group py-2"
                   type="button"
                 >
-                  <h5 className="text-[10px] font-black text-zinc-400 group-hover:text-halliburton-red uppercase tracking-[0.2em] transition-colors">Factores de Resistencia (Opcional)</h5>
+                  <h5 className="text-[10px] font-black text-zinc-400 group-hover:text-halliburton-red uppercase tracking-[0.2em] transition-colors">{t.slugAdvFactors}</h5>
                   <div className={`p-1 rounded-lg transition-all ${showAdvancedSlug ? 'bg-halliburton-red text-white rotate-180' : 'bg-zinc-100 dark:bg-slate-800 text-zinc-400'}`}>
                     <Icon name="chevron-down" size={12} />
                   </div>
@@ -872,25 +900,25 @@ const FluidCalculator = ({ isEditing }) => {
                   <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="text-[12px] font-black text-zinc-500 dark:text-zinc-400 uppercase mb-2 block">Válvulas/Motor (PSI)</label>
-                        <input type="number" value={slug.valveResist} onChange={e => setSlug({ ...slug, valveResist: e.target.value })} className="w-full input-style" placeholder="Resorte/Fricción" title="Presión necesaria para abrir la válvula flotadora (Float Valve) o vencer motores." />
+                        <label className="text-[12px] font-black text-zinc-500 dark:text-zinc-400 uppercase mb-2 block">{t.slugValveResist}</label>
+                        <input type="number" value={slug.valveResist} onChange={e => setSlug({ ...slug, valveResist: e.target.value })} className="w-full input-style" placeholder="Resorte/Fricción" />
                       </div>
                       <div>
-                        <label className="text-[12px] font-black text-zinc-500 dark:text-zinc-400 uppercase mb-2 block">MPD SBP (PSI)</label>
-                        <input type="number" value={slug.mpdSBP} onChange={e => setSlug({ ...slug, mpdSBP: e.target.value })} className="w-full input-style" placeholder="Contrapresión" title="Surface Back Pressure aplicada por unidad de MPD en el anular." />
+                        <label className="text-[12px] font-black text-zinc-500 dark:text-zinc-400 uppercase mb-2 block">{t.slugMpdSbp}</label>
+                        <input type="number" value={slug.mpdSBP} onChange={e => setSlug({ ...slug, mpdSBP: e.target.value })} className="w-full input-style" placeholder="Contrapresión" />
                       </div>
                     </div>
                     <div className="bg-zinc-100/50 dark:bg-slate-900/40 p-4 rounded-2xl border border-zinc-100 dark:border-zinc-800 space-y-3">
                       <div className="flex gap-3">
                         <Icon name="info" size={14} className="text-halliburton-red shrink-0 mt-0.5" />
                         <p className="text-[10px] font-bold text-zinc-500 uppercase leading-normal">
-                          <span className="text-zinc-700 dark:text-zinc-300">Válvulas/Motor:</span> Presión extra necesaria para vencer el resorte del Float Valve o la resistencia interna de motores/MWD.
+                          {t.slugAdvTip1}
                         </p>
                       </div>
                       <div className="flex gap-3">
                         <Icon name="activity" size={14} className="text-blue-500 shrink-0 mt-0.5" />
                         <p className="text-[10px] font-bold text-zinc-500 uppercase leading-normal">
-                          <span className="text-zinc-700 dark:text-zinc-300">MPD SBP:</span> Contrapresión de superficie aplicada en el anular.
+                          {t.slugAdvTip2}
                         </p>
                       </div>
                     </div>
@@ -899,11 +927,11 @@ const FluidCalculator = ({ isEditing }) => {
               </div>
               <div className="grid grid-cols-2 gap-4 border-t border-zinc-100 dark:border-zinc-800 pt-4">
                 <div>
-                  <label className="text-[13px] font-black text-halliburton-red uppercase tracking-widest mb-2 block">Margen Seguridad (PSI)</label>
+                  <label className="text-[13px] font-black text-halliburton-red uppercase tracking-widest mb-2 block">{t.slugSafetyMargin}</label>
                   <input type="number" value={slug.safetyPressure} onChange={e => setSlug({ ...slug, safetyPressure: e.target.value })} className="w-full input-style text-xl font-bold" placeholder="200" />
                 </div>
                 <div>
-                  <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">Vol. a Preparar ({unitMode === 'field' ? 'bbl' : 'm³'})</label>
+                  <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">{t.slugVolToPrepare} ({unitMode === 'field' ? 'bbl' : 'm³'})</label>
                   <input type="number" value={slug.volToPrepare} onChange={e => setSlug({ ...slug, volToPrepare: e.target.value })} className="w-full input-style" placeholder="Opcional" />
                 </div>
               </div>
@@ -912,29 +940,29 @@ const FluidCalculator = ({ isEditing }) => {
 
           {activeSubTab === 'owr' && (
             <div className="space-y-6">
-              <h4 className="text-[14px] font-black text-halliburton-red uppercase tracking-widest mb-4 italic">Análisis de Retorta (OWR)</h4>
+              <h4 className="text-[14px] font-black text-halliburton-red uppercase tracking-widest mb-4 italic">{t.owrTitle}</h4>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">% Vol Aceite</label>
+                  <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">{t.owrVolOil}</label>
                   <input type="number" value={owr.vOil} onChange={e => setOwr({ ...owr, vOil: e.target.value })} className="w-full input-style text-xl font-bold" />
                 </div>
                 <div>
-                  <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">% Vol Agua</label>
+                  <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">{t.owrVolWater}</label>
                   <input type="number" value={owr.vWater} onChange={e => setOwr({ ...owr, vWater: e.target.value })} className="w-full input-style text-xl font-bold" />
                 </div>
               </div>
               <div>
-                <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">% Vol Sólidos (Calc.)</label>
+                <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">{t.owrVolSolids}</label>
                 <div className="w-full bg-zinc-100 dark:bg-slate-900 rounded-2xl p-3 text-lg font-bold text-zinc-400 border border-zinc-200 dark:border-zinc-800 flex items-center h-[52px]">
                   {getOWRResult().solids} {getOWRResult().solids !== '-' && getOWRResult().solids !== 'Inválido' ? '%' : ''}
                 </div>
               </div>
               <div>
-                <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">Volumen de Lodo a Acondicionar ({unitMode === 'field' ? 'bbl' : 'm³'})</label>
+                <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">{t.owrVolCondition} ({unitMode === 'field' ? 'bbl' : 'm³'})</label>
                 <input type="number" value={owr.volCondition} onChange={e => setOwr({ ...owr, volCondition: e.target.value })} className="w-full input-style text-xl font-bold" placeholder={unitMode === 'field' ? 'Ej: 1000' : 'Ej: 150'} />
               </div>
               <div>
-                <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block italic text-halliburton-red">Relación Objetivo (% Aceite)</label>
+                <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block italic text-halliburton-red">{t.owrTargetRatio}</label>
                 <div className="flex gap-2">
                   {['70', '75', '80', '85', '90'].map(r => (
                     <button key={r} onClick={() => setOwr({ ...owr, targetRatio: r })} className={`flex-1 py-3 rounded-xl text-[10px] font-black transition-all border ${owr.targetRatio === r ? 'bg-halliburton-red text-white border-halliburton-red shadow-lg' : 'bg-zinc-50 dark:bg-slate-900 text-zinc-400 border-zinc-200 dark:border-zinc-800'}`}>
@@ -948,46 +976,46 @@ const FluidCalculator = ({ isEditing }) => {
 
           {activeSubTab === 'pfmf' && (
             <div className="space-y-6">
-              <h4 className="text-[14px] font-black text-halliburton-red uppercase tracking-widest mb-4 italic">Titulación Pf / Mf</h4>
+              <h4 className="text-[14px] font-black text-halliburton-red uppercase tracking-widest mb-4 italic">{t.pfMfTitle}</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                 <div>
-                  <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">Lectura Pf (ml)</label>
+                  <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">{t.pfMfPf}</label>
                   <input type="number" value={titration.pf} onChange={e => setTitration({ ...titration, pf: e.target.value })} className="w-full input-style text-xl font-bold" />
                 </div>
                 <div>
-                  <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">Lectura Mf (ml)</label>
+                  <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">{t.pfMfMf}</label>
                   <input type="number" value={titration.mf} onChange={e => setTitration({ ...titration, mf: e.target.value })} className="w-full input-style text-xl font-bold" />
                 </div>
               </div>
               <div>
-                <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">Dureza Calcio (mg/L Ca++) - Opcional</label>
-                <input type="number" value={titration.ca} onChange={e => setTitration({ ...titration, ca: e.target.value })} className="w-full input-style text-xl font-bold" placeholder="Para remediación de cemento" />
+                <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">{t.pfMfCa}</label>
+                <input type="number" value={titration.ca} onChange={e => setTitration({ ...titration, ca: e.target.value })} className="w-full input-style text-xl font-bold" />
               </div>
               <div className="p-5 bg-blue-50 dark:bg-blue-900/10 rounded-3xl border border-blue-100 dark:border-blue-900/20 text-[10px] leading-relaxed text-blue-800 dark:text-blue-300 font-bold uppercase tracking-wider">
                 <Icon name="info" size={12} className="inline mr-2" />
-                Asegúrese de usar H2SO4 0.02N según norma API para estos cálculos.
+                {t.pfMfNotice}
               </div>
             </div>
           )}
 
           {activeSubTab === 'fit' && (
             <div className="space-y-6">
-              <h4 className="text-[14px] font-black text-halliburton-red uppercase tracking-widest mb-4 italic">Prueba de Integridad (FIT)</h4>
+              <h4 className="text-[14px] font-black text-halliburton-red uppercase tracking-widest mb-4 italic">{t.fitTitle}</h4>
               <div>
-                <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">EMW Objetivo ({unitMode === 'field' ? 'ppg' : 'g/L'})</label>
+                <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">{t.fitTargetEmy} ({unitMode === 'field' ? 'ppg' : 'g/L'})</label>
                 <input type="number" value={fit.targetEMW} onChange={e => setFit({ ...fit, targetEMW: e.target.value })} className="w-full input-style text-xl font-bold" placeholder="0.00" />
               </div>
               <div>
-                <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">Densidad Lodo Actual ({unitMode === 'field' ? 'ppg' : 'g/L'})</label>
+                <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">{t.fitCurrentMw} ({unitMode === 'field' ? 'ppg' : 'g/L'})</label>
                 <input type="number" value={fit.currentMW} onChange={e => setFit({ ...fit, currentMW: e.target.value })} className="w-full input-style text-xl font-bold" placeholder="0.00" />
               </div>
               <div>
-                <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">TVD Zapata ({unitMode === 'field' ? 'ft' : 'm'})</label>
+                <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">{t.fitShoeTvd} ({unitMode === 'field' ? 'ft' : 'm'})</label>
                 <input type="number" value={fit.shoeTVD} onChange={e => setFit({ ...fit, shoeTVD: e.target.value })} className="w-full input-style text-xl font-bold" placeholder="0.00" />
               </div>
               <div className="p-5 bg-zinc-50 dark:bg-slate-900/60 rounded-3xl border border-zinc-100 dark:border-zinc-800/50 text-[10px] leading-relaxed text-zinc-500 font-bold uppercase tracking-wider">
                 <Icon name="activity" size={12} className="inline mr-2" />
-                La prueba verifica la integridad debajo de la zapata sin fracturar.
+                {t.fitNotice}
               </div>
             </div>
           )}
@@ -995,7 +1023,7 @@ const FluidCalculator = ({ isEditing }) => {
           {activeSubTab === 'mixing' && (
             <div className="space-y-6">
               <div className="flex items-center justify-between mb-6">
-                <h4 className="text-[14px] font-black text-halliburton-red uppercase tracking-widest italic">Mezcla de Fluidos</h4>
+                <h4 className="text-[14px] font-black text-halliburton-red uppercase tracking-widest italic">{t.mixTitle}</h4>
                 <div className="flex gap-2 bg-zinc-100 dark:bg-slate-900 p-1.5 rounded-2xl">
                   <button onClick={() => setMixUnits({ ...mixUnits, vol: mixUnits.vol === 'm3' ? 'bbl' : 'm3' })} className="px-6 py-2.5 rounded-xl bg-zinc-800 text-white text-[11px] font-black uppercase shadow-lg hover:scale-105 transition-transform active:scale-95">{mixUnits.vol}</button>
                   <button onClick={() => setMixUnits({ ...mixUnits, dens: mixUnits.dens === 'ppg' ? 'gL' : 'ppg' })} className="px-6 py-2.5 rounded-xl bg-zinc-800 text-white text-[11px] font-black uppercase shadow-lg hover:scale-105 transition-transform active:scale-95">{mixUnits.dens}</button>
@@ -1035,14 +1063,14 @@ const FluidCalculator = ({ isEditing }) => {
                   className="w-full py-4 border-2 border-dashed border-zinc-300 dark:border-zinc-700 rounded-[2rem] text-zinc-400 hover:text-halliburton-red hover:border-halliburton-red transition-all flex items-center justify-center gap-2 font-black uppercase text-[10px] tracking-widest"
                 >
                   <Icon name="plus" size={16} />
-                  Agregar Fluido a la Mezcla
+                  {t.mixAddFluid}
                 </button>
 
                 <div className="pt-6 border-t border-zinc-100 dark:border-zinc-800/50 space-y-4">
-                  <h5 className="text-[12px] font-black text-halliburton-red uppercase tracking-widest italic">Ajuste de Densidad de la Mezcla (Opcional)</h5>
+                  <h5 className="text-[12px] font-black text-halliburton-red uppercase tracking-widest italic">{t.bariteWeightUpTitle} (Opcional)</h5>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">D. Objetivo ({mixUnits.dens})</label>
+                      <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">{t.mixTargetDens} ({mixUnits.dens})</label>
                       <input
                         type="number"
                         value={mixTargetDens}
@@ -1052,7 +1080,7 @@ const FluidCalculator = ({ isEditing }) => {
                       />
                     </div>
                     <div>
-                      <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">SG Densificante</label>
+                      <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">{t.mixBariteSg}</label>
                       <input
                         type="number"
                         value={mixBariteSg}
@@ -1070,58 +1098,58 @@ const FluidCalculator = ({ isEditing }) => {
 
           {activeSubTab === 'lgs' && (
             <div className="space-y-6">
-              <h4 className="text-[14px] font-black text-halliburton-red uppercase tracking-widest mb-4 italic">Dilución de Sólidos (LGS)</h4>
+              <h4 className="text-[14px] font-black text-halliburton-red uppercase tracking-widest mb-4 italic">{t.lgsTitle}</h4>
               <div>
-                <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">Volumen Activo Inicial (V1) ({unitMode === 'field' ? 'bbl' : 'm³'})</label>
+                <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">{t.lgsInitialVol} ({unitMode === 'field' ? 'bbl' : 'm³'})</label>
                 <input type="number" value={lgs.v1} onChange={e => setLgs({ ...lgs, v1: e.target.value })} className="w-full input-style text-xl font-bold" placeholder="0.00" />
               </div>
               <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <label className="text-[11px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">LGS Actual (C1) %</label>
+                  <label className="text-[11px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">{t.lgsCurrent}</label>
                   <input type="number" value={lgs.c1} onChange={e => setLgs({ ...lgs, c1: e.target.value })} className="w-full input-style text-center" placeholder="7.0" />
                 </div>
                 <div>
-                  <label className="text-[11px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">LGS Diluyente (C2) %</label>
+                  <label className="text-[11px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">{t.lgsDiluent}</label>
                   <input type="number" value={lgs.c2} onChange={e => setLgs({ ...lgs, c2: e.target.value })} className="w-full input-style text-center" placeholder="2.9" />
                 </div>
                 <div>
-                  <label className="text-[11px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">LGS Objetivo (Cf) %</label>
+                  <label className="text-[11px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">{t.lgsTarget}</label>
                   <input type="number" value={lgs.cf} onChange={e => setLgs({ ...lgs, cf: e.target.value })} className="w-full input-style text-center" placeholder="3.5" />
                 </div>
               </div>
               <div className="p-5 bg-zinc-50 dark:bg-slate-900/60 rounded-3xl border border-zinc-100 dark:border-zinc-800/50 text-[10px] leading-relaxed text-zinc-500 font-bold uppercase tracking-wider">
                 <Icon name="activity" size={12} className="inline mr-2" />
-                El balance de masas calcula el volumen necesario de diluyente (C2) para reducir el LGS actual al nivel objetivo (Cf).
+                {t.lgsNotice}
               </div>
             </div>
           )}
 
           {activeSubTab === 'lgs_retort' && (
             <div className="space-y-6">
-              <h4 className="text-[14px] font-black text-halliburton-red uppercase tracking-widest mb-4 italic">Retorta y Salinidad (LGS)</h4>
+              <h4 className="text-[14px] font-black text-halliburton-red uppercase tracking-widest mb-4 italic">{t.retortTitle}</h4>
               
               {/* Section 1: Retorta */}
               <div className="space-y-4">
-                <h5 className="text-[11px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest border-b border-zinc-100 dark:border-zinc-800 pb-1">1. Datos de Retorta</h5>
+                <h5 className="text-[11px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest border-b border-zinc-100 dark:border-zinc-800 pb-1">{t.retortDataHeader}</h5>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-[12px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">% Vol Agua (Vw)</label>
+                    <label className="text-[12px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">{t.owrVolWater} (Vw)</label>
                     <input type="number" value={lgsRetort.vWater} onChange={e => setLgsRetort({ ...lgsRetort, vWater: e.target.value })} className="w-full input-style text-xl font-bold" placeholder="30" />
                   </div>
                   <div>
-                    <label className="text-[12px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">% Vol Aceite (Vo)</label>
+                    <label className="text-[12px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">{t.owrVolOil} (Vo)</label>
                     <input type="number" value={lgsRetort.vOil} onChange={e => setLgsRetort({ ...lgsRetort, vOil: e.target.value })} className="w-full input-style text-xl font-bold" placeholder="50" />
                   </div>
                 </div>
                 <div>
-                  <label className="text-[12px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">Densidad Lodo ({unitMode === 'field' ? 'ppg' : 'g/L'})</label>
+                  <label className="text-[12px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">{lang === 'es' ? 'Densidad Lodo' : 'Mud Weight'} ({unitMode === 'field' ? 'ppg' : 'g/L'})</label>
                   <input type="number" value={lgsRetort.mudWeight} onChange={e => setLgsRetort({ ...lgsRetort, mudWeight: e.target.value })} className="w-full input-style text-xl font-bold" placeholder="10.0" />
                 </div>
               </div>
 
               {/* Section 2: Salinidad */}
               <div className="space-y-4 pt-2">
-                <h5 className="text-[11px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest border-b border-zinc-100 dark:border-zinc-800 pb-1">2. Titulación por Cloruros</h5>
+                <h5 className="text-[11px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest border-b border-zinc-100 dark:border-zinc-800 pb-1">{t.retortTitrationHeader}</h5>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="text-[12px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">mL AgNO₃</label>
@@ -1159,7 +1187,7 @@ const FluidCalculator = ({ isEditing }) => {
 
               {/* Section 3: Sólidos */}
               <div className="space-y-4 pt-2">
-                <h5 className="text-[11px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest border-b border-zinc-100 dark:border-zinc-800 pb-1">3. Propiedades de Sólidos</h5>
+                <h5 className="text-[11px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest border-b border-zinc-100 dark:border-zinc-800 pb-1">{t.retortSolidProperties}</h5>
                 <div className="flex items-center gap-3 py-1">
                   <input
                     type="checkbox"
@@ -1169,17 +1197,17 @@ const FluidCalculator = ({ isEditing }) => {
                     className="w-5 h-5 accent-halliburton-red rounded border-zinc-300 dark:border-zinc-700"
                   />
                   <label htmlFor="hasBarite" className="text-[12px] font-black text-zinc-700 dark:text-zinc-300 uppercase tracking-widest cursor-pointer select-none">
-                    ¿Contiene Barita (Densificante)?
+                    {t.retortContainsBarite}
                   </label>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-[12px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">SG de LGS</label>
+                    <label className="text-[12px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">{t.retortSgLgs}</label>
                     <input type="number" value={lgsRetort.sgLgs} onChange={e => setLgsRetort({ ...lgsRetort, sgLgs: e.target.value })} className="w-full input-style text-xl font-bold" placeholder="2.60" step="0.01" />
                   </div>
                   {lgsRetort.hasBarite && (
                     <div>
-                      <label className="text-[12px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">SG de Barita</label>
+                      <label className="text-[12px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">{t.retortSgBarite}</label>
                       <input type="number" value={lgsRetort.sgBarite} onChange={e => setLgsRetort({ ...lgsRetort, sgBarite: e.target.value })} className="w-full input-style text-xl font-bold" placeholder="4.20" step="0.01" />
                     </div>
                   )}
@@ -1191,18 +1219,18 @@ const FluidCalculator = ({ isEditing }) => {
           {activeSubTab === 'rheology' && (
             <div className="space-y-6 animate-fade-in">
               <div className="flex justify-between items-center mb-4">
-                <h4 className="text-[14px] font-black text-halliburton-red uppercase tracking-widest italic">Parámetros Fijos</h4>
-                <span className="text-[10px] text-zinc-400 font-black uppercase tracking-widest">Unidades API</span>
+                <h4 className="text-[14px] font-black text-halliburton-red uppercase tracking-widest italic">{t.rheoFixedParams}</h4>
+                <span className="text-[10px] text-zinc-400 font-black uppercase tracking-widest">{t.rheoApiUnits}</span>
               </div>
 
               {/* Presets */}
               <div className="bg-zinc-50 dark:bg-slate-900/60 p-4 rounded-3xl border border-zinc-100 dark:border-zinc-800/50 space-y-3">
-                <span className="text-[10px] text-zinc-400 font-black uppercase tracking-widest block">Preajustes Rápidos:</span>
+                <span className="text-[10px] text-zinc-400 font-black uppercase tracking-widest block">{t.rheoPresets}</span>
                 <div className="grid grid-cols-2 gap-2">
-                  <button type="button" onClick={() => setRheo({ vp: '18', yp: '12', tau0: '5' })} className="text-[10px] bg-white dark:bg-slate-800 hover:border-halliburton-red border border-zinc-100 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 py-2 px-3 rounded-xl transition-all font-black uppercase tracking-wider">Agua Ligero</button>
-                  <button type="button" onClick={() => setRheo({ vp: '35', yp: '25', tau0: '12' })} className="text-[10px] bg-white dark:bg-slate-800 hover:border-halliburton-red border border-zinc-100 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 py-2 px-3 rounded-xl transition-all font-black uppercase tracking-wider">Densificado</button>
-                  <button type="button" onClick={() => setRheo({ vp: '22', yp: '38', tau0: '18' })} className="text-[10px] bg-white dark:bg-slate-800 hover:border-halliburton-red border border-zinc-100 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 py-2 px-3 rounded-xl transition-all font-black uppercase tracking-wider">Alta Cedencia</button>
-                  <button type="button" onClick={() => setRheo({ vp: '25', yp: '18', tau0: '8' })} className="text-[10px] bg-halliburton-red/10 border border-halliburton-red/20 text-halliburton-red py-2 px-3 rounded-xl transition-all font-black uppercase tracking-wider">Básico</button>
+                  <button type="button" onClick={() => setRheo({ vp: '18', yp: '12', tau0: '5' })} className="text-[10px] bg-white dark:bg-slate-800 hover:border-halliburton-red border border-zinc-100 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 py-2 px-3 rounded-xl transition-all font-black uppercase tracking-wider">{t.rheoPresetLight}</button>
+                  <button type="button" onClick={() => setRheo({ vp: '35', yp: '25', tau0: '12' })} className="text-[10px] bg-white dark:bg-slate-800 hover:border-halliburton-red border border-zinc-100 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 py-2 px-3 rounded-xl transition-all font-black uppercase tracking-wider">{t.rheoPresetHeavy}</button>
+                  <button type="button" onClick={() => setRheo({ vp: '22', yp: '38', tau0: '18' })} className="text-[10px] bg-white dark:bg-slate-800 hover:border-halliburton-red border border-zinc-100 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 py-2 px-3 rounded-xl transition-all font-black uppercase tracking-wider">{t.rheoPresetYield}</button>
+                  <button type="button" onClick={() => setRheo({ vp: '25', yp: '18', tau0: '8' })} className="text-[10px] bg-halliburton-red/10 border border-halliburton-red/20 text-halliburton-red py-2 px-3 rounded-xl transition-all font-black uppercase tracking-wider">{t.rheoPresetBasic}</button>
                 </div>
               </div>
 
@@ -1211,7 +1239,7 @@ const FluidCalculator = ({ isEditing }) => {
                 <div className="bg-zinc-50 dark:bg-slate-900/40 p-4 rounded-3xl border border-zinc-100 dark:border-zinc-800/50">
                   <div className="flex justify-between items-center mb-2">
                     <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest">
-                      Viscosidad Plástica <span className="text-halliburton-red">(VP)</span>
+                      {t.rheoPlasticVisc} <span className="text-halliburton-red">(VP)</span>
                     </label>
                     <span className="text-[10px] font-bold text-zinc-400">cP</span>
                   </div>
@@ -1227,7 +1255,7 @@ const FluidCalculator = ({ isEditing }) => {
                 <div className="bg-zinc-50 dark:bg-slate-900/40 p-4 rounded-3xl border border-zinc-100 dark:border-zinc-800/50">
                   <div className="flex justify-between items-center mb-2">
                     <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest">
-                      Punto Cedente <span className="text-halliburton-red">(YP)</span>
+                      {t.rheoYieldPoint} <span className="text-halliburton-red">(YP)</span>
                     </label>
                     <span className="text-[10px] font-bold text-zinc-400">lb/100ft²</span>
                   </div>
@@ -1243,7 +1271,7 @@ const FluidCalculator = ({ isEditing }) => {
                 <div className="bg-zinc-50 dark:bg-slate-900/40 p-4 rounded-3xl border border-zinc-100 dark:border-zinc-800/50">
                   <div className="flex justify-between items-center mb-2">
                     <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest">
-                      Esfuerzo Cedente Real <span className="text-halliburton-red">(τ₀)</span>
+                      {t.rheoTrueYield} <span className="text-halliburton-red">(τ₀)</span>
                     </label>
                     <span className="text-[10px] font-bold text-zinc-400">lb/100ft²</span>
                   </div>
@@ -1260,7 +1288,7 @@ const FluidCalculator = ({ isEditing }) => {
               {getRheologyResult().hasAlert && (
                 <div className="p-4 bg-orange-500/10 border border-orange-500/20 rounded-[2rem] text-[10px] font-bold text-orange-400 uppercase tracking-widest leading-relaxed flex gap-2">
                   <Icon name="alert-triangle" size={14} className="shrink-0 mt-0.5" />
-                  <span>Ajuste técnico: El esfuerzo de cedencia real (τ₀) no puede superar o igualar la lectura θ₃₀₀ ({getRheologyResult().vp + getRheologyResult().yp} lb/100ft²). Se limitó automáticamente a {getRheologyResult().adjustedTau0.toFixed(1)}.</span>
+                  <span>{t.rheoAlert.replace('{limit}', (getRheologyResult().vp + getRheologyResult().yp).toString()).replace('{val}', getRheologyResult().adjustedTau0.toFixed(1))}</span>
                 </div>
               )}
 
@@ -1268,20 +1296,20 @@ const FluidCalculator = ({ isEditing }) => {
               <div className="bg-zinc-50 dark:bg-slate-900/40 border border-zinc-100 dark:border-zinc-800/50 rounded-[2.5rem] p-6 space-y-4">
                 <h3 className="text-xs font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest flex items-center gap-2">
                   <Icon name="trending-up" size={14} className="text-emerald-500" />
-                  Índices de Consistencia H-B
+                  {t.rheoIndexHeader}
                 </h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="bg-white dark:bg-slate-950 p-4 rounded-3xl border border-zinc-100 dark:border-zinc-800/50 shadow-sm flex flex-col justify-between">
                     <div>
-                      <span className="text-[9px] text-zinc-400 font-black uppercase tracking-wider">Índice n</span>
+                      <span className="text-[9px] text-zinc-400 font-black uppercase tracking-wider">{t.rheoIndexN}</span>
                       <h5 className="text-2xl font-black italic text-zinc-800 dark:text-white mt-1">{getRheologyResult().n.toFixed(3)}</h5>
                     </div>
                     <span className={`text-[8px] font-black uppercase mt-2 ${getRheologyResult().n < 1 ? 'text-emerald-500' : getRheologyResult().n === 1 ? 'text-zinc-400' : 'text-amber-500'}`}>
-                      {getRheologyResult().n < 1 ? 'Seudoplástico' : getRheologyResult().n === 1 ? 'Newtoniano' : 'Dilatante'}
+                      {getRheologyResult().n < 1 ? t.rheoModelPseudoplastic : getRheologyResult().n === 1 ? t.rheoModelNewtonian : t.rheoModelDilatant}
                     </span>
                   </div>
                   <div className="bg-white dark:bg-slate-950 p-4 rounded-3xl border border-zinc-100 dark:border-zinc-800/50 shadow-sm">
-                    <span className="text-[9px] text-zinc-400 font-black uppercase tracking-wider">Índice K</span>
+                    <span className="text-[9px] text-zinc-400 font-black uppercase tracking-wider">{t.rheoIndexK}</span>
                     <h5 className="text-2xl font-black italic text-zinc-800 dark:text-white mt-1">{getRheologyResult().k.toFixed(4)}</h5>
                     <span className="text-[8px] text-zinc-400 font-bold uppercase tracking-tight block mt-2">lb/100ft²·sⁿ</span>
                   </div>
@@ -1297,7 +1325,7 @@ const FluidCalculator = ({ isEditing }) => {
             <>
               <div className="bg-gradient-to-br from-halliburton-red to-[#a30000] p-10 rounded-[3.5rem] text-white shadow-2xl relative overflow-hidden group">
                 <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform"><Icon name="droplet" size={80} /></div>
-                <span className="text-[10px] font-black uppercase tracking-[0.3em] opacity-60">Presión Hidrostática</span>
+                <span className="text-[10px] font-black uppercase tracking-[0.3em] opacity-60">{t.hydroPressure}</span>
                 <div className="flex items-baseline gap-2 mt-2">
                   <h5 className="text-7xl font-black italic">{getHydrostatic()}</h5>
                   <span className="text-xl font-bold opacity-60 italic uppercase tracking-tighter">PSI</span>
@@ -1308,7 +1336,7 @@ const FluidCalculator = ({ isEditing }) => {
               </div>
               <div className="bg-zinc-900 p-10 rounded-[3.5rem] text-white shadow-2xl relative overflow-hidden group">
                 <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform"><Icon name="database" size={80} /></div>
-                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">Capacidad Teórica</span>
+                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">{t.hydroCapacity}</span>
                 <div className="flex items-baseline gap-2 mt-2">
                   <h5 className="text-5xl font-black italic">{((eng.diam ** 2) / 1029.4 * (unitMode === 'field' ? 1 : 0.158987 / 0.3048)).toFixed(5)}</h5>
                   <span className="text-lg font-bold text-halliburton-red italic uppercase tracking-tighter">{unitMode === 'field' ? 'bbl/ft' : 'm³/m'}</span>
@@ -1320,17 +1348,17 @@ const FluidCalculator = ({ isEditing }) => {
           {activeSubTab === 'barite' && (
             <div className="bg-zinc-900 p-12 rounded-[3.5rem] text-white flex flex-col justify-center h-full relative overflow-hidden group">
               <div className="absolute -right-10 -bottom-10 opacity-5 group-hover:scale-110 transition-transform"><Icon name="arrow-up-circle" size={300} /></div>
-              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500 mb-6 block">Requerimiento de Barita</span>
+              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500 mb-6 block">{t.bariteRequired}</span>
               <div className="space-y-10">
                 <div>
                   <div className="flex items-baseline gap-3">
                     <h5 className="text-8xl font-black text-halliburton-red italic">{getBariteTons()}</h5>
-                    <span className="text-2xl font-black opacity-40 uppercase italic">Tons métricas</span>
+                    <span className="text-2xl font-black opacity-40 uppercase italic">{t.bariteTons}</span>
                   </div>
-                  <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-4">Cálculo basado en SG {barite.sg}</p>
+                  <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-4">{t.bariteBasedOnSg} {barite.sg}</p>
                 </div>
                 <div className="p-6 bg-white/5 rounded-3xl border border-white/10 inline-block">
-                  <span className="text-[9px] font-black text-zinc-500 uppercase block mb-1">Volumen Final Estimado</span>
+                  <span className="text-[9px] font-black text-zinc-500 uppercase block mb-1">{t.bariteEstFinalVol}</span>
                   <p className="text-xl font-black italic">
                     {(parseFloat(barite.vol || 0) + (getBariteTons() / (parseFloat(barite.sg) || 4.2) * (bariteUnits.vol === 'bbl' ? 6.2898 : 1))).toFixed(2)} {bariteUnits.vol}
                   </p>
@@ -1342,24 +1370,24 @@ const FluidCalculator = ({ isEditing }) => {
           {activeSubTab === 'slug' && (
             <div className="bg-zinc-900 p-12 rounded-[3.5rem] text-white flex flex-col justify-center h-full relative overflow-hidden group">
               <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform"><Icon name="flask-conical" size={100} /></div>
-              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500 mb-6 block">Especificación de Píldora</span>
+              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500 mb-6 block">{lang === 'es' ? 'Especificación de Píldora' : 'Slug Specifications'}</span>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
                 <div className="space-y-6">
                   <div>
-                    <span className="text-[11px] font-black text-zinc-500 uppercase block mb-1">Volumen Mínimo Requerido</span>
+                    <span className="text-[11px] font-black text-zinc-500 uppercase block mb-1">{lang === 'es' ? 'Volumen Mínimo Requerido' : 'Minimum Required Volume'}</span>
                     <div className="flex items-baseline gap-2 mb-4">
                       <h5 className="text-3xl font-black italic text-zinc-400">{getSlugResult().volReq}</h5>
                       <span className="text-sm font-bold opacity-30 uppercase">{unitMode === 'field' ? 'bbl' : 'm³'}</span>
                     </div>
-                    <span className="text-[11px] font-black text-halliburton-red uppercase block mb-1">Volumen Total a Preparar</span>
+                    <span className="text-[11px] font-black text-halliburton-red uppercase block mb-1">{lang === 'es' ? 'Volumen Total a Preparar' : 'Total Volume to Prepare'}</span>
                     <div className="flex items-baseline gap-2">
                       <h5 className="text-5xl font-black italic">{getSlugResult().volFinal}</h5>
                       <span className="text-xl font-bold opacity-40 uppercase">{unitMode === 'field' ? 'bbl' : 'm³'}</span>
                     </div>
                   </div>
                   <div className="p-4 bg-white/5 rounded-2xl border border-white/10">
-                    <span className="text-[10px] font-black text-zinc-400 uppercase block mb-1">Mud del Sistema Activo</span>
+                    <span className="text-[10px] font-black text-zinc-400 uppercase block mb-1">{lang === 'es' ? 'Mud del Sistema Activo' : 'Active System Mud'}</span>
                     <div className="flex items-baseline gap-2">
                       <h5 className="text-3xl font-black italic text-zinc-200">{getSlugResult().volInitial}</h5>
                       <span className="text-sm font-bold opacity-40 uppercase">{unitMode === 'field' ? 'bbl' : 'm³'}</span>
@@ -1367,12 +1395,12 @@ const FluidCalculator = ({ isEditing }) => {
                   </div>
                 </div>
                 <div>
-                  <span className="text-[11px] font-black text-halliburton-red uppercase block mb-1">Barita Requerida</span>
+                  <span className="text-[11px] font-black text-halliburton-red uppercase block mb-1">{lang === 'es' ? 'Barita Requerida' : 'Required Barite'}</span>
                   <div className="flex items-baseline gap-2">
                     <h5 className="text-6xl font-black italic">{getSlugResult().tons}</h5>
                     <span className="text-xl font-bold opacity-40 uppercase">Tons</span>
                   </div>
-                  <p className="text-[10px] font-black text-zinc-500 mt-2 uppercase tracking-widest italic leading-tight">Mezclar v. inicial + barita para vencer la hidrostática del anular, válvulas y MPD.</p>
+                  <p className="text-[10px] font-black text-zinc-500 mt-2 uppercase tracking-widest italic leading-tight">{lang === 'es' ? 'Mezclar v. inicial + barita para vencer la hidrostática del anular, válvulas y MPD.' : 'Blend initial volume + barite to overcome annular hydrostatics, float valves, and MPD.'}</p>
                 </div>
               </div>
 
@@ -1391,7 +1419,7 @@ const FluidCalculator = ({ isEditing }) => {
                     <div className="absolute top-0 left-0 right-0 py-1 text-[8px] font-black text-center text-white/40 uppercase">ANNULUS</div>
                   </div>
                 </div>
-                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 px-3 py-1 bg-black/50 backdrop-blur-md rounded-lg text-[8px] font-black text-white/80 uppercase tracking-widest border border-white/10">Equilibrio Hidrostático</div>
+                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 px-3 py-1 bg-black/50 backdrop-blur-md rounded-lg text-[8px] font-black text-white/80 uppercase tracking-widest border border-white/10">{lang === 'es' ? 'Equilibrio Hidrostático' : 'Hydrostatic Balance'}</div>
               </div>
             </div>
           )}
@@ -1399,11 +1427,11 @@ const FluidCalculator = ({ isEditing }) => {
           {activeSubTab === 'owr' && (
             <div className="bg-zinc-900 p-12 rounded-[3.5rem] text-white flex flex-col justify-center h-full relative overflow-hidden group">
               <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform"><Icon name="droplet-off" size={100} /></div>
-              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500 mb-8 block">Estado de Emulsión Inversa</span>
+              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500 mb-8 block">{lang === 'es' ? 'Estado de Emulsión Inversa' : 'Inverse Emulsion Status'}</span>
 
               {getOWRResult().invalid && (
                 <div className="mb-6 p-5 bg-red-500/10 border border-red-500/20 rounded-2xl text-xs font-bold text-red-400 uppercase tracking-widest text-center">
-                  ⚠️ Error: La suma de Aceite y Agua ({parseFloat(owr.vOil || 0) + parseFloat(owr.vWater || 0)}%) no puede superar el 100%.
+                  {lang === 'es' ? `⚠️ Error: La suma de Aceite y Agua (${parseFloat(owr.vOil || 0) + parseFloat(owr.vWater || 0)}%) no puede superar el 100%.` : `⚠️ Error: Sum of Oil and Water (${parseFloat(owr.vOil || 0) + parseFloat(owr.vWater || 0)}%) cannot exceed 100%.`}
                 </div>
               )}
 
@@ -1421,17 +1449,17 @@ const FluidCalculator = ({ isEditing }) => {
                 <div className="flex-1 space-y-6">
                   <div>
                     <span className="text-[10px] font-black text-zinc-500 uppercase block mb-2 tracking-widest">
-                      {owr.volCondition ? `Tratamiento Sugerido (para ${owr.volCondition} ${unitMode === 'field' ? 'bbl' : 'm³'})` : `Tratamiento Sugerido (por unidad)`}
+                      {lang === 'es' ? (owr.volCondition ? `Tratamiento Sugerido (para ${owr.volCondition} ${unitMode === 'field' ? 'bbl' : 'm³'})` : `Tratamiento Sugerido (por unidad)`) : (owr.volCondition ? `Suggested Treatment (for ${owr.volCondition} ${unitMode === 'field' ? 'bbl' : 'm³'})` : `Suggested Treatment (per unit)`)}
                     </span>
                     {parseFloat(getOWRResult().addOil) > 0 ? (
                       <div className="space-y-4">
                         <div className="p-4 bg-halliburton-red/10 border border-halliburton-red/20 rounded-2xl flex items-center justify-between">
-                          <span className="text-[11px] font-black uppercase tracking-wider text-halliburton-red italic">Agregar Aceite</span>
+                          <span className="text-[11px] font-black uppercase tracking-wider text-halliburton-red italic">{lang === 'es' ? 'Agregar Aceite' : 'Add Oil'}</span>
                           <span className="text-xl font-black text-white">{getOWRResult().addOil} <small className="text-[10px] opacity-40">{unitMode === 'field' ? 'BBL' : 'M³'}</small></span>
                         </div>
                         {parseFloat(owr.volCondition) > 0 && (
                           <div className="p-4 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between">
-                            <span className="text-[11px] font-black uppercase tracking-wider text-zinc-400 italic">Volumen Final Resultante</span>
+                            <span className="text-[11px] font-black uppercase tracking-wider text-zinc-400 italic">{lang === 'es' ? 'Volumen Final Resultante' : 'Final Resulting Volume'}</span>
                             <span className="text-xl font-black text-white">{getOWRResult().finalVol} <small className="text-[10px] opacity-40">{unitMode === 'field' ? 'BBL' : 'M³'}</small></span>
                           </div>
                         )}
@@ -1439,17 +1467,17 @@ const FluidCalculator = ({ isEditing }) => {
                     ) : parseFloat(getOWRResult().addWater) > 0 ? (
                       <div className="space-y-4">
                         <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-2xl flex items-center justify-between">
-                          <span className="text-[11px] font-black uppercase tracking-wider text-blue-400 italic">Agregar Agua</span>
+                          <span className="text-[11px] font-black uppercase tracking-wider text-blue-400 italic">{lang === 'es' ? 'Agregar Agua' : 'Add Water'}</span>
                           <span className="text-xl font-black text-white">{getOWRResult().addWater} <small className="text-[10px] opacity-40">{unitMode === 'field' ? 'BBL' : 'M³'}</small></span>
                         </div>
                         {parseFloat(owr.volCondition) > 0 && (
                           <div className="p-4 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between">
-                            <span className="text-[11px] font-black uppercase tracking-wider text-zinc-400 italic">Volumen Final Resultante</span>
+                            <span className="text-[11px] font-black uppercase tracking-wider text-zinc-400 italic">{lang === 'es' ? 'Volumen Final Resultante' : 'Final Resulting Volume'}</span>
                             <span className="text-xl font-black text-white">{getOWRResult().finalVol} <small className="text-[10px] opacity-40">{unitMode === 'field' ? 'BBL' : 'M³'}</small></span>
                           </div>
                         )}
                       </div>
-                    ) : <div className="text-[11px] font-bold text-zinc-400 italic">Relación balanceada u objetivo alcanzado.</div>}
+                    ) : <div className="text-[11px] font-bold text-zinc-400 italic">{lang === 'es' ? 'Relación balanceada u objetivo alcanzado.' : 'Balanced ratio or target achieved.'}</div>}
                   </div>
                 </div>
               </div>
@@ -1458,8 +1486,8 @@ const FluidCalculator = ({ isEditing }) => {
                 <div className="bg-blue-400 transition-all duration-1000" style={{ width: `${getOWRResult().waterPct}%` }}></div>
               </div>
               <div className="flex justify-between mt-3 text-[9px] font-black uppercase tracking-widest text-zinc-600">
-                <span>Aceite ({getOWRResult().current.split('/')[0]}%)</span>
-                <span>Agua ({getOWRResult().current.split('/')[1]}%)</span>
+                <span>{lang === 'es' ? 'Aceite' : 'Oil'} ({getOWRResult().current.split('/')[0]}%)</span>
+                <span>{lang === 'es' ? 'Agua' : 'Water'} ({getOWRResult().current.split('/')[1]}%)</span>
               </div>
             </div>
           )}
@@ -1469,33 +1497,33 @@ const FluidCalculator = ({ isEditing }) => {
               <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform"><Icon name="shield-check" size={120} /></div>
 
               <div className="flex justify-between items-start mb-8">
-                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500 block">Reporte para Supervisión</span>
+                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500 block">{lang === 'es' ? 'Reporte para Supervisión' : 'Supervision Report'}</span>
                 <button
                   onClick={() => copyToClipboard(`REPORTE PRUEBA FIT:\n- EMW Objetivo: ${fit.targetEMW} ${unitMode === 'field' ? 'ppg' : 'g/L'}\n- Dens. Actual: ${fit.currentMW} ${unitMode === 'field' ? 'ppg' : 'g/L'}\n- TVD Zapata: ${fit.shoeTVD} ${unitMode === 'field' ? 'ft' : 'm'}\n- PRESIÓN SUPERFICIE: ${getFITResult().surfacePSI} PSI`)}
                   className="p-3 bg-white/10 hover:bg-halliburton-red rounded-2xl transition-all shadow-lg flex items-center gap-2 text-[10px] font-black uppercase tracking-widest"
                 >
-                  <Icon name="share-2" size={14} /> Copiar Reporte
+                  <Icon name="share-2" size={14} /> {lang === 'es' ? 'Copiar Reporte' : 'Copy Report'}
                 </button>
               </div>
 
               <div className="space-y-10">
                 <div className="relative inline-block">
-                  <span className="text-[11px] font-black text-halliburton-red uppercase block mb-1 tracking-widest italic">Presión a aplicar en manómetro</span>
+                  <span className="text-[11px] font-black text-halliburton-red uppercase block mb-1 tracking-widest italic">{lang === 'es' ? 'Presión a aplicar en manómetro' : 'Gauge Pressure to Apply'}</span>
                   <div className="flex items-baseline gap-3">
                     <h5 className="text-8xl font-black italic text-white drop-shadow-2xl">{getFITResult().surfacePSI}</h5>
                     <span className="text-2xl font-black text-halliburton-red uppercase italic tracking-tighter">PSI</span>
                   </div>
                   {unitMode === 'metric' && (
                     <div className="text-[10px] font-bold text-zinc-500 uppercase mt-2">
-                      Equivalente: {getFITResult().surface} kg/cm²
+                      {lang === 'es' ? 'Equivalente:' : 'Equivalent:'} {getFITResult().surface} kg/cm²
                     </div>
                   )}
                 </div>
 
                 <div className="bg-halliburton-red/10 border border-halliburton-red/20 p-5 rounded-3xl">
-                  <p className="text-[10px] font-black text-white uppercase tracking-widest mb-1">Instrucción para Pozo:</p>
+                  <p className="text-[10px] font-black text-white uppercase tracking-widest mb-1">{lang === 'es' ? 'Instrucción para Pozo:' : 'Wellbore Instruction:'}</p>
                   <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-[0.1em] italic leading-relaxed">
-                    Cerrar pozo y bombear lentamente hasta alcanzar {getFITResult().surfacePSI} PSI en superficie. Mantener estable por 5 minutos para verificar integridad.
+                    {lang === 'es' ? `Cerrar pozo y bombear lentamente hasta alcanzar ${getFITResult().surfacePSI} PSI en superficie. Mantener estable por 5 minutos para verificar integridad.` : `Shut in well and pump slowly until reaching ${getFITResult().surfacePSI} PSI surface pressure. Hold stable for 5 minutes to verify integrity.`}
                   </p>
                 </div>
               </div>
@@ -1505,19 +1533,19 @@ const FluidCalculator = ({ isEditing }) => {
           {activeSubTab === 'pfmf' && (
             <div className="bg-zinc-900 p-10 rounded-[3.5rem] text-white flex flex-col justify-center h-full relative overflow-hidden group">
               <div className="absolute bottom-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform"><Icon name="beaker" size={120} /></div>
-              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500 mb-6 block">Composición Iónica (mg/L)</span>
+              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500 mb-6 block">{lang === 'es' ? 'Composición Iónica (mg/L)' : 'Ionic Composition (mg/L)'}</span>
 
               {getPfMfResult().invalid && (
                 <div className="mb-6 p-5 bg-red-500/10 border border-red-500/20 rounded-2xl text-xs font-bold text-red-400 uppercase tracking-widest text-center">
-                  ⚠️ Error: La lectura Pf ({titration.pf} ml) no puede ser mayor que Mf ({titration.mf} ml).
+                  {lang === 'es' ? `⚠️ Error: La lectura Pf (${titration.pf} ml) no puede ser mayor que Mf (${titration.mf} ml).` : `⚠️ Error: Pf reading (${titration.pf} ml) cannot be greater than Mf (${titration.mf} ml).`}
                 </div>
               )}
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
                 {[
-                  { label: 'Hidroxilo (OH-)', val: getPfMfResult().oh, color: 'text-halliburton-red' },
-                  { label: 'Carbonato (CO3=)', val: getPfMfResult().co3, color: 'text-zinc-200' },
-                  { label: 'Bicarb. (HCO3-)', val: getPfMfResult().hco3, color: 'text-zinc-400' }
+                  { label: lang === 'es' ? 'Hidroxilo (OH-)' : 'Hydroxyl (OH-)', val: getPfMfResult().oh, color: 'text-halliburton-red' },
+                  { label: lang === 'es' ? 'Carbonato (CO3=)' : 'Carbonate (CO3=)', val: getPfMfResult().co3, color: 'text-zinc-200' },
+                  { label: lang === 'es' ? 'Bicarb. (HCO3-)' : 'Bicarbonate (HCO3-)', val: getPfMfResult().hco3, color: 'text-zinc-400' }
                 ].map(ion => (
                   <div key={ion.label} className="p-6 bg-white/5 rounded-[2rem] border border-white/10">
                     <span className="text-[9px] font-black text-zinc-500 uppercase block mb-1 tracking-widest">{ion.label}</span>
@@ -1529,8 +1557,8 @@ const FluidCalculator = ({ isEditing }) => {
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
                   <div className="flex items-center gap-3">
-                    <h6 className="text-[11px] font-black text-halliburton-red uppercase italic tracking-widest">Tratamiento Recomendado</h6>
-                    {isEditing && <span className="text-[8px] bg-zinc-800 px-2 py-0.5 rounded text-zinc-500 font-bold">Personalizar vista activada</span>}
+                    <h6 className="text-[11px] font-black text-halliburton-red uppercase italic tracking-widest">{lang === 'es' ? 'Tratamiento Recomendado' : 'Recommended Treatment'}</h6>
+                    {isEditing && <span className="text-[8px] bg-zinc-800 px-2 py-0.5 rounded text-zinc-500 font-bold">{lang === 'es' ? 'Personalizar vista activada' : 'Custom view enabled'}</span>}
                   </div>
                   <button
                     onClick={() => copyToClipboard(`Pf/Mf Results:\nOH: ${getPfMfResult().oh} mg/L\nCO3: ${getPfMfResult().co3} mg/L\nHCO3: ${getPfMfResult().hco3} mg/L`)}
@@ -1560,7 +1588,7 @@ const FluidCalculator = ({ isEditing }) => {
                 </div>
                 {(!getPfMfResult().invalid && parseFloat(getPfMfResult().oh) > 500 && Math.abs(2 * parseFloat(titration.pf) - parseFloat(titration.mf)) < 0.2 * parseFloat(titration.mf)) && (
                   <div className="p-4 bg-orange-500/10 border border-orange-500/20 rounded-2xl text-[9px] font-bold text-orange-400 uppercase tracking-widest text-center">
-                    ⚠️ ALERTA: Posible contaminación por Carbonatos. Verificar con Yeso.
+                    {lang === 'es' ? '⚠️ ALERTA: Posible contaminación por Carbonatos. Verificar con Yeso.' : '⚠️ ALERT: Potential Carbonate contamination. Verify with Gypsum.'}
                   </div>
                 )}
               </div>
@@ -1570,11 +1598,11 @@ const FluidCalculator = ({ isEditing }) => {
           {activeSubTab === 'mixing' && (
             <div className="bg-zinc-900 p-10 rounded-[3.5rem] text-white space-y-8 relative overflow-hidden h-full flex flex-col justify-center">
               <div className="absolute top-0 right-0 p-8 opacity-10"><Icon name="blend" size={100} /></div>
-              <span className="text-[12px] font-black uppercase tracking-[0.3em] text-zinc-500 block">Resultado de Mezcla</span>
+              <span className="text-[12px] font-black uppercase tracking-[0.3em] text-zinc-500 block">{lang === 'es' ? 'Resultado de Mezcla' : 'Mixing Results'}</span>
               <div className="grid grid-cols-1 gap-4">
                 <div className="p-6 bg-white/5 rounded-[2rem] border border-white/10 flex items-center justify-between">
                   <div>
-                    <span className="text-[11px] font-black text-halliburton-red uppercase block mb-1">Densidad Final</span>
+                    <span className="text-[11px] font-black text-halliburton-red uppercase block mb-1">{lang === 'es' ? 'Densidad Final' : 'Final Density'}</span>
                     <div className="flex items-baseline gap-2">
                       <h5 className="text-4xl font-black italic">{getMixingResult().dens}</h5>
                       <span className="text-xs font-bold opacity-40 uppercase">{mixUnits.dens}</span>
@@ -1584,7 +1612,7 @@ const FluidCalculator = ({ isEditing }) => {
                 </div>
                 <div className="p-6 bg-white/5 rounded-[2rem] border border-white/10 flex items-center justify-between">
                   <div>
-                    <span className="text-[11px] font-black text-halliburton-red uppercase block mb-1">Volumen Total</span>
+                    <span className="text-[11px] font-black text-halliburton-red uppercase block mb-1">{lang === 'es' ? 'Volumen Total' : 'Total Volume'}</span>
                     <div className="flex items-baseline gap-2">
                       <h5 className="text-4xl font-black italic">{getMixingResult().vol}</h5>
                       <span className="text-xs font-bold opacity-40 uppercase">{mixUnits.vol}</span>
@@ -1595,21 +1623,21 @@ const FluidCalculator = ({ isEditing }) => {
 
                 {parseFloat(getMixDensificationTons()) > 0 && (
                   <div className="pt-6 border-t border-white/10 space-y-4 animate-fade-in">
-                    <span className="text-[12px] font-black uppercase tracking-[0.3em] text-zinc-500 block">Ajuste con Densificante</span>
+                    <span className="text-[12px] font-black uppercase tracking-[0.3em] text-zinc-500 block">{lang === 'es' ? 'Ajuste con Densificante' : 'Weight-Up Adjustment'}</span>
                     <div className="grid grid-cols-1 gap-4">
                       <div className="p-6 bg-white/5 rounded-[2rem] border border-white/10 flex items-center justify-between">
                         <div>
-                          <span className="text-[11px] font-black text-halliburton-red uppercase block mb-1">Densificante Requerido</span>
+                          <span className="text-[11px] font-black text-halliburton-red uppercase block mb-1">{lang === 'es' ? 'Densificante Requerido' : 'Required Weight-Up Material'}</span>
                           <div className="flex items-baseline gap-2">
                             <h5 className="text-4xl font-black italic text-halliburton-red">{getMixDensificationTons()}</h5>
-                            <span className="text-xs font-bold opacity-40 uppercase">Tons métricas</span>
+                            <span className="text-xs font-bold opacity-40 uppercase">{lang === 'es' ? 'Tons métricas' : 'Metric Tons'}</span>
                           </div>
                         </div>
                         <Icon name="arrow-up-circle" size={32} className="text-white/10" />
                       </div>
                       <div className="p-6 bg-white/5 rounded-[2rem] border border-white/10 flex items-center justify-between">
                         <div>
-                          <span className="text-[11px] font-black text-halliburton-red uppercase block mb-1">Volumen Final Ajustado</span>
+                          <span className="text-[11px] font-black text-halliburton-red uppercase block mb-1">{lang === 'es' ? 'Volumen Final Ajustado' : 'Adjusted Final Volume'}</span>
                           <div className="flex items-baseline gap-2">
                             <h5 className="text-4xl font-black italic">{getMixDensificationVolFinal()}</h5>
                             <span className="text-xs font-bold opacity-40 uppercase">{mixUnits.vol}</span>
@@ -1627,7 +1655,7 @@ const FluidCalculator = ({ isEditing }) => {
           {activeSubTab === 'conv' && (
             <div className="grid grid-cols-1 gap-4 h-full">
               <div className="bg-halliburton-red/10 p-8 rounded-[2.5rem] border border-halliburton-red/20 h-full flex flex-col justify-center text-center">
-                <span className="text-[14px] font-black text-halliburton-red uppercase block mb-6 tracking-widest">Conversiones de Campo</span>
+                <span className="text-[14px] font-black text-halliburton-red uppercase block mb-6 tracking-widest">{lang === 'es' ? 'Conversiones de Campo' : 'Oilfield Conversions'}</span>
                 <div className="space-y-4 max-w-xs mx-auto w-full">
                   <div className="flex justify-between items-center text-[13px] py-2 border-b border-halliburton-red/10">
                     <span className="font-bold text-zinc-500 dark:text-zinc-400 italic">{convReverse ? 'lb/pie³ → ppg' : 'ppg → lb/pie³'}</span>
@@ -1649,7 +1677,7 @@ const FluidCalculator = ({ isEditing }) => {
           {activeSubTab === 'lgs' && (
             <div className="bg-zinc-900 p-12 rounded-[3.5rem] text-white flex flex-col justify-center h-full relative overflow-hidden group">
               <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform"><Icon name="percent" size={100} /></div>
-              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500 mb-8 block">Resultado de Dilución de Sólidos</span>
+              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500 mb-8 block">{lang === 'es' ? 'Resultado de Dilución de Sólidos' : 'Solid Dilution Results'}</span>
 
               {getLGSResult().invalid && (
                 <div className="mb-6 p-5 bg-red-500/10 border border-red-500/20 rounded-2xl text-xs font-bold text-red-400 uppercase tracking-widest text-center">
@@ -1659,7 +1687,7 @@ const FluidCalculator = ({ isEditing }) => {
 
               <div className="space-y-8">
                 <div>
-                  <span className="text-[11px] font-black text-halliburton-red uppercase block mb-1">Volumen de Diluyente a Agregar (V2)</span>
+                  <span className="text-[11px] font-black text-halliburton-red uppercase block mb-1">{lang === 'es' ? 'Volumen de Diluyente a Agregar (V2)' : 'Diluent Volume to Add (V2)'}</span>
                   <div className="flex items-baseline gap-2">
                     <h5 className="text-6xl font-black italic">{getLGSResult().v2}</h5>
                     <span className="text-xl font-bold opacity-40 uppercase">{unitMode === 'field' ? 'bbl' : 'm³'}</span>
@@ -1668,21 +1696,23 @@ const FluidCalculator = ({ isEditing }) => {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="p-4 bg-white/5 rounded-2xl border border-white/10">
-                    <span className="text-[9px] font-black text-zinc-400 uppercase block mb-1">Volumen Final (Vf)</span>
+                    <span className="text-[9px] font-black text-zinc-400 uppercase block mb-1">{lang === 'es' ? 'Volumen Final (Vf)' : 'Final Volume (Vf)'}</span>
                     <div className="flex items-baseline gap-1">
                       <h6 className="text-2xl font-black italic text-zinc-200">{getLGSResult().vf}</h6>
                       <span className="text-[10px] font-bold opacity-40 uppercase">{unitMode === 'field' ? 'bbl' : 'm³'}</span>
                     </div>
                   </div>
                   <div className="p-4 bg-white/5 rounded-2xl border border-white/10">
-                    <span className="text-[9px] font-black text-zinc-400 uppercase block mb-1">Factor (V2 / V1)</span>
+                    <span className="text-[9px] font-black text-zinc-400 uppercase block mb-1">{lang === 'es' ? 'Factor (V2 / V1)' : 'Ratio (V2 / V1)'}</span>
                     <h6 className="text-2xl font-black italic text-zinc-200">{getLGSResult().factor}</h6>
                   </div>
                 </div>
 
                 {!getLGSResult().invalid && parseFloat(getLGSResult().factor) > 4 && (
                   <div className="p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-2xl text-[9px] font-bold text-yellow-400 uppercase tracking-wider leading-relaxed">
-                    💡 Diagnóstico Operativo: El volumen de dilución es alto ({getLGSResult().factor}x). Esto se debe a que el diluyente también contiene sólidos (C2 = {lgs.c2}%). Se recomienda usar fluido base limpio (0% LGS) o maximizar el uso de centrífugas.
+                    {lang === 'es' 
+                      ? `💡 Diagnóstico Operativo: El volumen de dilución es alto (${getLGSResult().factor}x). Esto se debe a que el diluyente también contiene sólidos (C2 = ${lgs.c2}%). Se recomienda usar fluido base limpio (0% LGS) o maximizar el uso de centrífugas.`
+                      : `💡 Operative Diagnosis: Dilution volume is high (${getLGSResult().factor}x). This is because the diluent also contains solids (C2 = ${lgs.c2}%). Clean base fluid (0% LGS) is recommended, or maximize centrifuge run time.`}
                   </div>
                 )}
               </div>
@@ -1696,7 +1726,7 @@ const FluidCalculator = ({ isEditing }) => {
               </div>
 
               <div className="flex justify-between items-start mb-6">
-                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500 block">Análisis Sólidos & Salinidad</span>
+                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500 block">{lang === 'es' ? 'Análisis Sólidos & Salinidad' : 'Solids & Salinity Analysis'}</span>
                 <button
                   onClick={() => {
                     const res = getLgsRetortResult();
@@ -1707,7 +1737,7 @@ const FluidCalculator = ({ isEditing }) => {
                   }}
                   className="p-3 bg-white/10 hover:bg-halliburton-red rounded-2xl transition-all shadow-lg flex items-center gap-2 text-[10px] font-black uppercase tracking-widest"
                 >
-                  <Icon name="share-2" size={14} /> Copiar Reporte
+                  <Icon name="share-2" size={14} /> {lang === 'es' ? 'Copiar Reporte' : 'Copy Report'}
                 </button>
               </div>
 
@@ -1719,7 +1749,7 @@ const FluidCalculator = ({ isEditing }) => {
                 <div className="space-y-8">
                   {/* Main metric: Salinity */}
                   <div className="bg-gradient-to-br from-halliburton-red to-[#a30000] p-6 rounded-[2.5rem] shadow-xl relative overflow-hidden">
-                    <span className="text-[9px] font-black uppercase tracking-[0.3em] opacity-60">Salinidad Fase Acuosa (WPS)</span>
+                    <span className="text-[9px] font-black uppercase tracking-[0.3em] opacity-60">{lang === 'es' ? 'Salinidad Fase Acuosa (WPS)' : 'Water Phase Salinity (WPS)'}</span>
                     <div className="flex items-baseline gap-2 mt-1">
                       <h5 className="text-5xl font-black italic">{getLgsRetortResult().wps.toLocaleString('es-AR', { maximumFractionDigits: 0 })}</h5>
                       <span className="text-lg font-black opacity-60 italic uppercase">PPM</span>
@@ -1767,9 +1797,9 @@ const FluidCalculator = ({ isEditing }) => {
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                     {[
                       { label: 'ASG (Solids SG)', val: getLgsRetortResult().asg.toFixed(3), color: getLgsRetortResult().asg > 4.2 || getLgsRetortResult().asg < 2.5 ? 'text-yellow-400' : 'text-zinc-200' },
-                      { label: 'Dens. Salmuera', val: getLgsRetortResult().rho_brine.toFixed(3) + ' SG', color: 'text-zinc-300' },
-                      { label: 'Vol. Sal Disuelta', val: getLgsRetortResult().v_sal.toFixed(2) + '%', color: 'text-zinc-400' },
-                      { label: 'Sólidos Reales (Vss)', val: getLgsRetortResult().v_ss.toFixed(2) + '%', color: 'text-zinc-200' }
+                      { label: lang === 'es' ? 'Dens. Salmuera' : 'Brine Density', val: getLgsRetortResult().rho_brine.toFixed(3) + ' SG', color: 'text-zinc-300' },
+                      { label: lang === 'es' ? 'Vol. Sal Disuelta' : 'Dissolved Salt Vol', val: getLgsRetortResult().v_sal.toFixed(2) + '%', color: 'text-zinc-400' },
+                      { label: lang === 'es' ? 'Sólidos Reales (Vss)' : 'Total Solids (Vss)', val: getLgsRetortResult().v_ss.toFixed(2) + '%', color: 'text-zinc-200' }
                     ].map(m => (
                       <div key={m.label} className="p-4 bg-white/5 rounded-2xl border border-white/5 text-center">
                         <span className="text-[8px] font-black text-zinc-500 uppercase block mb-1 tracking-widest leading-tight">{m.label}</span>
@@ -1784,7 +1814,9 @@ const FluidCalculator = ({ isEditing }) => {
                       <Icon name="check" size={16} />
                     </div>
                     <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider leading-relaxed">
-                      Sincronización Activa: El valor calculado de LGS ({getLgsRetortResult().pctLgs.toFixed(1)}%) se ha pre-cargado en la pestaña "Dilución LGS" (campo C1).
+                      {lang === 'es' 
+                        ? `Sincronización Activa: El valor calculado de LGS (${getLgsRetortResult().pctLgs.toFixed(1)}%) se ha pre-cargado en la pestaña "Dilución LGS" (campo C1).`
+                        : `Sync Active: Calculated LGS (${getLgsRetortResult().pctLgs.toFixed(1)}%) pre-loaded in the "LGS Dilution" tab (C1 field).`}
                     </p>
                   </div>
                 </div>
@@ -1796,7 +1828,7 @@ const FluidCalculator = ({ isEditing }) => {
               {/* Header */}
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-white/5 pb-4">
                 <div>
-                  <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500 block">Reograma Dinámico</span>
+                  <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500 block">{lang === 'es' ? 'Reograma Dinámico' : 'Dynamic Rheogram'}</span>
                   <h5 className="text-xl font-black text-white italic mt-1 flex items-center gap-2">
                     <span className="w-2.5 h-2.5 rounded-full bg-halliburton-red animate-pulse"></span>
                     Herschel-Bulkley vs Bingham
@@ -1896,7 +1928,7 @@ const FluidCalculator = ({ isEditing }) => {
                             <text x="40" y={t.py + 4} fill="#8E979D" fontSize="9" textAnchor="end" fontWeight="bold" fontFamily="monospace">{t.val}</text>
                           </g>
                         ))}
-                        <text x="15" y="165" fill="#ffffff" fillOpacity="0.4" fontSize="9" fontWeight="bold" transform="rotate(-90 15 165)" textAnchor="middle" className="uppercase tracking-widest">Esfuerzo Dial (lb/100ft²)</text>
+                        <text x="15" y="165" fill="#ffffff" fillOpacity="0.4" fontSize="9" fontWeight="bold" transform="rotate(-90 15 165)" textAnchor="middle" className="uppercase tracking-widest">{lang === 'es' ? 'Esfuerzo Dial (lb/100ft²)' : 'Dial Reading (lb/100ft²)'}</text>
 
                         {/* X-axis Ticks and labels (Only exact speeds, staggered 3/6) */}
                         <line x1="50" y1="310" x2="570" y2="310" stroke="#ffffff" strokeOpacity="0.2" strokeWidth="1.5" />
@@ -1906,9 +1938,7 @@ const FluidCalculator = ({ isEditing }) => {
                             <text x={t.px} y={326 + t.dy} fill="#8E979D" fontSize="9" textAnchor="middle" fontWeight="bold" fontFamily="monospace">{t.val}</text>
                           </g>
                         ))}
-                        <text x="310" y="344" fill="#ffffff" fillOpacity="0.4" fontSize="9" fontWeight="bold" textAnchor="middle" className="uppercase tracking-widest">
-                          Velocidad de Rotación [RPM]
-                        </text>
+                        <text x="310" y="344" fill="#ffffff" fillOpacity="0.4" fontSize="9" fontWeight="bold" textAnchor="middle" className="uppercase tracking-widest">{lang === 'es' ? 'Velocidad de Rotación [RPM]' : 'Rotor Speed [RPM]'}</text>
 
                         {/* Curves */}
                         {/* Area under HB */}
@@ -1942,22 +1972,22 @@ const FluidCalculator = ({ isEditing }) => {
                         </span>
                         <span className="flex items-center gap-1.5 text-red-400">
                           <span className="w-2.5 h-2.5 bg-red-500 rounded-full"></span>
-                          Lecturas Dial
+                          {lang === 'es' ? 'Lecturas Dial' : 'Dial Readings'}
                         </span>
                       </div>
                     </div>
 
                     {/* Table container */}
                     <div className="space-y-3 pt-2 w-full">
-                      <h3 className="text-xs font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest">Lecturas Dial Estimadas</h3>
+                      <h3 className="text-xs font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest">{lang === 'es' ? 'Lecturas Dial Estimadas' : 'Estimated Dial Readings'}</h3>
                       <div className="overflow-x-auto rounded-[2rem] border border-white/5 bg-zinc-950 p-4">
                         <table className="w-full text-left border-collapse text-[11px] uppercase tracking-wider font-bold">
                           <thead>
                             <tr className="border-b border-white/5 text-zinc-500">
-                              <th className="pb-3 text-left">Rotor (RPM)</th>
-                              <th className="pb-3 text-right">Lectura Dial (θ-HB)</th>
+                              <th className="pb-3 text-left">{lang === 'es' ? 'Rotor (RPM)' : 'Rotor Speed (RPM)'}</th>
+                              <th className="pb-3 text-right">{lang === 'es' ? 'Lectura Dial (θ-HB)' : 'Dial Reading (θ-HB)'}</th>
                               <th className="pb-3 text-right">Bingham (θ-B)</th>
-                              <th className="pb-3 text-right">Visc. Aparente (cP)</th>
+                              <th className="pb-3 text-right">{lang === 'es' ? 'Visc. Aparente (cP)' : 'Apparent Visc. (cP)'}</th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-white/5 text-zinc-300 font-mono">
@@ -2004,7 +2034,7 @@ const FluidCalculator = ({ isEditing }) => {
                           }}
                           className="text-halliburton-red hover:scale-105 transition-transform font-bold flex items-center gap-1"
                         >
-                          Descargar Datos CSV <Icon name="download" size={12} />
+                          {lang === 'es' ? 'Descargar Datos CSV' : 'Download CSV Data'} <Icon name="download" size={12} />
                         </button>
                       </div>
                     </div>

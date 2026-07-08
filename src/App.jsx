@@ -3,9 +3,16 @@ import Sidebar from './components/Sidebar';
 import MainContent from './components/MainContent';
 import Modal from './components/Modal';
 import FloatingNotes from './components/FloatingNotes';
+import UpdateModal from './components/UpdateModal';
 import { INITIAL_DATA_REFINED } from './data/initialData';
+import { translateText } from './data/translations';
+
+const CURRENT_CODE_VERSION = '2.0.1';
 
 const App = () => {
+    const [lang, setLang] = useState(() => localStorage.getItem('baroid_lang') || 'es');
+    const [showUpdateModal, setShowUpdateModal] = useState(false);
+    const [updateInfo, setUpdateInfo] = useState(null);
     const [sectors, setSectors] = useState(() => {
         const saved = localStorage.getItem('baroid_hub_data_v6');
         if (!saved) return INITIAL_DATA_REFINED;
@@ -95,6 +102,84 @@ const App = () => {
         }
     };
 
+    const resetSectorsOnly = () => {
+        const confirmMsg = lang === 'es' 
+            ? 'Se restablecerán todos los sectores y enlaces a sus valores originales. Perderás los links y sectores personalizados que hayas creado manualmente. Tus calculadoras, piletas, notas e inventario NO se verán afectados. ¿Deseas continuar?' 
+            : 'All default sectors and links will be reset. Any manually created links or sectors will be lost. Your calculators, mud pits, notes, and inventory will NOT be affected. Do you want to continue?';
+            
+        if (confirm(confirmMsg)) {
+            localStorage.removeItem('baroid_hub_data_v6');
+            localStorage.removeItem('baroid_hub_data_v5');
+            window.location.reload();
+        }
+    };
+
+    // Version Checking Logic
+    useEffect(() => {
+        const checkVersion = async () => {
+            try {
+                const response = await fetch('./version.json?t=' + Date.now());
+                if (!response.ok) return;
+                const data = await response.json();
+                
+                const storedVersion = localStorage.getItem('baroid_app_version');
+                if (!storedVersion) {
+                    localStorage.setItem('baroid_app_version', CURRENT_CODE_VERSION);
+                    return;
+                }
+                
+                if (data.version && data.version !== storedVersion) {
+                    setUpdateInfo(data);
+                    setShowUpdateModal(true);
+                }
+            } catch (err) {
+                console.error('Error checking version:', err);
+            }
+        };
+
+        const timer = setTimeout(checkVersion, 2000);
+        const interval = setInterval(checkVersion, 15 * 60 * 1000);
+        
+        return () => {
+            clearTimeout(timer);
+            clearInterval(interval);
+        };
+    }, [lang]);
+
+    const handleUpdateApp = async () => {
+        if (updateInfo && updateInfo.version) {
+            localStorage.setItem('baroid_app_version', updateInfo.version);
+        }
+        
+        if ('caches' in window) {
+            try {
+                const cacheNames = await caches.keys();
+                await Promise.all(cacheNames.map(name => caches.delete(name)));
+            } catch (e) {
+                console.error('Error clearing caches:', e);
+            }
+        }
+        
+        if ('serviceWorker' in navigator) {
+            try {
+                const registrations = await navigator.serviceWorker.getRegistrations();
+                for (const registration of registrations) {
+                    await registration.unregister();
+                }
+            } catch (e) {
+                console.error('Error unregistering service worker:', e);
+            }
+        }
+        
+        const cacheBuster = 'v-update=' + (updateInfo?.version || Date.now());
+        let cleanUrl = window.location.href;
+        if (cleanUrl.includes('v-update=')) {
+            cleanUrl = cleanUrl.replace(/[?&]v-update=[^&]+/g, '');
+        }
+        const separator = cleanUrl.includes('?') ? '&' : '?';
+        window.location.href = cleanUrl + separator + cacheBuster;
+    };
+
     const [stableLastUsed, setStableLastUsed] = useState({});
 
     useEffect(() => {
@@ -131,6 +216,10 @@ const App = () => {
     }, [notes]);
 
     useEffect(() => {
+        localStorage.setItem('baroid_lang', lang);
+    }, [lang]);
+
+    useEffect(() => {
         localStorage.setItem('baroid_hub_data_v6', JSON.stringify(sectors));
     }, [sectors]);
 
@@ -159,7 +248,7 @@ const App = () => {
         backup._meta = {
             date: new Date().toISOString(),
             app: 'BaroidHub',
-            version: '2.0'
+            version: CURRENT_CODE_VERSION
         };
 
         const dataStr = JSON.stringify(backup, null, 2);
@@ -293,10 +382,10 @@ const App = () => {
         if (activeSector === 'favorites') {
             data = [{
                 id: 'fav',
-                name: 'Mis Favoritos',
+                name: translateText('Mis Favoritos', lang),
                 icon: 'heart',
                 color: '#CC0000',
-                subsectors: [{ id: 'fs1', name: 'Documentos Destacados', links: favoritesList }]
+                subsectors: [{ id: 'fs1', name: translateText('Documentos Destacados', lang), links: favoritesList }]
             }];
         } else if (activeSector === 'calculator' || activeSector === 'inventory' || activeSector === 'piletas') {
             data = [];
@@ -321,12 +410,16 @@ const App = () => {
 
         return data.map(s => ({
             ...s,
+            name: translateText(s.name, lang),
             subsectors: (s.subsectors || []).map(sub => ({
                 ...sub,
-                links: [...(sub.links || [])].sort((a, b) => (stableLastUsed[b.id] || 0) - (stableLastUsed[a.id] || 0))
+                name: translateText(sub.name, lang),
+                links: [...(sub.links || [])]
+                    .map(l => ({ ...l, name: translateText(l.name, lang) }))
+                    .sort((a, b) => (stableLastUsed[b.id] || 0) - (stableLastUsed[a.id] || 0))
             }))
         }));
-    }, [sectors, activeSector, searchQuery, stableLastUsed, favoritesList]);
+    }, [sectors, activeSector, searchQuery, stableLastUsed, favoritesList, lang]);
 
     return (
         <div className="bg-[var(--h-bg)] min-h-screen transition-colors duration-300 flex justify-center">
@@ -338,7 +431,7 @@ const App = () => {
                     />
                 )}
                 <Sidebar
-                    sectors={sectors}
+                    sectors={sectors.map(s => ({ ...s, name: translateText(s.name, lang) }))}
                     setActiveSector={setActiveSector}
                     activeSector={activeSector}
                     searchQuery={searchQuery}
@@ -348,6 +441,7 @@ const App = () => {
                     darkMode={darkMode}
                     setDarkMode={setDarkMode}
                     resetToDefaults={resetToDefaults}
+                    resetSectorsOnly={resetSectorsOnly}
                     exportData={exportData}
                     importData={importData}
                     fileInputRef={fileInputRef}
@@ -362,6 +456,8 @@ const App = () => {
                     setCardSize={setCardSize}
                     isMobileSidebarOpen={isMobileSidebarOpen}
                     setIsMobileSidebarOpen={setIsMobileSidebarOpen}
+                    lang={lang}
+                    setLang={setLang}
                 />
                 <MainContent
                     displaySectors={displaySectors}
@@ -380,6 +476,8 @@ const App = () => {
                     setDarkMode={setDarkMode}
                     addLink={addLink}
                     setIsMobileSidebarOpen={setIsMobileSidebarOpen}
+                    lang={lang}
+                    setLang={setLang}
                 />
                 <Modal
                     showModal={showModal}
@@ -389,12 +487,21 @@ const App = () => {
                     addSubsector={addSubsector}
                     addLink={addLink}
                     updateItem={updateItem}
+                    lang={lang}
                 />
                 <FloatingNotes
                     notes={notes}
                     setNotes={setNotes}
                     showNotes={showNotes}
                     setShowNotes={setShowNotes}
+                    lang={lang}
+                />
+                <UpdateModal
+                    isOpen={showUpdateModal}
+                    onClose={() => setShowUpdateModal(false)}
+                    onUpdate={handleUpdateApp}
+                    updateInfo={updateInfo}
+                    lang={lang}
                 />
             </div>
         </div>

@@ -1,5 +1,6 @@
 import React from 'react';
 import Icon from './Icon';
+import { translations } from '../data/translations';
 
 const Sidebar = ({
   sectors,
@@ -12,6 +13,7 @@ const Sidebar = ({
   darkMode,
   setDarkMode,
   resetToDefaults,
+  resetSectorsOnly,
   exportData,
   importData,
   fileInputRef,
@@ -25,8 +27,10 @@ const Sidebar = ({
   cardSize,
   setCardSize,
   isMobileSidebarOpen,
-  setIsMobileSidebarOpen
+  setIsMobileSidebarOpen,
+  lang
 }) => {
+  const t = translations[lang] || translations['es'];
   return (
     <aside className={`fixed inset-y-0 left-0 z-50 lg:relative lg:translate-x-0 w-80 sidebar-bg h-screen flex flex-col transition-transform duration-300 ease-in-out shrink-0 ${isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
       <div className="p-10 flex items-center justify-between">
@@ -42,7 +46,7 @@ const Sidebar = ({
         <button
           onClick={() => setIsMobileSidebarOpen(false)}
           className="lg:hidden p-2 text-zinc-400 hover:text-halliburton-red transition-colors"
-          title="Cerrar Menú"
+          title={lang === 'es' ? "Cerrar Menú" : "Close Menu"}
         >
           <Icon name="x" size={20} />
         </button>
@@ -53,7 +57,7 @@ const Sidebar = ({
           <input
             ref={searchInputRef}
             type="text"
-            placeholder="Buscar herramienta... (/)"
+            placeholder={t.searchPlaceholder}
             className="w-full bg-zinc-50 dark:bg-slate-900 border-2 border-zinc-100 dark:border-zinc-800 rounded-2xl py-4 pl-12 pr-4 text-xs font-black uppercase tracking-widest placeholder-zinc-400 focus:border-halliburton-red outline-none transition-all shadow-sm group-hover:shadow-md"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -68,7 +72,7 @@ const Sidebar = ({
           className={`w-full flex items-center gap-4 px-4 py-4 rounded-xl text-sm font-semibold transition-all hover:bg-zinc-50 dark:hover:bg-slate-800/50 ${activeSector === 'favorites' && !searchQuery ? 'sidebar-item-active shadow-lg' : 'text-zinc-600 dark:text-zinc-400'}`}
         >
           <Icon name="heart" size={18} />
-          <span className="truncate">Mis Favoritos</span>
+          <span className="truncate">{t.favorites}</span>
           {favorites.length > 0 && (
             <span className="ml-auto bg-zinc-100 dark:bg-slate-800 text-[10px] px-2 py-0.5 rounded-full font-black">
               {favorites.length}
@@ -77,7 +81,7 @@ const Sidebar = ({
         </button>
 
         <div className="my-6 px-4">
-          <span className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em]">Cálculos & Operaciones</span>
+          <span className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em]">{t.calculationsAndOps}</span>
         </div>
 
         <button
@@ -85,7 +89,7 @@ const Sidebar = ({
           className={`w-full flex items-center gap-4 px-4 py-4 rounded-xl text-sm font-semibold transition-all hover:bg-zinc-50 dark:hover:bg-slate-800/50 ${activeSector === 'calculator' && !searchQuery ? 'sidebar-item-active shadow-lg' : 'text-zinc-600 dark:text-zinc-400'}`}
         >
           <Icon name="calculator" size={18} />
-          <span className="truncate">Calculadora Fluidos</span>
+          <span className="truncate">{t.fluidCalculator}</span>
         </button>
 
         <button
@@ -93,7 +97,7 @@ const Sidebar = ({
           className={`w-full flex items-center gap-4 px-4 py-4 rounded-xl text-sm font-semibold transition-all hover:bg-zinc-50 dark:hover:bg-slate-800/50 ${activeSector === 'inventory' && !searchQuery ? 'sidebar-item-active shadow-lg' : 'text-zinc-600 dark:text-zinc-400'}`}
         >
           <Icon name="clipboard-check" size={18} />
-          <span className="truncate">Conciliación Inventario</span>
+          <span className="truncate">{t.inventoryReconciliation}</span>
         </button>
 
         <button
@@ -101,11 +105,11 @@ const Sidebar = ({
           className={`w-full flex items-center gap-4 px-4 py-4 rounded-xl text-sm font-semibold transition-all hover:bg-zinc-50 dark:hover:bg-slate-800/50 ${activeSector === 'piletas' && !searchQuery ? 'sidebar-item-active shadow-lg' : 'text-zinc-600 dark:text-zinc-400'}`}
         >
           <Icon name="layout" size={18} />
-          <span className="truncate">Sistema de Piletas</span>
+          <span className="truncate">{t.mudPitSystem}</span>
         </button>
 
         <div className="h-[1px] bg-zinc-100 dark:bg-zinc-800 my-4 mx-4"></div>
-        <p className="text-[10px] text-zinc-400 font-black uppercase tracking-[0.2em] ml-4 mb-2">SECTORES</p>
+        <p className="text-[10px] text-zinc-400 font-black uppercase tracking-[0.2em] ml-4 mb-2">{t.sectors}</p>
         
         {sectors.map(sec => (
           <div key={sec.id} className="group relative">
@@ -141,7 +145,7 @@ const Sidebar = ({
           onClick={() => setIsEditing(!isEditing)}
           className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${isEditing ? 'bg-halliburton-red text-white' : 'bg-zinc-100 dark:bg-slate-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-slate-700'}`}
         >
-          <Icon name={isEditing ? "check" : "settings"} size={14} /> {isEditing ? "Finalizar" : "Gestionar App"}
+          <Icon name={isEditing ? "check" : "settings"} size={14} /> {isEditing ? t.finish : t.manageApp}
         </button>
         {isEditing && (
           <>
@@ -149,20 +153,26 @@ const Sidebar = ({
               onClick={exportData}
               className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest bg-zinc-50 dark:bg-slate-800/50 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-slate-700 border border-zinc-200 dark:border-zinc-800"
             >
-              <Icon name="download" size={12} /> Descargar Back Up
+              <Icon name="download" size={12} /> {t.downloadBackup}
             </button>
             <button
               onClick={() => fileInputRef.current?.click()}
               className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest bg-zinc-50 dark:bg-slate-800/50 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-slate-700 border border-zinc-200 dark:border-zinc-800"
             >
-              <Icon name="upload" size={12} /> Importar Back Up
+              <Icon name="upload" size={12} /> {t.importBackup}
             </button>
             <input type="file" ref={fileInputRef} onChange={importData} accept=".json" className="hidden" />
+            <button
+              onClick={resetSectorsOnly}
+              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest bg-zinc-50 dark:bg-slate-800/50 text-amber-600 dark:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900/20 border border-amber-100 dark:border-amber-900/30"
+            >
+              <Icon name="refresh-cw" size={12} /> {t.restoreSectorsOnly}
+            </button>
             <button
               onClick={resetToDefaults}
               className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest bg-zinc-50 dark:bg-slate-800/50 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 border border-red-100 dark:border-red-900/30"
             >
-              <Icon name="rotate-ccw" size={12} /> Restablecer Original
+              <Icon name="rotate-ccw" size={12} /> {t.restoreOriginal}
             </button>
           </>
         )}

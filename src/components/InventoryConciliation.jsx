@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import Icon from './Icon';
 import html2pdf from 'html2pdf.js';
+import { translations } from '../data/translations';
 
-const InventoryConciliation = ({ isEditing }) => {
+const InventoryConciliation = ({ isEditing, lang }) => {
+    const t = translations[lang || 'es'] || translations.es;
     const [products, setProducts] = useState(() => {
         const saved = localStorage.getItem('baroid_products_inventory_v2');
         return saved ? JSON.parse(saved) : [
@@ -119,7 +121,7 @@ const InventoryConciliation = ({ isEditing }) => {
     };
 
     const clearForm = () => {
-        if (confirm('¿Desea limpiar todos los datos del formulario?')) {
+        if (confirm(t.invClearConfirm)) {
             setEntries(getInitialEntries());
         }
     };
@@ -150,7 +152,7 @@ const InventoryConciliation = ({ isEditing }) => {
 
     const handleSaveProduct = () => {
         if (!newProduct.name || !newProduct.factor) {
-            alert('Por favor complete el nombre y el factor.');
+            alert(lang === 'es' ? 'Por favor complete el nombre y el factor.' : 'Please enter a name and a factor.');
             return;
         }
         setProducts([...products, {
@@ -211,8 +213,8 @@ const InventoryConciliation = ({ isEditing }) => {
                         <Icon name="clipboard-check" size={32} className="text-white" />
                     </div>
                     <div>
-                        <h3 className="text-3xl font-black uppercase italic tracking-tighter text-zinc-800 dark:text-white title-font">Panel de Inventario</h3>
-                        <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Conciliación de Inventario (Físico vs Software)</p>
+                        <h3 className="text-3xl font-black uppercase italic tracking-tighter text-zinc-800 dark:text-white title-font">{t.invReconcTitle}</h3>
+                        <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">{t.invReconcSubtitle}</p>
                     </div>
                 </div>
                 <div className="flex gap-3">
@@ -221,13 +223,13 @@ const InventoryConciliation = ({ isEditing }) => {
                         className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border ${isSettingsOpen ? 'bg-zinc-900 text-white border-zinc-900 shadow-xl' : 'bg-white dark:bg-slate-800 text-zinc-500 border-zinc-100 dark:border-zinc-700 hover:border-halliburton-red'}`}
                     >
                         <Icon name={isSettingsOpen ? "check" : "settings"} size={14} />
-                        {isSettingsOpen ? 'Finalizar Configuración' : 'Configurar Productos'}
+                        {isSettingsOpen ? t.invFinishConfig : t.invConfigProducts}
                     </button>
                     <button
                         onClick={() => setShowImportModal(true)}
                         className="flex items-center gap-2 px-6 py-3 bg-white dark:bg-slate-800 text-zinc-500 border border-zinc-100 dark:border-zinc-700 hover:border-halliburton-red rounded-2xl text-[10px] font-black uppercase tracking-widest"
                     >
-                        <Icon name="upload" size={14} /> Importar CSV
+                        <Icon name="upload" size={14} /> {t.invImportCsv}
                     </button>
                     <button
                         onClick={exportPDF}
@@ -241,18 +243,18 @@ const InventoryConciliation = ({ isEditing }) => {
             {isSettingsOpen && (
                 <div className="bg-zinc-50 dark:bg-slate-900/50 p-10 rounded-[3.5rem] border-2 border-dashed border-zinc-200 dark:border-zinc-800 animate-fade-in space-y-8">
                     <div className="flex justify-between items-center">
-                        <h4 className="text-xl font-black uppercase italic text-zinc-700 dark:text-zinc-300">Maestro de Productos</h4>
+                        <h4 className="text-xl font-black uppercase italic text-zinc-700 dark:text-zinc-300">{t.invMasterCatalog}</h4>
                         <div className="flex gap-4">
-                            <button onClick={addProduct} className="btn-primary px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg">+ Nuevo Producto</button>
+                            <button onClick={addProduct} className="btn-primary px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg">{t.invNewProduct}</button>
                         </div>
                     </div>
                     <div className="max-h-96 overflow-y-auto custom-scrollbar pr-4">
                         <table className="w-full text-left">
                             <thead className="sticky top-0 bg-zinc-50 dark:bg-slate-950 z-10">
                                 <tr className="text-[10px] font-black uppercase text-zinc-400 tracking-widest">
-                                    <th className="pb-4 px-2 w-20 text-center">Orden</th>
-                                    <th className="pb-4 px-2">Producto / Descripción</th>
-                                    <th className="pb-4 px-2 w-48">Factor (kg/L) por UM</th>
+                                    <th className="pb-4 px-2 w-20 text-center">{t.invOrder}</th>
+                                    <th className="pb-4 px-2">{t.invProductDescription}</th>
+                                    <th className="pb-4 px-2 w-48">{t.invFactorLabel}</th>
                                     <th className="pb-4 px-2 w-16"></th>
                                 </tr>
                             </thead>
@@ -263,7 +265,7 @@ const InventoryConciliation = ({ isEditing }) => {
                                             <input type="number" value={p.order} onChange={e => updateProduct(p.id, 'order', e.target.value)} className="w-16 bg-white dark:bg-slate-800 border-2 border-zinc-200 dark:border-zinc-700 rounded-xl p-2 text-center font-bold text-zinc-800 dark:text-zinc-100 outline-none" />
                                         </td>
                                         <td className="py-4 px-2">
-                                            <input type="text" value={p.name} onChange={e => updateProduct(p.id, 'name', e.target.value)} className="w-full bg-white dark:bg-slate-800 border-2 border-zinc-200 dark:border-zinc-700 rounded-xl p-2 text-zinc-800 dark:text-zinc-100 outline-none" placeholder="Nombre (Ej: GELTONE II)" />
+                                            <input type="text" value={p.name} onChange={e => updateProduct(p.id, 'name', e.target.value)} className="w-full bg-white dark:bg-slate-800 border-2 border-zinc-200 dark:border-zinc-700 rounded-xl p-2 text-zinc-800 dark:text-zinc-100 outline-none" placeholder={lang === 'es' ? 'Nombre (Ej: GELTONE II)' : 'Name (e.g. GELTONE II)'} />
                                         </td>
                                         <td className="py-4 px-2">
                                             <div className="relative">
@@ -300,18 +302,18 @@ const InventoryConciliation = ({ isEditing }) => {
                                     }}
                                 >
                                     <div className="flex items-center gap-2">
-                                        Producto
+                                        {t.invTableProduct}
                                         <div className={`transition-all ${sortConfig.key === 'name' ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
                                             <Icon name={sortConfig.key === 'name' ? (sortConfig.direction === 'asc' ? 'chevron-up' : 'chevron-down') : 'chevrons-up-down'} size={10} />
                                         </div>
                                     </div>
                                 </th>
-                                <th className="pb-2 px-4 text-center w-28">Bags - Lts - Can</th>
-                                <th className="pb-2 px-4 text-center">Físico (kg/L)</th>
-                                <th className="pb-2 px-4 text-center w-48">Cantidad en WS2020 (kg/L)</th>
-                                <th className="pb-2 px-4 text-center">Dif. (kg/L)</th>
-                                <th className="pb-2 px-4 text-center">Dif. (UM)</th>
-                                <th className="pb-2 px-4 text-center w-40">Estado</th>
+                                <th className="pb-2 px-4 text-center w-28">{t.invTablePackUnit}</th>
+                                <th className="pb-2 px-4 text-center">{t.invTablePhysical}</th>
+                                <th className="pb-2 px-4 text-center w-48">{t.invTableWSStock}</th>
+                                <th className="pb-2 px-4 text-center">{t.invTableDiffWeight}</th>
+                                <th className="pb-2 px-4 text-center">{t.invTableDiffPack}</th>
+                                <th className="pb-2 px-4 text-center w-40">{t.invTableStatus}</th>
                                 <th
                                     className="pb-2 px-4 w-10 text-center cursor-pointer hover:text-halliburton-red transition-colors group"
                                     onClick={() => {
@@ -322,7 +324,7 @@ const InventoryConciliation = ({ isEditing }) => {
                                         }
                                     }}
                                 >
-                                    <div className="flex items-center justify-center" title="Ordenar por Orden Maestro">
+                                    <div className="flex items-center justify-center" title={t.invTableOrder}>
                                         <Icon name={sortConfig.key === 'custom' ? (sortConfig.direction === 'asc' ? 'arrow-down-01' : 'arrow-up-10') : 'sort-asc'} size={12} className={sortConfig.key === 'custom' ? 'text-halliburton-red' : ''} />
                                     </div>
                                 </th>
@@ -339,13 +341,13 @@ const InventoryConciliation = ({ isEditing }) => {
                                 const diffKgL = physKgL - softWS;
                                 const diffUM = factor !== 0 ? diffKgL / factor : 0;
 
-                                let statusKey = "OK";
+                                let statusLabel = t.invStatusOk;
                                 let bgClass = "bg-green-500/10 text-green-600 ring-green-500/30";
                                 if (diffKgL < -0.01) {
-                                    statusKey = "FALTA COBRAR";
+                                    statusLabel = t.invStatusUnder;
                                     bgClass = "bg-red-500/10 text-red-600 ring-red-500/30";
                                 } else if (diffKgL > 0.01) {
-                                    statusKey = "CONSUMIR SIN COBRAR (AJUSTE)";
+                                    statusLabel = t.invStatusOver;
                                     bgClass = "bg-yellow-500/10 text-yellow-600 ring-yellow-500/30";
                                 }
 
@@ -374,7 +376,7 @@ const InventoryConciliation = ({ isEditing }) => {
                                                     }}
                                                     onFocus={() => updateEntry(e.id, 'isDropdownOpen', true)}
                                                     onBlur={() => setTimeout(() => updateEntry(e.id, 'isDropdownOpen', false), 250)}
-                                                    placeholder="Buscar..."
+                                                    placeholder={t.invSearchProduct}
                                                     className="w-full bg-white dark:bg-slate-800 border-2 border-zinc-200 dark:border-zinc-700 rounded-xl p-2 font-bold pr-8 text-xs text-zinc-800 dark:text-zinc-100 outline-none"
                                                 />
                                                 <div className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none">
@@ -392,14 +394,14 @@ const InventoryConciliation = ({ isEditing }) => {
                                                                         updateEntry(e.id, { productId: p.id, searchTerm: p.name, isDropdownOpen: false });
                                                                     }}
                                                                     className="w-full text-left px-5 py-3 hover:bg-halliburton-red hover:text-white transition-colors text-sm font-bold flex items-center justify-between group/item"
-                                                                >
+                                                                 >
                                                                     <span className="truncate">{p.name}</span>
                                                                     <span className="text-[9px] opacity-40 group-hover/item:opacity-100 uppercase tracking-widest">{p.factor} Kg/L</span>
                                                                 </button>
                                                             ))
                                                         }
                                                         {sortedProducts.filter(p => !e.searchTerm || p.name.toLowerCase().includes((e.searchTerm || '').toLowerCase())).length === 0 && (
-                                                            <div className="px-5 py-4 text-xs text-zinc-400 italic">No se encontraron resultados</div>
+                                                            <div className="px-5 py-4 text-xs text-zinc-400 italic">{lang === 'es' ? 'No se encontraron resultados' : 'No results found'}</div>
                                                         )}
                                                     </div>
                                                 )}
@@ -436,7 +438,7 @@ const InventoryConciliation = ({ isEditing }) => {
                                         </td>
                                         <td className="py-1 px-3">
                                             <div className={`px-2 py-1 rounded-md text-[9px] font-black uppercase tracking-wider text-center ring-1 ring-inset ${bgClass}`}>
-                                                {statusKey}
+                                                {statusLabel}
                                             </div>
                                         </td>
                                         <td className="py-0.5 px-3 rounded-r-xl text-center">
@@ -457,13 +459,13 @@ const InventoryConciliation = ({ isEditing }) => {
                         className="flex items-center gap-3 px-8 py-4 bg-zinc-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:scale-105 active:scale-95 transition-all shadow-xl"
                     >
                         <Icon name="plus" size={16} />
-                        Agregar Producto al Conteo
+                        {t.invAddProductCount}
                     </button>
 
                     <div className="flex items-center gap-3">
                         <button onClick={clearForm} className="px-8 py-4 bg-zinc-100 dark:bg-slate-800 text-zinc-500 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-zinc-200 dark:hover:bg-slate-700 transition-all">
                             <Icon name="refresh-ccw" size={14} className="inline mr-2" />
-                            Limpiar Todo
+                            {t.invClearAll}
                         </button>
                     </div>
                 </div>
@@ -480,8 +482,8 @@ const InventoryConciliation = ({ isEditing }) => {
                         </div>
 
                         <div className="space-y-2">
-                            <h3 className="text-3xl font-black uppercase italic tracking-tighter text-zinc-800 dark:text-white title-font">Importar Base de Datos</h3>
-                            <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Carga masiva de productos vía CSV</p>
+                            <h3 className="text-3xl font-black uppercase italic tracking-tighter text-zinc-800 dark:text-white title-font">{t.invImportHeader}</h3>
+                            <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">{t.invImportSub}</p>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -492,8 +494,8 @@ const InventoryConciliation = ({ isEditing }) => {
                                 <div className="p-4 bg-white dark:bg-slate-800 rounded-2xl shadow-lg mb-4 group-hover:scale-110 transition-transform">
                                     <Icon name="download" size={24} className="text-halliburton-red" />
                                 </div>
-                                <span className="text-[10px] font-black uppercase tracking-widest text-zinc-600 dark:text-zinc-300">Descargar Plantilla Madre</span>
-                                <span className="text-[8px] font-bold text-zinc-400 mt-2 uppercase tracking-tight text-center">Para saber cómo cargar los datos</span>
+                                <span className="text-[10px] font-black uppercase tracking-widest text-zinc-600 dark:text-zinc-300">{t.invDownloadTemplate}</span>
+                                <span className="text-[8px] font-bold text-zinc-400 mt-2 uppercase tracking-tight text-center">{t.invDownloadTemplateSub}</span>
                             </button>
 
                             <label className="flex flex-col items-center justify-center p-8 bg-zinc-50 dark:bg-slate-800/50 rounded-[2rem] border-2 border-dashed border-zinc-200 dark:border-zinc-800 hover:border-halliburton-red group cursor-pointer transition-all">
@@ -501,18 +503,18 @@ const InventoryConciliation = ({ isEditing }) => {
                                 <div className="p-4 bg-white dark:bg-slate-800 rounded-2xl shadow-lg mb-4 group-hover:scale-110 transition-transform">
                                     <Icon name="upload" size={24} className="text-halliburton-red" />
                                 </div>
-                                <span className="text-[10px] font-black uppercase tracking-widest text-zinc-600 dark:text-zinc-300">Adjuntar Archivo CSV</span>
-                                <span className="text-[8px] font-bold text-zinc-400 mt-2 uppercase tracking-tight text-center">Seleccionar archivo de tu equipo</span>
+                                <span className="text-[10px] font-black uppercase tracking-widest text-zinc-600 dark:text-zinc-300">{t.invUploadFile}</span>
+                                <span className="text-[8px] font-bold text-zinc-400 mt-2 uppercase tracking-tight text-center">{t.invUploadFileSub}</span>
                             </label>
                         </div>
 
                         <div className="p-6 bg-red-50 dark:bg-red-900/10 rounded-2xl border border-red-100 dark:border-red-900/20 text-left">
                             <p className="text-[9px] font-bold text-red-600 dark:text-red-400 leading-relaxed uppercase">
                                 <Icon name="alert-circle" size={10} className="inline mr-1 mb-0.5" />
-                                Nota: La importación reemplazará todos los productos actuales en la base de datos.
+                                {t.invImportNotice}
                             </p>
                             <div className="mt-3 flex gap-4 text-[8px] font-mono text-zinc-400 dark:text-zinc-500 bg-white/50 dark:bg-black/20 p-2 rounded-lg">
-                                <span>Ejemplo:</span>
+                                <span>{lang === 'es' ? 'Ejemplo:' : 'Example:'}</span>
                                 <span>Producto,Factor(kg/L)</span>
                                 <span>BAROID,1.0</span>
                             </div>
@@ -526,19 +528,19 @@ const InventoryConciliation = ({ isEditing }) => {
                     <div className="absolute inset-0" onClick={() => setShowAddModal(false)}></div>
                     <div className="relative bg-white dark:bg-slate-900 w-full max-w-lg rounded-[3rem] shadow-2xl border border-white/20 p-10 space-y-8 animate-modal-in">
                         <div className="space-y-2 text-center">
-                            <h3 className="text-3xl font-black uppercase italic tracking-tighter text-zinc-800 dark:text-white title-font">Nuevo Producto</h3>
-                            <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Añadir producto maestro al sistema</p>
+                            <h3 className="text-3xl font-black uppercase italic tracking-tighter text-zinc-800 dark:text-white title-font">{t.invNewProductTitle}</h3>
+                            <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">{t.invNewProductSub}</p>
                         </div>
 
                         <div className="space-y-6 text-left">
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase text-zinc-400 tracking-widest px-1">Nombre del Producto</label>
+                                <label className="text-[10px] font-black uppercase text-zinc-400 tracking-widest px-1">{t.invNewProductName}</label>
                                 <input
                                     type="text"
                                     value={newProduct.name}
                                     onChange={e => setNewProduct({ ...newProduct, name: e.target.value })}
                                     className="w-full bg-white dark:bg-slate-800 border-2 border-zinc-200 dark:border-zinc-700 rounded-xl p-3 text-lg font-bold text-zinc-800 dark:text-zinc-100 outline-none"
-                                    placeholder="Ej: GELTONE II"
+                                    placeholder={lang === 'es' ? 'Ej: GELTONE II' : 'e.g. GELTONE II'}
                                     autoFocus
                                 />
                             </div>
@@ -557,7 +559,7 @@ const InventoryConciliation = ({ isEditing }) => {
                                     </div>
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase text-zinc-400 tracking-widest px-1">Nº Orden</label>
+                                    <label className="text-[10px] font-black uppercase text-zinc-400 tracking-widest px-1">{t.invOrder}</label>
                                     <input
                                         type="number"
                                         value={newProduct.order}
@@ -573,13 +575,13 @@ const InventoryConciliation = ({ isEditing }) => {
                                 onClick={() => setShowAddModal(false)}
                                 className="flex-1 px-8 py-5 bg-zinc-100 dark:bg-slate-800 text-zinc-500 rounded-3xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-zinc-200 transition-all"
                             >
-                                Cancelar
+                                {t.invCancel}
                             </button>
                             <button
                                 onClick={handleSaveProduct}
                                 className="flex-1 px-8 py-5 btn-primary rounded-3xl text-[10px] font-black uppercase tracking-[0.2em] shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all"
                             >
-                                Guardar Producto
+                                {t.invSaveProduct}
                             </button>
                         </div>
                     </div>

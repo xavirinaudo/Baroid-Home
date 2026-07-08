@@ -3,15 +3,15 @@ import Icon from './Icon';
 import AccurisGuideModal from './AccurisGuideModal';
 import PayslipWarningModal from './PayslipWarningModal';
 
-const Modal = ({ showModal, setShowModal, modalData, addSector, addSubsector, addLink, updateItem }) => {
+const Modal = ({ showModal, setShowModal, modalData, addSector, addSubsector, addLink, updateItem, lang }) => {
   if (!showModal) return null;
   
   if (showModal === 'accuris-guide') {
-    return <AccurisGuideModal setShowModal={setShowModal} />;
+    return <AccurisGuideModal setShowModal={setShowModal} lang={lang} />;
   }
 
   if (showModal === 'payslip-warning') {
-    return <PayslipWarningModal setShowModal={setShowModal} modalData={modalData} />;
+    return <PayslipWarningModal setShowModal={setShowModal} modalData={modalData} lang={lang} />;
   }
   
   const [form, setForm] = useState({
@@ -28,6 +28,11 @@ const Modal = ({ showModal, setShowModal, modalData, addSector, addSubsector, ad
     if (showModal === 'edit-item') updateItem(modalData.type, modalData.id, form.name, form.url, form.icon);
   };
 
+  const isEn = lang === 'en';
+  const labelManage = isEn ? "Manage Element" : "Gestionar Elemento";
+  const labelName = isEn ? "Name" : "Nombre";
+  const labelSave = isEn ? "Save Changes" : "Guardar Cambios";
+
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm animate-fade-in text-left">
       <div className="bg-white dark:bg-slate-900 w-full max-w-lg p-12 rounded-[3.5rem] shadow-2xl relative border border-zinc-200 dark:border-zinc-800">
@@ -38,11 +43,11 @@ const Modal = ({ showModal, setShowModal, modalData, addSector, addSubsector, ad
           <Icon name="x" size={28} />
         </button>
         <h3 className="text-3xl font-black text-zinc-800 dark:text-white uppercase italic mb-10 tracking-tighter">
-          Gestionar Elemento
+          {labelManage}
         </h3>
         <form onSubmit={submit} className="space-y-8">
           <div>
-            <label className="text-[10px] font-black text-halliburton-red uppercase tracking-widest mb-3 block">Nombre</label>
+            <label className="text-[10px] font-black text-halliburton-red uppercase tracking-widest mb-3 block">{labelName}</label>
             <input
               type="text"
               required
@@ -67,7 +72,7 @@ const Modal = ({ showModal, setShowModal, modalData, addSector, addSubsector, ad
             type="submit"
             className="w-full btn-primary py-5 rounded-3xl font-black uppercase text-xs tracking-widest shadow-xl"
           >
-            Guardar Cambios
+            {labelSave}
           </button>
         </form>
       </div>

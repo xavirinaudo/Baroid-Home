@@ -1,7 +1,11 @@
 import React from 'react';
 import Icon from './Icon';
 
-const PayslipWarningModal = ({ setShowModal, modalData }) => {
+import { translations } from '../data/translations';
+
+const PayslipWarningModal = ({ setShowModal, modalData, lang }) => {
+  const t = translations[lang || 'es'] || translations.es;
+  
   const handleConfirm = () => {
     window.open(modalData.url, '_blank', 'noopener,noreferrer');
     setShowModal(null);
@@ -19,7 +23,7 @@ const PayslipWarningModal = ({ setShowModal, modalData }) => {
           <button
             onClick={() => setShowModal(null)}
             className="absolute top-6 right-6 bg-black/10 hover:bg-black/20 text-white/80 hover:text-white p-2.5 rounded-full transition-all hover:scale-105 active:scale-95"
-            title="Cerrar"
+            title={lang === 'es' ? "Cerrar" : "Close"}
           >
             <Icon name="x" size={16} />
           </button>
@@ -28,10 +32,10 @@ const PayslipWarningModal = ({ setShowModal, modalData }) => {
             <div className="p-2 bg-white/10 rounded-xl backdrop-blur-md">
               <Icon name="alert-triangle" size={20} className="text-white" />
             </div>
-            <span className="text-[9px] font-black uppercase tracking-[0.25em] text-white/70">Aviso Importante</span>
+            <span className="text-[9px] font-black uppercase tracking-[0.25em] text-white/70">{lang === 'es' ? 'Aviso Importante' : 'Important Notice'}</span>
           </div>
           <h3 className="text-xl sm:text-2xl font-black uppercase italic tracking-tighter leading-tight">
-            Acceso a Recibo de Sueldo
+            {t.payslipTitle}
           </h3>
         </div>
 
@@ -39,12 +43,16 @@ const PayslipWarningModal = ({ setShowModal, modalData }) => {
         <div className="p-6 sm:p-8 space-y-6">
           <div className="p-5 bg-zinc-50/50 dark:bg-slate-800/20 border border-zinc-100 dark:border-zinc-800/60 rounded-3xl text-sm leading-relaxed text-zinc-700 dark:text-zinc-300 font-medium">
             <p className="mb-2">
-              Vas a ser redirigido al portal de firma digital de Halliburton.
+              {t.payslipWarning}
             </p>
             <div className="p-4 bg-amber-500/10 border-l-4 border-amber-500 rounded-r-2xl text-xs leading-relaxed text-amber-800 dark:text-amber-300 font-bold uppercase tracking-wide flex items-start gap-3 mt-4">
               <Icon name="info" size={18} className="text-amber-500 shrink-0 mt-0.5" />
               <div>
-                Recorda que si la pantalla permanece en blanco tenés que apretar la tecla <span className="underline decoration-wavy">Shift + F5</span> para recargar la página.
+                {lang === 'es' ? (
+                  <>Recorda que si la pantalla permanece en blanco tenés que apretar la tecla <span className="underline decoration-wavy">Shift + F5</span> para recargar la página.</>
+                ) : (
+                  <>Remember that if the screen remains blank, you must press <span className="underline decoration-wavy">Shift + F5</span> to reload the page.</>
+                )}
               </div>
             </div>
           </div>
@@ -56,14 +64,14 @@ const PayslipWarningModal = ({ setShowModal, modalData }) => {
             onClick={() => setShowModal(null)}
             className="px-5 py-3 text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200 text-[10px] font-black uppercase tracking-widest transition-colors text-center"
           >
-            Cancelar
+            {t.payslipCancel}
           </button>
           
           <button
             onClick={handleConfirm}
             className="flex items-center justify-center gap-2 px-6 py-3.5 bg-zinc-900 dark:bg-white text-white dark:text-zinc-950 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-lg hover:scale-105 active:scale-95 transition-all hover:bg-halliburton-red hover:text-white dark:hover:bg-halliburton-red dark:hover:text-white"
           >
-            Aceptar e Ir al Link
+            {t.payslipAccept}
             <Icon name="external-link" size={12} />
           </button>
         </div>

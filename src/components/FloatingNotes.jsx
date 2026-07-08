@@ -1,7 +1,11 @@
 import React from 'react';
 import Icon from './Icon';
 
-const FloatingNotes = ({ notes, setNotes, showNotes, setShowNotes }) => {
+import { translations } from '../data/translations';
+
+const FloatingNotes = ({ notes, setNotes, showNotes, setShowNotes, lang }) => {
+  const t = translations[lang || 'es'] || translations.es;
+
   return (
     <div className="fixed bottom-8 right-8 z-[100] flex flex-col items-end gap-4">
       <div className={`notes-window glass-morphism w-80 h-96 rounded-[2.5rem] p-8 shadow-2xl flex flex-col ${showNotes ? 'visible' : 'hidden'}`}>
@@ -10,7 +14,7 @@ const FloatingNotes = ({ notes, setNotes, showNotes, setShowNotes }) => {
             <div className="w-8 h-8 bg-halliburton-red rounded-lg flex items-center justify-center shadow-lg">
               <Icon name="sticky-note" size={16} className="text-white" />
             </div>
-            <span className="text-xs font-black uppercase tracking-widest text-zinc-800 dark:text-white">Notas Rápidas</span>
+            <span className="text-xs font-black uppercase tracking-widest text-zinc-800 dark:text-white">{t.quickNotes}</span>
           </div>
           <button onClick={() => setShowNotes(false)} className="text-zinc-400 hover:text-halliburton-red transition-colors">
             <Icon name="x" size={20} />
@@ -19,11 +23,11 @@ const FloatingNotes = ({ notes, setNotes, showNotes, setShowNotes }) => {
         <textarea
           value={notes}
           onChange={e => setNotes(e.target.value)}
-          placeholder="Escribe algo aquí..."
+          placeholder={t.notesPlaceholder}
           className="flex-1 w-full bg-transparent border-none resize-none focus:outline-none text-sm leading-relaxed custom-scrollbar notepad-area dark:text-zinc-200"
         ></textarea>
         <div className="mt-4 pt-4 border-t border-zinc-200/50 dark:border-zinc-700/50 flex justify-between items-center text-[10px] text-zinc-400 font-bold uppercase tracking-widest">
-          <span>Autoguardado</span>
+          <span>{t.autosaved}</span>
           <Icon name="save" size={12} />
         </div>
       </div>

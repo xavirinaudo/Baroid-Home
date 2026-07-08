@@ -4,6 +4,7 @@ import GreetingDashboard from './GreetingDashboard';
 import FluidCalculator from './FluidCalculator';
 import InventoryConciliation from './InventoryConciliation';
 import PiletasSystem from './PiletasSystem';
+import { translations } from '../data/translations';
 
 const getDisplayUrl = (url) => {
     try {
@@ -41,8 +42,11 @@ const MainContent = ({
     darkMode,
     setDarkMode,
     addLink,
-    setIsMobileSidebarOpen
+    setIsMobileSidebarOpen,
+    lang,
+    setLang
 }) => {
+    const t = translations[lang] || translations['es'];
     return (
         <main className="flex-1 min-h-screen p-4 md:p-8 lg:p-12 overflow-x-hidden relative text-left">
             {/* Mobile Header Bar */}
@@ -64,6 +68,14 @@ const MainContent = ({
                 </div>
                 <div className="flex items-center gap-2">
                     <button
+                        onClick={() => setLang(lang === 'es' ? 'en' : 'es')}
+                        className="p-2.5 bg-zinc-50 dark:bg-slate-800 rounded-xl text-zinc-500 dark:text-zinc-400 font-black text-xs tracking-wider flex items-center gap-1"
+                        title={lang === 'es' ? "Switch to English" : "Cambiar a Español"}
+                    >
+                        <Icon name="globe" size={16} className="text-halliburton-red" />
+                        <span>{lang.toUpperCase()}</span>
+                    </button>
+                    <button
                         onClick={() => setCardSize(cardSize === 'large' ? 'small' : 'large')}
                         className="p-2.5 bg-zinc-50 dark:bg-slate-800 rounded-xl text-zinc-500 dark:text-zinc-400"
                         title="Cambiar Vista"
@@ -82,18 +94,26 @@ const MainContent = ({
 
             {/* Top Controls Overlay (Desktop only) */}
             <div className="hidden lg:flex absolute top-8 right-12 z-40 items-center gap-4">
+                <button
+                    onClick={() => setLang(lang === 'es' ? 'en' : 'es')}
+                    className="p-3.5 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-xl text-zinc-500 dark:text-zinc-400 hover:scale-105 transition-all font-black text-xs tracking-wider flex items-center gap-2"
+                    title={lang === 'es' ? "Switch to English" : "Cambiar a Español"}
+                >
+                    <Icon name="globe" size={20} className="text-halliburton-red" />
+                    <span>{lang.toUpperCase()}</span>
+                </button>
                 <div className="flex bg-white/80 dark:bg-slate-900/80 backdrop-blur-md p-1.5 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-xl">
                     <button
                         onClick={() => setCardSize('large')}
                         className={`p-2.5 rounded-xl transition-all ${cardSize === 'large' ? 'bg-halliburton-red text-white shadow-lg' : 'text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300'}`}
-                        title="Vista Grande"
+                        title={lang === 'es' ? "Vista Grande" : "Large View"}
                     >
                         <Icon name="layout-grid" size={20} />
                     </button>
                     <button
                         onClick={() => setCardSize('small')}
                         className={`p-2.5 rounded-xl transition-all ${cardSize === 'small' ? 'bg-halliburton-red text-white shadow-lg' : 'text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300'}`}
-                        title="Vista Compacta"
+                        title={lang === 'es' ? "Vista Compacta" : "Compact View"}
                     >
                         <Icon name="grid-3x3" size={20} />
                     </button>
@@ -101,7 +121,7 @@ const MainContent = ({
                 <button
                     onClick={() => setDarkMode(!darkMode)}
                     className="p-3.5 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-xl text-zinc-500 dark:text-zinc-400 hover:scale-105 transition-all"
-                    title={darkMode ? "Modo Claro" : "Modo Oscuro"}
+                    title={darkMode ? (lang === 'es' ? "Modo Claro" : "Light Mode") : (lang === 'es' ? "Modo Oscuro" : "Dark Mode")}
                 >
                     <Icon name={darkMode ? "sun" : "moon"} size={22} />
                 </button>
@@ -109,23 +129,23 @@ const MainContent = ({
 
             <div className={cardSize === 'small' ? "max-w-[1400px] mx-auto" : "max-w-6xl mx-auto"}>
                 <header className="mb-10 lg:mb-14">
-                    {(!searchQuery && activeSector !== 'favorites' && activeSector !== 'calculator' && activeSector !== 'inventory' && activeSector !== 'piletas') && <GreetingDashboard />}
+                    {(!searchQuery && activeSector !== 'favorites' && activeSector !== 'calculator' && activeSector !== 'inventory' && activeSector !== 'piletas') && <GreetingDashboard lang={lang} />}
                     <div className="space-y-3 lg:space-y-4">
                         <div className="flex items-center gap-3">
                             <div className="w-1.5 h-6 bg-halliburton-red rounded-full"></div>
                             <span className="text-[12px] font-bold text-halliburton-red uppercase tracking-widest">
-                                {activeSector === 'favorites' ? 'Acceso Rápido' : (activeSector === 'calculator' ? 'Ingeniería' : (activeSector === 'inventory' ? 'Auditoría' : (activeSector === 'piletas' ? 'Volumen Activo' : (sectors.find(s => s.id === activeSector)?.name || 'Explorar'))))}
+                                {activeSector === 'favorites' ? t.favorites : (activeSector === 'calculator' ? t.tabEng : (activeSector === 'inventory' ? t.invReconcTitle : (activeSector === 'piletas' ? t.pitsSystemTitle : (sectors.find(s => s.id === activeSector)?.name || 'Explore'))))}
                             </span>
                         </div>
                         <h2 className="text-3xl lg:text-5xl font-black uppercase italic leading-none tracking-tighter text-zinc-800 dark:text-white truncate">
-                            {activeSector === 'favorites' ? 'Mis Favoritos' : (activeSector === 'calculator' ? 'Calculadora de Fluidos' : (activeSector === 'inventory' ? 'Conciliación de Inventario' : (activeSector === 'piletas' ? 'Sistema de Piletas' : (sectors.find(s => s.id === activeSector)?.name || 'Directorio'))))}
+                            {activeSector === 'favorites' ? t.favorites : (activeSector === 'calculator' ? t.fluidCalculatorTitle : (activeSector === 'inventory' ? t.invReconcSubtitle : (activeSector === 'piletas' ? t.pitsSystemTitle : (sectors.find(s => s.id === activeSector)?.name || 'Directory'))))}
                         </h2>
                     </div>
                 </header>
                 <div className="space-y-20">
-                    {activeSector === 'calculator' ? <FluidCalculator isEditing={isEditing} /> :
-                        activeSector === 'inventory' ? <InventoryConciliation isEditing={isEditing} /> :
-                            activeSector === 'piletas' ? <PiletasSystem isEditing={isEditing} /> :
+                    {activeSector === 'calculator' ? <FluidCalculator isEditing={isEditing} lang={lang} /> :
+                        activeSector === 'inventory' ? <InventoryConciliation isEditing={isEditing} lang={lang} /> :
+                            activeSector === 'piletas' ? <PiletasSystem isEditing={isEditing} lang={lang} /> :
                                 displaySectors.map(sec => (
                                     <div key={sec.id} className="space-y-10 animate-fade-in">
 
@@ -138,7 +158,7 @@ const MainContent = ({
                                                     {isEditing && activeSector !== 'favorites' && (
                                                         <div className="flex gap-2">
                                                             <button onClick={() => { setModalData({ type: 'subsector', id: sub.id, name: sub.name }); setShowModal('edit-item'); }} className="p-2 text-zinc-400 hover:text-halliburton-red transition-colors"><Icon name="edit-2" size={16} /></button>
-                                                            <button onClick={() => { setModalData({ sid: sec.id, subsid: sub.id }); setShowModal('add-link'); }} className="px-4 py-2 btn-primary text-[10px] font-extrabold uppercase rounded-lg shadow-sm">+ Nuevo Link</button>
+                                                            <button onClick={() => { setModalData({ sid: sec.id, subsid: sub.id }); setShowModal('add-link'); }} className="px-4 py-2 btn-primary text-[10px] font-extrabold uppercase rounded-lg shadow-sm">{t.newLink}</button>
                                                             <button onClick={() => deleteItem('subsector', sec.id, sub.id)} className="p-2 text-zinc-400 hover:text-halliburton-red transition-colors"><Icon name="trash-2" size={16} /></button>
                                                         </div>
                                                     )}
@@ -205,7 +225,7 @@ const MainContent = ({
                                                                             <Icon name="file-text" size={24} className="text-halliburton-red" />
                                                                         </div>
                                                                         <div className="flex gap-2 items-center">
-                                                                            {l.lastUsed && <span className="text-[9px] font-extrabold text-halliburton-red bg-red-50 dark:bg-red-900/30 px-2 py-1 rounded-md uppercase italic animate-pulse">Reciente</span>}
+                                                                            {l.lastUsed && <span className="text-[9px] font-extrabold text-halliburton-red bg-red-50 dark:bg-red-900/30 px-2 py-1 rounded-md uppercase italic animate-pulse">{t.recent}</span>}
                                                                             <button
                                                                                 onClick={(e) => {
                                                                                     e.preventDefault();
@@ -225,7 +245,7 @@ const MainContent = ({
                                                                     <div className="flex items-center justify-between mt-auto pt-4 border-t border-zinc-50 dark:border-zinc-800/50">
                                                                         <span className="text-[9px] text-zinc-400 dark:text-zinc-500 font-black uppercase tracking-[0.1em] truncate mr-2" title={getDisplayUrl(l.url)}>{getDisplayUrl(l.url)}</span>
                                                                         <div className="flex items-center gap-1 text-halliburton-red opacity-0 group-hover/card:opacity-100 transform translate-x-4 group-hover/card:translate-x-0 transition-all duration-500 shrink-0">
-                                                                            <span className="text-[9px] font-black uppercase">Abrir</span>
+                                                                            <span className="text-[9px] font-black uppercase">{t.open}</span>
                                                                             <Icon name="arrow-right" size={14} />
                                                                         </div>
                                                                     </div>
@@ -249,7 +269,7 @@ const MainContent = ({
             </div>
             <div className="mt-20 pb-8 flex justify-center items-center gap-2 opacity-30 hover:opacity-100 transition-opacity">
                 <div className="w-8 h-[1px] bg-zinc-400"></div>
-                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">creada por Ing. Rinaudo Xavier</span>
+                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">{t.brandingHeader}</span>
                 <div className="w-8 h-[1px] bg-zinc-400"></div>
             </div>
         </main>

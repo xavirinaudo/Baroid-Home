@@ -1,32 +1,48 @@
 import React, { useState, useEffect } from 'react';
 import Icon from './Icon';
+import { translations } from '../data/translations';
 
-const GreetingDashboard = () => {
+const GreetingDashboard = ({ lang }) => {
   const [time, setTime] = useState(new Date());
   const [activeIndex, setActiveIndex] = useState(0);
 
+  const t = translations[lang] || translations['es'];
+
   const messages = [
     {
-      title: "Mainstays de BAROID",
+      title: lang === 'es' ? "Mainstays de BAROID" : "BAROID Mainstays",
       content: "Business Acquisition Process • Technical Process • Black Book • System Rationalization • People",
       icon: "target"
     },
     {
-      title: "Propuesta de Valor",
-      content: "Soluciones de fluidos personalizadas para maximizar el valor del pozo y activos del cliente.",
+      title: lang === 'es' ? "Propuesta de Valor" : "Value Proposition",
+      content: lang === 'es'
+        ? "Soluciones de fluidos personalizadas para maximizar el valor del pozo y activos del cliente."
+        : "Engineer fluid solutions customized to maximize wellbore value.",
       icon: "trending-up"
     },
     {
       title: "Control Points (BSD)",
-      content: "DoS Aprobado • Plan de Demanda Verificado • Ejecución Confirmada • Reporte Completado",
+      content: lang === 'es'
+        ? "DoS Aprobado • Plan de Demanda Verificado • Ejecución Confirmada • Reporte Completado"
+        : "DoS Approved • Demand Plan Verified • Execution Confirmed • Report Completed",
       icon: "shield-check"
     }
   ];
 
   const reminders = [
-    { text: "Recorda hacer tus Observaciones en One View", icon: "eye" },
-    { text: "Pedido de Laboratorio antes del Domingo", icon: "beaker" },
-    { text: "Verificar stock de químicos críticos", icon: "clipboard-list" }
+    {
+      text: lang === 'es' ? "Recorda hacer tus Observaciones en One View" : "Remember to enter your Observations in One View",
+      icon: "eye"
+    },
+    {
+      text: lang === 'es' ? "Pedido de Laboratorio antes del Domingo" : "Lab Request submission before Sunday",
+      icon: "beaker"
+    },
+    {
+      text: lang === 'es' ? "Verificar stock de químicos críticos" : "Verify critical chemical inventory",
+      icon: "clipboard-list"
+    }
   ];
 
   useEffect(() => {
@@ -41,7 +57,11 @@ const GreetingDashboard = () => {
   }, []);
 
   const hours = time.getHours();
-  const greeting = hours < 12 ? 'Buenos Días' : hours < 20 ? 'Buenas Tardes' : 'Buenas Noches';
+  const greeting = lang === 'es'
+    ? (hours < 12 ? 'Buenos Días' : hours < 20 ? 'Buenas Tardes' : 'Buenas Noches')
+    : (hours < 12 ? 'Good Morning' : hours < 20 ? 'Good Afternoon' : 'Good Night');
+
+  const locale = lang === 'es' ? 'es-ES' : 'en-US';
 
   return (
     <div className="mb-14 p-10 pb-16 bg-gradient-to-br from-halliburton-red to-[#a30000] rounded-[3rem] text-white shadow-2xl relative overflow-hidden group animate-fade-in transition-all">
@@ -54,20 +74,20 @@ const GreetingDashboard = () => {
       <div className="absolute bottom-0 left-0 right-0 h-10 bg-black/10 flex items-center px-10 border-t border-white/5">
         <div className="flex items-center gap-2 animate-fade-in" key={activeIndex}>
           <Icon name={reminders[activeIndex % reminders.length].icon} size={12} className="text-white/40" />
-          <span className="text-[9px] font-black uppercase tracking-[0.2em] text-white/30">Recordatorio:</span>
+          <span className="text-[9px] font-black uppercase tracking-[0.2em] text-white/30">{t.reminder}</span>
           <span className="text-[9px] font-bold uppercase tracking-widest text-white/70">{reminders[activeIndex % reminders.length].text}</span>
         </div>
       </div>
 
       <div className="relative z-10">
-        <p className="text-[12px] font-black uppercase tracking-[0.3em] mb-4 opacity-80">Dashboard Operativo</p>
+        <p className="text-[12px] font-black uppercase tracking-[0.3em] mb-4 opacity-80">{t.dashboardTitle}</p>
         <h2 className="text-5xl font-black uppercase italic leading-none mb-10">{greeting}</h2>
 
         <div className="flex flex-col md:flex-row md:items-center gap-8">
           <div className="flex items-center gap-6">
             <div className="flex flex-col">
               <span className="text-3xl font-black tabular-nums leading-none mb-1">{time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-              <span className="text-[10px] font-bold uppercase tracking-widest opacity-60">{time.toLocaleDateString([], { weekday: 'long', day: 'numeric', month: 'long' })}</span>
+              <span className="text-[10px] font-bold uppercase tracking-widest opacity-60">{time.toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long' })}</span>
             </div>
           </div>
 

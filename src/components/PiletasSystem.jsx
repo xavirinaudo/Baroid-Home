@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import Icon from './Icon';
+import { translations } from '../data/translations';
 
-const PiletasSystem = ({ isEditing }) => {
+const PiletasSystem = ({ isEditing, lang }) => {
+    const t = translations[lang || 'es'] || translations.es;
     const [unitMode, setUnitMode] = useState('metric'); // 'field', 'metric'
     const [isConfiguringFluids, setIsConfiguringFluids] = useState(false);
     const [showFluidStats, setShowFluidStats] = useState(false);
@@ -144,7 +146,7 @@ const PiletasSystem = ({ isEditing }) => {
         const isSelected = selectedIds.includes(id);
         const idsToDelete = isSelected ? selectedIds : [id];
         const count = idsToDelete.length;
-        const msg = count > 1 ? `¿Eliminar las ${count} piletas seleccionadas?` : '¿Eliminar esta pileta?';
+        const msg = count > 1 ? t.pitsDeleteTanks.replace('{count}', count.toString()) : t.pitsDeleteTank;
 
         if (confirm(msg)) {
             const filterer = p => !idsToDelete.includes(p.id);
@@ -282,7 +284,7 @@ const PiletasSystem = ({ isEditing }) => {
 
     const addFluidSystem = () => {
         const id = `SYS_${Date.now()}`;
-        setFluidSystems([...fluidSystems, { id, label: 'Nuevo', color: 'bg-zinc-500' }]);
+        setFluidSystems([...fluidSystems, { id, label: lang === 'es' ? 'Nuevo' : 'New', color: 'bg-zinc-500' }]);
     };
 
     const updateFluidSystem = (id, field, val) => {
@@ -290,8 +292,8 @@ const PiletasSystem = ({ isEditing }) => {
     };
 
     const deleteFluidSystem = (id) => {
-        if (fluidSystems.length <= 1) return alert('Debe haber al menos un sistema.');
-        if (confirm('¿Eliminar este sistema? Las piletas que lo usen volverán al primero.')) {
+        if (fluidSystems.length <= 1) return alert(lang === 'es' ? 'Debe haber al menos un sistema.' : 'There must be at least one system.');
+        if (confirm(lang === 'es' ? '¿Eliminar este sistema? Las piletas que lo usen volverán al primero.' : 'Delete this system? Pits using it will revert to the first one.')) {
             const nextSystems = fluidSystems.filter(s => s.id !== id);
             setFluidSystems(nextSystems);
             setPits(pits.map(p => p.type === id ? { ...p, type: nextSystems[0].id } : p));
@@ -351,7 +353,7 @@ const PiletasSystem = ({ isEditing }) => {
                             <button onClick={() => setUnitMode('metric')} className={`px-5 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${unitMode === 'metric' ? 'bg-halliburton-red text-white' : 'text-zinc-500'}`}>g/L</button>
                         </div>
                         <button onClick={() => setIsConfiguringFluids(!isConfiguringFluids)} className="bg-white dark:bg-slate-800 text-zinc-600 dark:text-zinc-400 px-4 py-2 rounded-xl text-[10px] font-black uppercase shadow-sm border border-zinc-100 dark:border-zinc-700 flex items-center gap-2 hover:bg-zinc-50 dark:hover:bg-slate-700 transition-colors">
-                            <Icon name="sliders" size={14} /> {isConfiguringFluids ? 'Cerrar' : 'Config. Fluidos'}
+                            <Icon name="sliders" size={14} /> {isConfiguringFluids ? t.close : t.pitsConfigFluids}
                         </button>
 
                         <button
@@ -359,24 +361,24 @@ const PiletasSystem = ({ isEditing }) => {
                             className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase shadow-sm border transition-all flex items-center gap-2 ${historyPits ? 'bg-amber-50 dark:bg-amber-900/20 text-amber-600 border-amber-200 shadow-lg' : 'bg-white dark:bg-slate-800 text-zinc-600 dark:text-zinc-400 border-zinc-100 dark:border-zinc-700'}`}
                         >
                             <Icon name={historyPits ? "mouse-pointer" : "grid"} size={14} />
-                            {historyPits ? 'Personalizado' : 'Reordenar'}
+                            {historyPits ? t.pitsManualLayout : t.pitsAutoGrid}
                         </button>
 
                         <button onClick={addPit} className="bg-white dark:bg-slate-800 text-zinc-600 dark:text-zinc-400 px-4 py-2 rounded-xl text-[10px] font-black uppercase shadow-sm border border-zinc-100 dark:border-zinc-700 flex items-center gap-2 hover:bg-zinc-50 dark:hover:bg-slate-700 transition-colors">
-                            <Icon name="plus" size={14} /> Añadir Tanque
+                            <Icon name="plus" size={14} /> {t.pitsAddTank}
                         </button>
 
                         <button onClick={() => setShowFluidStats(!showFluidStats)} className={`px-6 py-3 rounded-xl text-xs font-black uppercase shadow-md flex items-center gap-2 transition-all transform hover:scale-105 ${showFluidStats ? 'bg-halliburton-red text-white' : 'bg-zinc-900 text-white'}`}>
-                            <Icon name="bar-chart-2" size={16} /> Ver Dashboard
+                            <Icon name="bar-chart-2" size={16} /> {t.pitsDashboard}
                         </button>
                     </div>
 
                     {/* Summary Integrated */}
                     <div className="flex flex-wrap gap-8 items-center bg-zinc-50 dark:bg-slate-800/50 px-8 py-3 rounded-[2rem] border border-zinc-100 dark:border-zinc-800 shadow-inner">
                         {[
-                            { label: 'Vol. Total', val: unitMode === 'metric' ? totalVol.toFixed(1) : (totalVol / 0.158987).toFixed(0), unit: unitMode === 'metric' ? 'm³' : 'bbl', color: 'text-halliburton-red' },
-                            { label: 'Dens. Media', val: displayDens(avgSG), unit: getDensLabel() },
-                            { label: 'Ocupación', val: ((totalVol / (totalMax || 1)) * 100).toFixed(1), unit: '%' }
+                            { label: t.pitsTotalVol, val: unitMode === 'metric' ? totalVol.toFixed(1) : (totalVol / 0.158987).toFixed(0), unit: unitMode === 'metric' ? 'm³' : 'bbl', color: 'text-halliburton-red' },
+                            { label: t.pitsAvgDensity, val: displayDens(avgSG), unit: getDensLabel() },
+                            { label: t.pitsCapacityLoad, val: ((totalVol / (totalMax || 1)) * 100).toFixed(1), unit: '%' }
                         ].map((stat, i) => (
                             <div key={i} className="flex items-baseline gap-2">
                                 <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">{stat.label}:</span>
@@ -428,7 +430,7 @@ const PiletasSystem = ({ isEditing }) => {
                                 <button onClick={() => deleteFluidSystem(sys.id)} className="text-zinc-300 hover:text-red-500 transition-colors"><Icon name="x" size={18} /></button>
                             </div>
                         ))}
-                        <button onClick={addFluidSystem} className="text-xs font-black text-halliburton-red hover:text-red-700 flex items-center gap-2 p-4 transition-colors"><Icon name="plus-circle" size={20} /> Nuevo Sistema</button>
+                        <button onClick={addFluidSystem} className="text-xs font-black text-halliburton-red hover:text-red-700 flex items-center gap-2 p-4 transition-colors"><Icon name="plus-circle" size={20} /> {t.pitsNewSystem}</button>
                     </div>
                 </div>
             )}
