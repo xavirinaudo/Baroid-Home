@@ -21,6 +21,12 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   if (!event.request.url.startsWith('http')) return;
 
+  // Exclude version.json from service worker caching entirely to check for updates reliably
+  if (event.request.url.includes('version.json')) {
+    event.respondWith(fetch(event.request));
+    return;
+  }
+
   // Implement Network-First strategy for HTML navigation requests to prevent stale index.html caching
   const isHtml = event.request.mode === 'navigate' || 
                  (event.request.method === 'GET' && event.request.headers.get('accept')?.includes('text/html'));

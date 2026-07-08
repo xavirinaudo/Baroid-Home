@@ -115,20 +115,25 @@ const App = () => {
     };
 
     // Version Checking Logic
+    const handleCloseUpdateModal = () => {
+        if (updateInfo && updateInfo.version) {
+            localStorage.setItem('baroid_dismissed_version', updateInfo.version);
+        }
+        setShowUpdateModal(false);
+    };
+
     useEffect(() => {
         const checkVersion = async () => {
             try {
-                const response = await fetch('./version.json?t=' + Date.now());
+                // Fetch from the absolute base path to avoid relative trailing-slash issues
+                const response = await fetch('/Baroid-Home/version.json?t=' + Date.now());
                 if (!response.ok) return;
                 const data = await response.json();
                 
-                const storedVersion = localStorage.getItem('baroid_app_version');
-                if (!storedVersion) {
-                    localStorage.setItem('baroid_app_version', CURRENT_CODE_VERSION);
-                    return;
-                }
+                const dismissedVersion = localStorage.getItem('baroid_dismissed_version');
                 
-                if (data.version && data.version !== storedVersion) {
+                // Compare fetched version directly with CURRENT_CODE_VERSION
+                if (data.version && data.version !== CURRENT_CODE_VERSION && data.version !== dismissedVersion) {
                     setUpdateInfo(data);
                     setShowUpdateModal(true);
                 }
@@ -147,10 +152,6 @@ const App = () => {
     }, [lang]);
 
     const handleUpdateApp = async () => {
-        if (updateInfo && updateInfo.version) {
-            localStorage.setItem('baroid_app_version', updateInfo.version);
-        }
-        
         if ('caches' in window) {
             try {
                 const cacheNames = await caches.keys();
@@ -498,7 +499,7 @@ const App = () => {
                 />
                 <UpdateModal
                     isOpen={showUpdateModal}
-                    onClose={() => setShowUpdateModal(false)}
+                    onClose={handleCloseUpdateModal}
                     onUpdate={handleUpdateApp}
                     updateInfo={updateInfo}
                     lang={lang}
