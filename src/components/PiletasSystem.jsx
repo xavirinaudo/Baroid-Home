@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Icon from './Icon';
-import { translations } from '../data/translations';
+import { translations, defaultSpanishNames } from '../data/translations';
 
 const PiletasSystem = ({ isEditing, lang }) => {
     const t = translations[lang || 'es'] || translations.es;
@@ -508,7 +508,7 @@ const PiletasSystem = ({ isEditing, lang }) => {
 
                                 <div className="flex items-center gap-1 px-1" style={{ marginBottom: `${8 * globalScale}px` }}>
                                     <input
-                                        value={p.name}
+                                        value={lang === 'en' ? (defaultSpanishNames[p.name] || p.name) : p.name}
                                         onChange={e => updatePit(p.id, 'name', e.target.value)}
                                         onKeyDown={handleEnter}
                                         style={{ fontSize: `${Math.max(13, 11 * globalScale)}px`, width: '100%' }}

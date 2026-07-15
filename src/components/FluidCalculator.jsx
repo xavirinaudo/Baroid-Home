@@ -1578,7 +1578,7 @@ const FluidCalculator = ({ isEditing, lang }) => {
                           <button onClick={() => toggleTreatment(treat.id)} className={`p-1.5 rounded-full ${treat.visible ? 'bg-green-500' : 'bg-zinc-600'} text-white shadow-lg`}><Icon name={treat.visible ? "eye" : "eye-off"} size={10} /></button>
                         </div>
                       )}
-                      <span className="text-[10px] font-black text-zinc-500 uppercase block mb-1">{treat.label}</span>
+                      <span className="text-[10px] font-black text-zinc-500 uppercase block mb-1">{getTreatmentLabel(treat.id) || treat.label}</span>
                       <div className="flex items-baseline gap-2">
                         <span className="text-2xl font-black text-white italic">{getPfMfResult()[treat.id]}</span>
                         <span className="text-[10px] font-bold text-zinc-600 uppercase">{unitMode === 'field' ? 'lb/bbl' : 'kg/m³'}</span>
@@ -1710,9 +1710,20 @@ const FluidCalculator = ({ isEditing, lang }) => {
 
                 {!getLGSResult().invalid && parseFloat(getLGSResult().factor) > 4 && (
                   <div className="p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-2xl text-[9px] font-bold text-yellow-400 uppercase tracking-wider leading-relaxed">
-                    {lang === 'es' 
-                      ? `💡 Diagnóstico Operativo: El volumen de dilución es alto (${getLGSResult().factor}x). Esto se debe a que el diluyente también contiene sólidos (C2 = ${lgs.c2}%). Se recomienda usar fluido base limpio (0% LGS) o maximizar el uso de centrífugas.`
-                      : `💡 Operative Diagnosis: Dilution volume is high (${getLGSResult().factor}x). This is because the diluent also contains solids (C2 = ${lgs.c2}%). Clean base fluid (0% LGS) is recommended, or maximize centrifuge run time.`}
+                    {(() => {
+                      const c2Val = parseFloat(lgs.c2) || 0;
+                      if (lang === 'es') {
+                        const reason = c2Val > 0 
+                          ? `Esto se debe a que el diluyente contiene sólidos (C2 = ${lgs.c2}%).`
+                          : `Esto se debe al alto nivel de conversión de sólidos requerido (de ${lgs.c1}% a ${lgs.cf}%).`;
+                        return `💡 Diagnóstico Operativo: El volumen de dilución es alto (${getLGSResult().factor}x). ${reason} Se recomienda revisar las telas de las zarandas (screens), verificar la eficiencia de los equipos de control de sólidos y evaluar el uso de centrífugas.`;
+                      } else {
+                        const reason = c2Val > 0
+                          ? `This is because the diluent contains solids (C2 = ${lgs.c2}%).`
+                          : `This is due to the high solids conversion required (from ${lgs.c1}% to ${lgs.cf}%).`;
+                        return `💡 Operative Diagnosis: Dilution volume is high (${getLGSResult().factor}x). ${reason} It is recommended to check shaker screens, verify solids control equipment efficiency, and evaluate centrifuge run time.`;
+                      }
+                    })()}
                   </div>
                 )}
               </div>

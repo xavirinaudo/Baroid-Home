@@ -4,7 +4,7 @@ import GreetingDashboard from './GreetingDashboard';
 import FluidCalculator from './FluidCalculator';
 import InventoryConciliation from './InventoryConciliation';
 import PiletasSystem from './PiletasSystem';
-import { translations } from '../data/translations';
+import { translations, translateText } from '../data/translations';
 
 const getDisplayUrl = (url) => {
     try {
@@ -24,7 +24,7 @@ const resolveUrl = (url) => {
         return `${baseUrl.endsWith('/') ? baseUrl : baseUrl + '/'}${cleanUrl}`;
     }
     return url;
-};
+}
 
 const MainContent = ({
     displaySectors,
@@ -55,7 +55,7 @@ const MainContent = ({
                     <button
                         onClick={() => setIsMobileSidebarOpen(true)}
                         className="p-3 bg-zinc-50 dark:bg-slate-800 rounded-2xl text-zinc-500 dark:text-zinc-300 hover:text-halliburton-red hover:scale-105 active:scale-95 transition-transform"
-                        title="Abrir Menú"
+                        title={lang === 'es' ? "Abrir Menú" : "Open Menu"}
                     >
                         <Icon name="menu" size={20} />
                     </button>
@@ -78,14 +78,14 @@ const MainContent = ({
                     <button
                         onClick={() => setCardSize(cardSize === 'large' ? 'small' : 'large')}
                         className="p-2.5 bg-zinc-50 dark:bg-slate-800 rounded-xl text-zinc-500 dark:text-zinc-400"
-                        title="Cambiar Vista"
+                        title={lang === 'es' ? "Cambiar Vista" : "Change View"}
                     >
                         <Icon name={cardSize === 'large' ? "grid-3x3" : "layout-grid"} size={16} />
                     </button>
                     <button
                         onClick={() => setDarkMode(!darkMode)}
                         className="p-2.5 bg-zinc-50 dark:bg-slate-800 rounded-xl text-zinc-500 dark:text-zinc-400"
-                        title={darkMode ? "Modo Claro" : "Modo Oscuro"}
+                        title={darkMode ? (lang === 'es' ? "Modo Claro" : "Light Mode") : (lang === 'es' ? "Modo Oscuro" : "Dark Mode")}
                     >
                         <Icon name={darkMode ? "sun" : "moon"} size={16} />
                     </button>
@@ -134,11 +134,11 @@ const MainContent = ({
                         <div className="flex items-center gap-3">
                             <div className="w-1.5 h-6 bg-halliburton-red rounded-full"></div>
                             <span className="text-[12px] font-bold text-halliburton-red uppercase tracking-widest">
-                                {activeSector === 'favorites' ? t.favorites : (activeSector === 'calculator' ? t.tabEng : (activeSector === 'inventory' ? t.invReconcTitle : (activeSector === 'piletas' ? t.pitsSystemTitle : (sectors.find(s => s.id === activeSector)?.name || 'Explore'))))}
+                                {activeSector === 'favorites' ? t.favorites : (activeSector === 'calculator' ? t.tabEng : (activeSector === 'inventory' ? t.invReconcTitle : (activeSector === 'piletas' ? t.pitsSystemTitle : (translateText(sectors.find(s => s.id === activeSector)?.name, lang) || (lang === 'es' ? 'Explorar' : 'Explore')))))}
                             </span>
                         </div>
                         <h2 className="text-3xl lg:text-5xl font-black uppercase italic leading-none tracking-tighter text-zinc-800 dark:text-white truncate">
-                            {activeSector === 'favorites' ? t.favorites : (activeSector === 'calculator' ? t.fluidCalculatorTitle : (activeSector === 'inventory' ? t.invReconcSubtitle : (activeSector === 'piletas' ? t.pitsSystemTitle : (sectors.find(s => s.id === activeSector)?.name || 'Directory'))))}
+                            {activeSector === 'favorites' ? t.favorites : (activeSector === 'calculator' ? t.fluidCalculatorTitle : (activeSector === 'inventory' ? t.invReconcSubtitle : (activeSector === 'piletas' ? t.pitsSystemTitle : (translateText(sectors.find(s => s.id === activeSector)?.name, lang) || (lang === 'es' ? 'Directorio' : 'Directory')))))}
                         </h2>
                     </div>
                 </header>
@@ -148,7 +148,6 @@ const MainContent = ({
                             activeSector === 'piletas' ? <PiletasSystem isEditing={isEditing} lang={lang} /> :
                                 displaySectors.map(sec => (
                                     <div key={sec.id} className="space-y-10 animate-fade-in">
-
                                         {sec.subsectors.map(sub => (
                                             <section key={sub.id} className="group/sub">
                                                 <div className="flex items-center justify-between mb-8 border-b-2 border-zinc-100 dark:border-zinc-800 pb-4">

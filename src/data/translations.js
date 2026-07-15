@@ -114,7 +114,19 @@ export const defaultSpanishNames = {
   "JM - Journey Management": "JM - Journey Management",
   "Taxi App": "Taxi App",
   "Recursos branding": "Branding Resources",
-  "Plantilla Powerpoint": "PowerPoint Template"
+  "Plantilla Powerpoint": "PowerPoint Template",
+
+  // Mud Pits default names
+  "SUCCIÓN 1": "SUCTION 1",
+  "SUCCIÓN 2": "SUCTION 2",
+  "PILDORA 1": "SLUG 1",
+  "INTERMEDIA 1": "INTERMEDIATE 1",
+  "INTERMEDIA 2": "INTERMEDIATE 2",
+  "RESERVA 1": "RESERVE 1",
+  "RESERVA 2": "RESERVE 2",
+  "PILDORA 2": "SLUG 2",
+  "RESERVA 3": "RESERVE 3",
+  "RESERVA 4": "RESERVE 4"
 };
 
 export const translations = {
@@ -134,6 +146,10 @@ export const translations = {
     restoreOriginal: "Restablecer Original",
     restoreSectorsOnly: "Restablecer Enlaces por Defecto",
     backupConfirm: "Se borraran todos los cambios personalizados de la app. ¿Desea continuar?",
+    importWarning: "⚠️ ADVERTENCIA CRÍTICA ⚠️\n\nEsta acción SOBREESCRIBIRÁ todos sus datos actuales (Piletas, Inventario, Notas, Configuración) con los del archivo.\n\n¿Está seguro de continuar?",
+    importNoMeta: "Este archivo no parece tener metadatos de Baroid Hub. ¿Intentar importar de todas formas?",
+    importSuccess: "✅ Restauración Completa. La aplicación se reiniciará para aplicar los cambios.",
+    importError: "❌ Error: El archivo está corrupto o no es válido.",
     
     // Greeting Dashboard
     dashboardTitle: "Dashboard Operativo",
@@ -434,6 +450,10 @@ export const translations = {
     restoreOriginal: "Restore Default",
     restoreSectorsOnly: "Reset Default Links Only",
     backupConfirm: "All customized changes will be deleted. Do you want to continue?",
+    importWarning: "⚠️ CRITICAL WARNING ⚠️\n\nThis action will OVERWRITE all your current data (Mud Pits, Inventory, Notes, Settings) with the file's data.\n\nAre you sure you want to continue?",
+    importNoMeta: "This file does not appear to have Baroid Hub metadata. Try to import anyway?",
+    importSuccess: "✅ Restoration Complete. The application will restart to apply the changes.",
+    importError: "❌ Error: The file is corrupt or invalid.",
     
     // Greeting Dashboard
     dashboardTitle: "Operations Dashboard",

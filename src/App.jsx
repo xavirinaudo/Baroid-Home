@@ -5,7 +5,7 @@ import Modal from './components/Modal';
 import FloatingNotes from './components/FloatingNotes';
 import UpdateModal from './components/UpdateModal';
 import { INITIAL_DATA_REFINED } from './data/initialData';
-import { translateText } from './data/translations';
+import { translations, translateText } from './data/translations';
 
 const CURRENT_CODE_VERSION = '2.0.1';
 
@@ -79,7 +79,7 @@ const App = () => {
     const fileInputRef = useRef(null);
 
     const resetToDefaults = () => {
-        if (confirm('Se borraran todos los cambios personalizados de la app. ¿Desea continuar?')) {
+        if (confirm(translations[lang].backupConfirm)) {
             const keysToRemove = [
                 'baroid_piletas_v8',
                 'baroid_fluid_systems_v4',
@@ -218,6 +218,8 @@ const App = () => {
 
     useEffect(() => {
         localStorage.setItem('baroid_lang', lang);
+        document.title = lang === 'es' ? 'BAROID HUB | Aplicación' : 'BAROID HUB | Operations App';
+        document.documentElement.lang = lang;
     }, [lang]);
 
     useEffect(() => {
@@ -268,7 +270,7 @@ const App = () => {
         const file = e.target.files[0];
         if (!file) return;
 
-        if (!confirm("⚠️ ADVERTENCIA CRÍTICA ⚠️\n\nEsta acción SOBREESCRIBIRÁ todos sus datos actuales (Piletas, Inventario, Notas, Configuración) con los del archivo.\n\n¿Está seguro de continuar?")) {
+        if (!confirm(translations[lang].importWarning)) {
             e.target.value = '';
             return;
         }
@@ -278,7 +280,7 @@ const App = () => {
             try {
                 const backup = JSON.parse(event.target.result);
 
-                if (!backup._meta && !confirm("Este archivo no parece tener metadatos de Baroid Hub. ¿Intentar importar de todas formas?")) {
+                if (!backup._meta && !confirm(translations[lang].importNoMeta)) {
                     return;
                 }
 
@@ -289,11 +291,11 @@ const App = () => {
                     }
                 });
 
-                alert('✅ Restauración Completa. La aplicación se reiniciará para aplicar los cambios.');
+                alert(translations[lang].importSuccess);
                 window.location.reload();
             } catch (err) {
                 console.error(err);
-                alert('❌ Error: El archivo está corrupto o no es válido.');
+                alert(translations[lang].importError);
             }
         };
         reader.readAsText(file);
@@ -357,7 +359,8 @@ const App = () => {
     };
 
     const deleteItem = (type, sid, subsid = null, lid = null) => {
-        if (!confirm(`¿Eliminar ${type}?`)) return;
+        const deleteConfirmMsg = translations[lang].deleteConfirm.replace('{type}', type);
+        if (!confirm(deleteConfirmMsg)) return;
         if (type === 'sector') setSectors(prev => prev.filter(s => s.id !== sid));
         if (type === 'subsector') setSectors(prev => prev.map(s => s.id === sid ? { ...s, subsectors: s.subsectors.filter(sub => sub.id !== subsid) } : s));
         if (type === 'link') setSectors(prev => prev.map(s => s.id === sid ? { ...s, subsectors: s.subsectors.map(sub => sub.id === subsid ? { ...sub, links: sub.links.filter(l => l.id !== lid) } : sub) } : s));
