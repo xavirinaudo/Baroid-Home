@@ -262,7 +262,7 @@ const MainContent = ({
                                                                             <Icon name="file-text" size={24} className="text-halliburton-red" />
                                                                         </div>
                                                                         <div className="flex gap-2 items-center">
-                                                                            {l.lastUsed && <span className="text-[9px] font-extrabold text-halliburton-red bg-red-50 dark:bg-red-900/30 px-2 py-1 rounded-md uppercase italic animate-pulse">{t.recent}</span>}
+                                                                            {l.lastUsed > 0 && <span className="text-[9px] font-extrabold text-halliburton-red bg-red-50 dark:bg-red-900/30 px-2 py-1 rounded-md uppercase italic animate-pulse">{t.recent}</span>}
                                                                             <button
                                                                                 onClick={(e) => {
                                                                                     e.preventDefault();
