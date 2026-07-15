@@ -181,6 +181,11 @@ export const INITIAL_DATA_REFINED = [
             "id": "l_lab_2",
             "name": "Plan de Calibración Anual",
             "url": "https://halliburton.service-now.com/hms?id=kb_article_view&sysparm_article=KB0032730"
+          },
+          {
+            "id": "l_lab_checklist_obm",
+            "name": "Checklist de Laboratorio Base Aceite - OBM",
+            "url": "https://halliburton.service-now.com/hms?sys_kb_id=049d18e72b798b5c44fffa08b891bfc7&id=kb_article_view&sysparm_rank=1&sysparm_tsqueryId=d7e24b962b828794b9bffec85e91bf24"
           }
         ]
       },
@@ -398,7 +403,17 @@ export const INITIAL_DATA_REFINED = [
           {
             "id": "l_qa_envio_mat",
             "name": "Reporte de Envío de Materiales de Laboratorio",
-            "url": "https://halliburton.service-now.com/hms?sys_kb_id=2e37b4ec87fe8a104301646d8bbb351a&id=kb_article_view&sysparm_rank=1&sysparm_tsqueryId=1c74b5bc33cb7a101ee71e173e5c7bfd"
+            "url": "https://halliburton.service-now.com/hms?sys_kb_id=3a5464af2bf1cb5c44fffa08b891bf8b&id=kb_article_view&sysparm_rank=1&sysparm_tsqueryId=ad94cf1e3bc647d407241031a3e45a8d"
+          },
+          {
+            "id": "l_qa_orden_prod",
+            "name": "Orden de Producción de Fluido",
+            "url": "https://halliburton.service-now.com/hms?sys_kb_id=21ce1ce72bf98b5c44fffa08b891bfff&id=kb_article_view&sysparm_rank=1&sysparm_tsqueryId=0904875a3b8647d407241031a3e45abe"
+          },
+          {
+            "id": "l_qa_pedidos_mat",
+            "name": "Pedidos de Materiales - Solicitud",
+            "url": "https://halliburton.service-now.com/hms?id=kb_article_view&sysparm_article=KB0143944&sys_kb_id=f9af94eb2b3d8b5c44fffa08b891bf6c&spa=1"
           },
           {
             "id": "l_qa_minuta",

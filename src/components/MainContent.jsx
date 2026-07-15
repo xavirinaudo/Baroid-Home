@@ -44,7 +44,10 @@ const MainContent = ({
     addLink,
     setIsMobileSidebarOpen,
     lang,
-    setLang
+    setLang,
+    showUpdateBanner,
+    setShowUpdateBanner,
+    onUpdateApp
 }) => {
     const t = translations[lang] || translations['es'];
     return (
@@ -128,6 +131,41 @@ const MainContent = ({
             </div>
 
             <div className={cardSize === 'small' ? "max-w-[1400px] mx-auto" : "max-w-6xl mx-auto"}>
+                {showUpdateBanner && (
+                    <div className="mb-8 p-6 bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-950/20 dark:to-orange-950/20 border-2 border-red-500/30 rounded-[2rem] shadow-xl shadow-red-950/5 flex flex-col md:flex-row items-center justify-between gap-6 animate-pulse-slow">
+                        <div className="flex items-center gap-4 text-center md:text-left">
+                            <div className="w-12 h-12 bg-halliburton-red rounded-2xl flex items-center justify-center shrink-0 shadow-lg shadow-red-950/30">
+                                <Icon name="bell-ring" size={24} className="text-white" />
+                            </div>
+                            <div>
+                                <h3 className="text-base font-black uppercase italic tracking-tight text-zinc-800 dark:text-white">
+                                    {lang === 'es' ? "¡Nueva Actualización Disponible!" : "New Update Available!"}
+                                </h3>
+                                <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1">
+                                    {lang === 'es' 
+                                      ? "Hemos actualizado la aplicación con mejoras y nuevos accesos. Haz clic en actualizar para aplicar los cambios sin perder tus favoritos ni notas."
+                                      : "We have updated the app with improvements and new links. Click update to apply changes without losing your favorites or notes."}
+                                </p>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-3 shrink-0 w-full md:w-auto justify-end">
+                            <button
+                                onClick={onUpdateApp}
+                                className="flex-1 md:flex-initial flex items-center justify-center gap-2 px-6 py-3.5 bg-halliburton-red hover:bg-red-700 text-white rounded-2xl text-xs font-black uppercase tracking-wider transition-all hover:scale-105 active:scale-95 shadow-md shadow-red-950/20"
+                            >
+                                <Icon name="rotate-cw" size={14} />
+                                {lang === 'es' ? "Actualizar Aplicación" : "Update Application"}
+                            </button>
+                            <button
+                                onClick={() => setShowUpdateBanner(false)}
+                                className="p-3.5 bg-zinc-100 hover:bg-zinc-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-zinc-500 dark:text-zinc-300 rounded-2xl text-xs font-bold transition-all"
+                                title={lang === 'es' ? "Cerrar" : "Close"}
+                            >
+                                <Icon name="x" size={16} />
+                            </button>
+                        </div>
+                    </div>
+                )}
                 <header className="mb-10 lg:mb-14">
                     {(!searchQuery && activeSector !== 'favorites' && activeSector !== 'calculator' && activeSector !== 'inventory' && activeSector !== 'piletas') && <GreetingDashboard lang={lang} />}
                     <div className="space-y-3 lg:space-y-4">

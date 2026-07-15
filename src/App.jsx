@@ -7,60 +7,89 @@ import UpdateModal from './components/UpdateModal';
 import { INITIAL_DATA_REFINED } from './data/initialData';
 import { translations, translateText } from './data/translations';
 
-const CURRENT_CODE_VERSION = '2.0.1';
+const CURRENT_CODE_VERSION = '2.1.0';
+
+const mergeData = (localSectors, defaultSectors) => {
+    const isCustomId = (id) => {
+        if (typeof id !== 'string') return false;
+        return /^(sec|sub|l)_\d{10,}$/.test(id);
+    };
+
+    const merged = defaultSectors.map(defSector => {
+        const userSector = localSectors.find(s => s.id === defSector.id);
+        if (!userSector) return defSector;
+
+        const defSubsectors = defSector.subsectors || [];
+        const userSubsectors = userSector.subsectors || [];
+        const mergedSubsectors = [];
+
+        defSubsectors.forEach(defSub => {
+            const userSub = userSubsectors.find(sub => sub.id === defSub.id);
+            if (!userSub) {
+                mergedSubsectors.push(defSub);
+                return;
+            }
+
+            const defLinks = defSub.links || [];
+            const userLinks = userSub.links || [];
+            const mergedLinks = [];
+
+            defLinks.forEach(defLink => {
+                const userLink = userLinks.find(l => l.id === defLink.id);
+                if (!userLink) {
+                    mergedLinks.push(defLink);
+                } else {
+                    mergedLinks.push({
+                        ...defLink,
+                        isFavorite: !!userLink.isFavorite,
+                        lastUsed: userLink.lastUsed || defLink.lastUsed || 0
+                    });
+                }
+            });
+
+            userLinks.forEach(userLink => {
+                if (isCustomId(userLink.id)) {
+                    mergedLinks.push(userLink);
+                }
+            });
+
+            mergedSubsectors.push({
+                ...defSub,
+                links: mergedLinks
+            });
+        });
+
+        userSubsectors.forEach(userSub => {
+            if (isCustomId(userSub.id)) {
+                mergedSubsectors.push(userSub);
+            }
+        });
+
+        return {
+            ...defSector,
+            subsectors: mergedSubsectors
+        };
+    });
+
+    localSectors.forEach(userSector => {
+        if (isCustomId(userSector.id)) {
+            merged.push(userSector);
+        }
+    });
+
+    return merged;
+};
 
 const App = () => {
     const [lang, setLang] = useState(() => localStorage.getItem('baroid_lang') || 'es');
     const [showUpdateModal, setShowUpdateModal] = useState(false);
     const [updateInfo, setUpdateInfo] = useState(null);
+    const [showUpdateBanner, setShowUpdateBanner] = useState(false);
     const [sectors, setSectors] = useState(() => {
         const saved = localStorage.getItem('baroid_hub_data_v6');
         if (!saved) return INITIAL_DATA_REFINED;
         try {
-            const parsed = JSON.parse(saved);
-            const retiredLinkIds = ['l_hr_structure_pptx', 'l_qa_checklist_zip'];
-            const cleanedParsed = parsed.map(s => ({
-                ...s,
-                subsectors: (s.subsectors || []).map(sub => ({
-                    ...sub,
-                    links: (sub.links || []).filter(l => !retiredLinkIds.includes(l.id))
-                }))
-            }));
-            const filtered = cleanedParsed.filter(s => s.id !== 'sec_pdf');
-            const merged = [...filtered];
-            INITIAL_DATA_REFINED.forEach(defSector => {
-                if (!merged.some(s => s.id === defSector.id)) {
-                    merged.push(defSector);
-                } else {
-                    const existingSectorIndex = merged.findIndex(s => s.id === defSector.id);
-                    const existingSector = merged[existingSectorIndex];
-                    const mergedSubsectors = [...(existingSector.subsectors || [])];
-                    (defSector.subsectors || []).forEach(defSub => {
-                        const existingSubIndex = mergedSubsectors.findIndex(sub => sub.id === defSub.id);
-                        if (existingSubIndex === -1) {
-                            mergedSubsectors.push(defSub);
-                        } else {
-                            const existingSub = mergedSubsectors[existingSubIndex];
-                            const mergedLinks = [...(existingSub.links || [])];
-                            (defSub.links || []).forEach(defLink => {
-                                const existingLinkIndex = mergedLinks.findIndex(l => l.id === defLink.id);
-                                if (existingLinkIndex === -1) {
-                                    mergedLinks.push(defLink);
-                                } else {
-                                    mergedLinks[existingLinkIndex] = {
-                                        ...defLink,
-                                        isFavorite: mergedLinks[existingLinkIndex].isFavorite,
-                                        lastUsed: mergedLinks[existingLinkIndex].lastUsed || defLink.lastUsed
-                                    };
-                                }
-                            });
-                            mergedSubsectors[existingSubIndex] = { ...existingSub, links: mergedLinks };
-                        }
-                    });
-                    merged[existingSectorIndex] = { ...existingSector, subsectors: mergedSubsectors };
-                }
-            });
-            return merged;
+            return JSON.parse(saved);
         } catch (e) {
             return INITIAL_DATA_REFINED;
         }
@@ -122,6 +151,18 @@ const App = () => {
         setShowUpdateModal(false);
     };
 
+    // Check database version compared to code version
+    useEffect(() => {
+        const storedVersion = localStorage.getItem('baroid_app_version');
+        const hasData = localStorage.getItem('baroid_hub_data_v6') || localStorage.getItem('baroid_hub_data_v5');
+        
+        if (hasData && storedVersion !== CURRENT_CODE_VERSION) {
+            setShowUpdateBanner(true);
+        } else if (!storedVersion) {
+            localStorage.setItem('baroid_app_version', CURRENT_CODE_VERSION);
+        }
+    }, []);
+
     useEffect(() => {
         const checkVersion = async () => {
             try {
@@ -152,6 +193,16 @@ const App = () => {
     }, [lang]);
 
     const handleUpdateApp = async () => {
+        // 1. Perform database merge
+        setSectors(prev => {
+            const merged = mergeData(prev, INITIAL_DATA_REFINED);
+            localStorage.setItem('baroid_hub_data_v6', JSON.stringify(merged));
+            return merged;
+        });
+        localStorage.setItem('baroid_app_version', CURRENT_CODE_VERSION);
+        setShowUpdateBanner(false);
+
+        // 2. Clear cache
         if ('caches' in window) {
             try {
                 const cacheNames = await caches.keys();
@@ -172,7 +223,8 @@ const App = () => {
             }
         }
         
-        const cacheBuster = 'v-update=' + (updateInfo?.version || Date.now());
+        // 3. Reload with cache buster
+        const cacheBuster = 'v-update=' + CURRENT_CODE_VERSION;
         let cleanUrl = window.location.href;
         if (cleanUrl.includes('v-update=')) {
             cleanUrl = cleanUrl.replace(/[?&]v-update=[^&]+/g, '');
@@ -482,6 +534,9 @@ const App = () => {
                     setIsMobileSidebarOpen={setIsMobileSidebarOpen}
                     lang={lang}
                     setLang={setLang}
+                    showUpdateBanner={showUpdateBanner}
+                    setShowUpdateBanner={setShowUpdateBanner}
+                    onUpdateApp={handleUpdateApp}
                 />
                 <Modal
                     showModal={showModal}
