@@ -520,7 +520,7 @@ export const INITIAL_DATA_REFINED = [
           {
             "id": "l_soft_wellsight",
             "name": "Instalación Wellsight 2020",
-            "url": "https://halliburton.sharepoint.com/sites/WellSight/Installers/?xsdata=MDV8MDJ8fDg5MjM3NTc2ZGUzNTQxMWI2MzExMDhkZTk0ZDhiYzBkfGI3YmU3Njg2NmY5NzRkYjc5MDgxYTIzY2YwOWE5NmI1fDB8MHw2MzkxMTE4NTU3MjIwMzI4NDl8VW5rbm93bnxWR1ZoYlhOVFpXTjFjbWwwZVZObGNuWnBZMlY4ZXlKRFFTSTZJbFJsWVcxelgwRlVVRk5sY25acFkyVmZVMUJQVEU5R0lpd2lWaUk2SWpBdU1DNHdNREF3SWl3aVVDSTZJbGRwYmpNeUlpd2lRVTRpT2lKUGRHaGxjaUlzSWxkVUlqb3hNWDA9fDF8TDNSbFlXMXpMekU1T2xrNVFtMXBlVTEyV1dwNlRFWlJObVEzTUdsT1N6SkZOM1pyVldZeWVsODRjVXRtYkdKSllWOW5RVkV4UUhSb2NtVmhaQzUwWVdOMk1pOWphR0Z1Ym1Wc2N5OHhPVG8yWkRRNFlqTmpOVEpsWVdVMFpUWmlPRFUzTnpBMk56TTFNakkxTmpJM05FQjBhSEpsWVdRdWRHRmpkakl2YldWemMyRm5aWE12TVRjM05UVTRPRGMzTVRBMk5BPT18Yzg3MTZiOTk2Mjk1NDlmMmQyMTYwOGRlOTRkOGJjMGN8YTM1MDMwOGYxNTIwNDg0NDk3ODMxYjAyZTU4NzQ0OTI%3d&sdata=SWFIZlN0ejZWcXg2UWt6YzRTd1BUOFAyTzlQZFkyeEVLWmx6cEFDcnBFZz0%3d&ovuser=b7be7686-6f97-4db7-9081-a23cf09a96b5%2cXavierCustodio.Rinaudo2%40halliburton.com&TeamsCID=6da73bbc-3e8b-4136-9d61-ab766890db60&OR=Teams-HL&CT=1780724979482&clickparams=eyJBcHBOYW1lIjoiVGVhbXMtRGVza3RvcCIsIkFwcFZlcnNpb24iOiIxNDE1LzI2MDUxNDE2NzEzIn0%3d&SafelinksUrl=https%3a%2f%2fhalliburton.sharepoint.com%2fsites%2fWellSight%2fInstallers%2f"
+            "url": "https://halliburton.sharepoint.com/sites/WellSight/Installers/"
           }
         ]
       },
@@ -575,12 +575,12 @@ export const INITIAL_DATA_REFINED = [
           {
             "id": "l_hr_jm",
             "name": "JM - Journey Management",
-            "url": "https://nam10.safelinks.protection.outlook.com/?url=https%3A%2F%2Fapps.powerapps.com%2Fplay%2Fe%2Fdefault-b7be7686-6f97-4db7-9081-a23cf09a96b5%2Fa%2F82ec6e72-c321-4275-9a9d-ea7e904f8b33%3FtenantId%3Db7be7686-6f97-4db7-9081-a23cf09a96b5%26hint%3Dc20bd8a5-1cd7-4bcd-b551-da17e7d225dc%26sourcetime%3D1694715734051%26source%3Dportal&data=05%7C02%7CXavierCustodio.Rinaudo2%40halliburton.com%7Ce40092f404c74d5cf78e08ddbe38fdc5%7Cb7be76866f974db79081a23cf09a96b5%7C0%7C0%7C638875874177981292%7CUnknown%7CTWFpbGZsb3d8eyJFbXB0eU1hcGkiOnRydWUsIlYiOiIwLjAuMDAwMCIsIlAiOiJXaW4zMiIsIkFOIjoiTWFpbCIsIldUIjoyfQ%3D%3D%7C0%7C%7C%7C&sdata=DTRtJKuupPDy2%2Bm%2BFny8fJ8vlBTFTz7f6kRUe4ivMqM%3D&reserved=0"
+            "url": "https://apps.powerapps.com/play/e/default-b7be7686-6f97-4db7-9081-a23cf09a96b5/a/82ec6e72-c321-4275-9a9d-ea7e904f8b33?tenantId=b7be7686-6f97-4db7-9081-a23cf09a96b5"
           },
           {
             "id": "l_hr_taxi_app",
             "name": "Taxi App",
-            "url": "https://halliburton.sharepoint.com/sites/lamat/ltbr/SitePages/Home.aspx?xsdata=MDV8MDJ8WGF2aWVyQ3VzdG9kaW8uUmluYXVkbzJAaGFsbGlidXJ0b24uY29tfDAzODFkYjZhZmQ2MDQxNmFhMWI1MDhkZTczYTQ0NTlmfGI3YmU3Njg2NmY5NzRkYjc5MDgxYTIzY2YwOWE5NmI1fDB8MHw2MzkwNzUzNDY1MzcyOTc4MDZ8VW5rbm93bnxUV0ZwYkdac2IzZDhleUpGYlhCMGVVMWhjR2tpT25SeWRXVXNJbFlpT2lJd0xqQXVNREF3TUNJc0lsQWlPaUpYYVc0ek1pSXNJa0ZPSWpvaVRXRnBiQ0lzSWxkVUlqb3lmUT09fDB8fHw%3d&sdata=Yy9HL05PNlU0S2JqWGFpbDVpYVR5ZGYrOWV6NDVHc2p3TzNFdHEyZzJZTT0%3d"
+            "url": "https://halliburton.sharepoint.com/sites/lamat/ltbr/SitePages/Home.aspx"
           }
         ]
       }
