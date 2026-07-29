@@ -7,7 +7,7 @@ import UpdateModal from './components/UpdateModal';
 import { INITIAL_DATA_REFINED } from './data/initialData';
 import { translations, translateText } from './data/translations';
 
-const CURRENT_CODE_VERSION = '2.1.1';
+const CURRENT_CODE_VERSION = '2.1.2';
 
 const mergeData = (localSectors, defaultSectors) => {
     const isCustomId = (id) => {

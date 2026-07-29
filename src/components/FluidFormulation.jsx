@@ -980,7 +980,7 @@ const FluidFormulation = ({ isEditing, lang }) => {
                             <span className="text-zinc-400 text-[10px]">{t.formSalt}</span>
                             <div className="flex justify-between items-baseline">
                               <span className="text-white text-base">{res.massSalt.toFixed(1)} lb <small className="text-[9px] text-zinc-500 font-mono">({(res.massSalt / 2.20462).toFixed(1)} kg)</small></span>
-                              <span className="text-halliburton-red text-[9px] font-mono">~{res.sacksSalt} sacos (50 lb)</span>
+                              <span className="inline-block px-2.5 py-1 bg-red-500/10 border border-red-500/20 text-red-400 rounded-lg text-[9px] font-mono font-bold">~{res.sacksSalt} sacos (50 lb)</span>
                             </div>
                           </div>
                           
@@ -989,9 +989,9 @@ const FluidFormulation = ({ isEditing, lang }) => {
                             <span className="text-zinc-400 text-[10px]">{t.formWeightMaterial}</span>
                             <div className="flex justify-between items-baseline">
                               <span className="text-white text-base">{res.massWM.toFixed(0)} lb <small className="text-[9px] text-zinc-500 font-mono">({(res.massWM / 2.20462).toFixed(0)} kg)</small></span>
-                              <div className="text-right">
+                              <div className="text-right flex flex-col items-end gap-1">
                                 <span className="text-[9px] text-zinc-400 block font-mono">{res.volWM.toFixed(2)} bbl ({(res.volWM * 0.158987).toFixed(2)} m³)</span>
-                                <span className="text-halliburton-red text-[9px] font-mono block">~{res.sacksWM} sacos (100 lb)</span>
+                                <span className="inline-block px-2.5 py-1 bg-orange-500/10 border border-orange-500/20 text-orange-400 rounded-lg text-[9px] font-mono font-bold">~{res.sacksWM} sacos (100 lb)</span>
                               </div>
                             </div>
                           </div>
@@ -1033,9 +1033,9 @@ const FluidFormulation = ({ isEditing, lang }) => {
                             <span className="text-white text-base">
                               {add.totalLbs.toFixed(1)} lb <small className="text-[9px] text-zinc-500 font-mono">({(add.totalLbs / 2.20462).toFixed(1)} kg)</small>
                             </span>
-                            <div className="text-right">
+                            <div className="text-right flex flex-col items-end gap-1">
                               <span className="text-[9px] text-zinc-400 block font-mono">Despl. {add.volDisp.toFixed(4)} bbl ({(add.volDisp * 0.158987).toFixed(4)} m³)</span>
-                              <span className="text-emerald-400 text-[9px] font-mono block">~{add.sacks} envases ({add.pkgSize} lb)</span>
+                              <span className="inline-block px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-lg text-[9px] font-mono font-bold">~{add.sacks} envases ({add.pkgSize} lb)</span>
                             </div>
                           </div>
                         </div>
