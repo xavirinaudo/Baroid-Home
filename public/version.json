@@ -1,6 +1,6 @@
 {
-  "version": "2.0.1",
-  "releaseDate": "2026-07-08",
-  "description": "Sistema de actualización automática y mejoras de estabilidad.",
-  "description_en": "Automatic update system and stability improvements."
+  "version": "2.1.1",
+  "releaseDate": "2026-07-29",
+  "description": "Fusión inteligente de base de datos y corrección de visualización en tarjetas de accesos.",
+  "description_en": "Promotion of Fluid Formulation to top-level sidebar module."
 }
