@@ -153,9 +153,8 @@ const FluidCalculator = ({ isEditing, lang }) => {
       { id: 'eng', label: 'Hidrostática & Capacidad', icon: 'droplet', visible: true },
       { id: 'slug', label: 'Píldoras (Slugs)', icon: 'flask-conical', visible: true },
       { id: 'fit', label: 'Integridad (FIT)', icon: 'shield-check', visible: true },
-      { id: 'pfmf', label: 'Pf/Mf & Tratamiento', icon: 'beaker', visible: true },
-      { id: 'formulation', label: 'Formulación de Fluidos', icon: 'calculator', visible: true }
-    ];
+      { id: 'pfmf', label: 'Pf/Mf & Tratamiento', icon: 'beaker', visible: true }
+          ];
     const saved = localStorage.getItem('baroid_calc_tabs_v7');
     if (!saved) return DEFAULT_TABS;
     try {
