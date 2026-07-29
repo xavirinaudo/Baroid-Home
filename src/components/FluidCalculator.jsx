@@ -1870,6 +1870,23 @@ const FluidCalculator = ({ isEditing, lang }) => {
                         + {t.formAddRow}
                       </button>
                     </div>
+
+                    {/* Explicación de Columnas */}
+                    <div className="p-4 bg-zinc-100 dark:bg-slate-900/50 rounded-2xl text-[9px] text-zinc-500 dark:text-zinc-400 font-bold uppercase tracking-wider leading-relaxed space-y-1 border border-zinc-200/50 dark:border-zinc-800/50">
+                      <p><span className="text-halliburton-red">SG (Densidad):</span> Gravedad específica del producto (Agua = 1.0). Permite calcular el volumen ocupado por los químicos.</p>
+                      <p><span className="text-halliburton-red">Conc (ppb):</span> Concentración requerida en libras por barril de lodo (ppb / lb/bbl).</p>
+                      <p><span className="text-halliburton-red">Envase (lb):</span> Peso neto de la bolsa o tambor comercial para estimar la cantidad de envases.</p>
+                    </div>
+
+                    {/* Column Headers */}
+                    <div className="grid grid-cols-12 gap-2 px-3 text-[9px] font-black uppercase text-zinc-400 dark:text-zinc-500 tracking-wider">
+                      <div className="col-span-4">Nombre Producto</div>
+                      <div className="col-span-2 text-center">SG</div>
+                      <div className="col-span-3 text-center">Conc (ppb)</div>
+                      <div className="col-span-2 text-center">Empaque (lb)</div>
+                      <div className="col-span-1"></div>
+                    </div>
+
                     <div className="space-y-3">
                       {obmAdditives.map((add, idx) => (
                         <div key={add.id} className="grid grid-cols-12 gap-2 items-center bg-white dark:bg-slate-800 p-3 rounded-2xl border border-zinc-100 dark:border-zinc-700/50 shadow-sm relative group/row">
@@ -2070,7 +2087,7 @@ const FluidCalculator = ({ isEditing, lang }) => {
                     )}
                   </div>
 
-                  {/* Section 3: Additives */}
+                   {/* Section 3: Additives */}
                   <div className="space-y-4 bg-zinc-50/40 dark:bg-slate-900/10 p-5 rounded-3xl border border-zinc-100 dark:border-zinc-800/40">
                     <div className="flex justify-between items-center border-b border-zinc-100 dark:border-zinc-800 pb-1">
                       <h5 className="text-[11px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">{t.formAdditivesHeader}</h5>
@@ -2082,6 +2099,23 @@ const FluidCalculator = ({ isEditing, lang }) => {
                         + {t.formAddRow}
                       </button>
                     </div>
+
+                    {/* Explicación de Columnas */}
+                    <div className="p-4 bg-zinc-100 dark:bg-slate-900/50 rounded-2xl text-[9px] text-zinc-500 dark:text-zinc-400 font-bold uppercase tracking-wider leading-relaxed space-y-1 border border-zinc-200/50 dark:border-zinc-800/50">
+                      <p><span className="text-halliburton-red">SG (Densidad):</span> Gravedad específica del producto (Agua = 1.0). Permite calcular el volumen ocupado por los químicos.</p>
+                      <p><span className="text-halliburton-red">Conc (ppb):</span> Concentración requerida en libras por barril de lodo (ppb / lb/bbl).</p>
+                      <p><span className="text-halliburton-red">Envase (lb):</span> Peso neto de la bolsa o tambor comercial para estimar la cantidad de envases.</p>
+                    </div>
+
+                    {/* Column Headers */}
+                    <div className="grid grid-cols-12 gap-2 px-3 text-[9px] font-black uppercase text-zinc-400 dark:text-zinc-500 tracking-wider">
+                      <div className="col-span-4">Nombre Producto</div>
+                      <div className="col-span-2 text-center">SG</div>
+                      <div className="col-span-3 text-center">Conc (ppb)</div>
+                      <div className="col-span-2 text-center">Empaque (lb)</div>
+                      <div className="col-span-1"></div>
+                    </div>
+
                     <div className="space-y-3">
                       {wbmAdditives.map((add, idx) => (
                         <div key={add.id} className="grid grid-cols-12 gap-2 items-center bg-white dark:bg-slate-800 p-3 rounded-2xl border border-zinc-100 dark:border-zinc-700/50 shadow-sm relative group/row">
@@ -3030,101 +3064,98 @@ const FluidCalculator = ({ isEditing, lang }) => {
                       )}
                     </div>
 
-                    {/* ABC Displacement Chart */}
-                    <div className="bg-white/5 p-6 rounded-[2rem] border border-white/10 space-y-4">
-                      <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 block border-b border-white/5 pb-2">
-                        {t.formAbcChartTitle}
-                      </span>
-                      <div className="overflow-x-auto custom-scrollbar">
-                        <table className="w-full text-left border-collapse text-[10px] uppercase tracking-wider font-bold">
-                          <thead>
-                            <tr className="border-b border-white/5 text-zinc-500">
-                              <th className="pb-3 text-left">{t.formProductName}</th>
-                              <th className="pb-3 text-center">{t.formSg}</th>
-                              <th className="pb-3 text-center">{t.formConcentration}</th>
-                              <th className="pb-3 text-right">PPG eq</th>
-                              <th className="pb-3 text-right">PPB eq</th>
-                              <th className="pb-3 text-right">Lbs Totales</th>
-                              <th className="pb-3 text-right">V disp (bbl)</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-white/5 text-zinc-300 font-mono">
-                            {res.abcAdditives.map(add => (
-                              <tr key={add.id} className="hover:bg-white/5 transition-colors">
-                                <td className="py-2.5 text-left text-white">{add.name || '---'}</td>
-                                <td className="py-2.5 text-center">{parseFloat(add.sg).toFixed(2)}</td>
-                                <td className="py-2.5 text-center text-halliburton-red">{parseFloat(add.concentration).toFixed(1)}</td>
-                                <td className="py-2.5 text-right text-zinc-400">{add.ppgEq.toFixed(5)}</td>
-                                <td className="py-2.5 text-right text-zinc-400">{add.ppbEq.toFixed(5)}</td>
-                                <td className="py-2.5 text-right text-white">{add.totalLbs.toFixed(5)}</td>
-                                <td className="py-2.5 text-right text-emerald-400">{add.volDisp.toFixed(5)}</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                          <tfoot>
-                            <tr className="border-t border-white/10 text-white font-mono font-black text-xs">
-                              <td colSpan="5" className="pt-3 text-left">{lang === 'es' ? 'TOTALES' : 'TOTALS'}</td>
-                              <td className="pt-3 text-right"></td>
-                              <td className="pt-3 text-right text-emerald-400">
-                                {(res.type === 'obm' ? res.fTotal : res.vc).toFixed(5)}
-                              </td>
-                            </tr>
-                          </tfoot>
-                        </table>
-                      </div>
-                    </div>
-
                     {/* Breakdown & Packaging Recipe */}
                     <div className="bg-white/5 p-6 rounded-[2rem] border border-white/10 space-y-4">
                       <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 block border-b border-white/5 pb-2">
-                        Receta de Mezclado Comercial
+                        Receta de Mezclado Comercial (LBS & KG / BBL & M³)
                       </span>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-bold uppercase tracking-wider">
                         {res.type === 'obm' ? (
                           <>
-                            <div className="p-4 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between">
-                              <span className="text-zinc-400">{t.formBaseOil}</span>
-                              <span className="text-white">{res.volNap.toFixed(2)} BBL</span>
-                            </div>
-                            <div className="p-4 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between">
-                              <span className="text-zinc-400">{t.formWater}</span>
-                              <span className="text-white">{res.volWater.toFixed(2)} BBL</span>
-                            </div>
-                            <div className="p-4 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between">
-                              <span className="text-zinc-400">{t.formSalt}</span>
-                              <div className="text-right">
-                                <span className="text-white block">{res.massSalt.toFixed(2)} LBS</span>
-                                <span className="text-[9px] text-halliburton-red block font-mono">~{res.sacksSalt} sacos (50 lb)</span>
+                            {/* Aceite Base (NAP) */}
+                            <div className="p-4 bg-white/5 border border-white/10 rounded-2xl flex flex-col justify-between space-y-2">
+                              <span className="text-zinc-400 text-[10px]">{t.formBaseOil}</span>
+                              <div className="flex justify-between items-baseline">
+                                <span className="text-white text-base">{res.volNap.toFixed(2)} bbl <small className="text-[9px] text-zinc-500 font-mono">({(res.volNap * 0.158987).toFixed(2)} m³)</small></span>
+                                <span className="text-zinc-400 text-[10px] font-mono">
+                                  {((res.volNap * 42 * (parseFloat(formSystem.sgOil) * 8.345))).toFixed(0)} lb ({((res.volNap * 42 * (parseFloat(formSystem.sgOil) * 8.345)) / 2.20462).toFixed(0)} kg)
+                                </span>
                               </div>
                             </div>
-                            <div className="p-4 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between">
-                              <span className="text-zinc-400">{t.formWeightMaterial}</span>
-                              <div className="text-right">
-                                <span className="text-white block">{res.massWM.toFixed(2)} LBS</span>
-                                <span className="text-[9px] text-halliburton-red block font-mono">~{res.sacksWM} sacos (100 lb)</span>
+                            
+                            {/* Agua Dulce */}
+                            <div className="p-4 bg-white/5 border border-white/10 rounded-2xl flex flex-col justify-between space-y-2">
+                              <span className="text-zinc-400 text-[10px]">{t.formWater}</span>
+                              <div className="flex justify-between items-baseline">
+                                <span className="text-white text-base">{res.volWater.toFixed(2)} bbl <small className="text-[9px] text-zinc-500 font-mono">({(res.volWater * 0.158987).toFixed(2)} m³)</small></span>
+                                <span className="text-zinc-400 text-[10px] font-mono">
+                                  {((res.volWater * 42 * 8.33)).toFixed(0)} lb ({((res.volWater * 42 * 8.33) / 2.20462).toFixed(0)} kg)
+                                </span>
+                              </div>
+                            </div>
+                            
+                            {/* Sal Seca */}
+                            <div className="p-4 bg-white/5 border border-white/10 rounded-2xl flex flex-col justify-between space-y-2">
+                              <span className="text-zinc-400 text-[10px]">{t.formSalt}</span>
+                              <div className="flex justify-between items-baseline">
+                                <span className="text-white text-base">{res.massSalt.toFixed(1)} lb <small className="text-[9px] text-zinc-500 font-mono">({(res.massSalt / 2.20462).toFixed(1)} kg)</small></span>
+                                <span className="text-halliburton-red text-[9px] font-mono">~{res.sacksSalt} sacos (50 lb)</span>
+                              </div>
+                            </div>
+                            
+                            {/* Densificante (Barita) */}
+                            <div className="p-4 bg-white/5 border border-white/10 rounded-2xl flex flex-col justify-between space-y-2">
+                              <span className="text-zinc-400 text-[10px]">{t.formWeightMaterial}</span>
+                              <div className="flex justify-between items-baseline">
+                                <span className="text-white text-base">{res.massWM.toFixed(0)} lb <small className="text-[9px] text-zinc-500 font-mono">({(res.massWM / 2.20462).toFixed(0)} kg)</small></span>
+                                <div className="text-right">
+                                  <span className="text-[9px] text-zinc-400 block font-mono">{res.volWM.toFixed(2)} bbl ({(res.volWM * 0.158987).toFixed(2)} m³)</span>
+                                  <span className="text-halliburton-red text-[9px] font-mono block">~{res.sacksWM} sacos (100 lb)</span>
+                                </div>
                               </div>
                             </div>
                           </>
                         ) : (
                           <>
-                            <div className="p-4 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between">
-                              <span className="text-zinc-400">Lodo Base 1</span>
-                              <span className="text-white">{res.v1.toFixed(2)} BBL</span>
+                            {/* Lodo Base 1 */}
+                            <div className="p-4 bg-white/5 border border-white/10 rounded-2xl flex flex-col justify-between space-y-2">
+                              <span className="text-zinc-400 text-[10px]">Lodo Base 1</span>
+                              <div className="flex justify-between items-baseline">
+                                <span className="text-white text-base">{res.v1.toFixed(2)} bbl <small className="text-[9px] text-zinc-500 font-mono">({(res.v1 * 0.158987).toFixed(2)} m³)</small></span>
+                                <span className="text-zinc-400 text-[10px] font-mono">
+                                  D: {res.d1.toFixed(2)} ppg
+                                </span>
+                              </div>
                             </div>
-                            <div className="p-4 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between">
-                              <span className="text-zinc-400">Diluyente 2</span>
-                              <span className="text-white">{res.v2.toFixed(2)} BBL</span>
+                            
+                            {/* Diluyente 2 */}
+                            <div className="p-4 bg-white/5 border border-white/10 rounded-2xl flex flex-col justify-between space-y-2">
+                              <span className="text-zinc-400 text-[10px]">Diluyente 2</span>
+                              <div className="flex justify-between items-baseline">
+                                <span className="text-white text-base">{res.v2.toFixed(2)} bbl <small className="text-[9px] text-zinc-500 font-mono">({(res.v2 * 0.158987).toFixed(2)} m³)</small></span>
+                                <span className="text-zinc-400 text-[10px] font-mono">
+                                  D: {res.d2.toFixed(2)} ppg
+                                </span>
+                              </div>
                             </div>
                           </>
                         )}
                         
-                        {/* Chemical Additives Sacks breakdown */}
+                        {/* Chemical Additives */}
                         {res.finalAdditives.map((add, idx) => (
-                          <div key={idx} className="p-4 bg-white/5 border border-white/10 rounded-2xl col-span-1 md:col-span-2 flex items-center justify-between">
-                            <span className="text-zinc-400">{add.name || `Aditivo ${idx + 1}`}</span>
-                            <div className="text-right">
-                              <span className="text-white block">{add.totalLbs.toFixed(2)} LBS</span>
-                              <span className="text-[9px] text-emerald-400 block font-mono">~{add.sacks} envases ({add.pkgSize} lb)</span>
+                          <div key={idx} className="p-4 bg-white/5 border border-white/10 rounded-2xl col-span-1 md:col-span-2 flex flex-col justify-between space-y-2">
+                            <div className="flex justify-between text-[10px] text-zinc-400">
+                              <span>{add.name || `Aditivo ${idx + 1}`}</span>
+                              <span className="font-mono">Conc: {add.concentration} ppb</span>
+                            </div>
+                            <div className="flex justify-between items-baseline">
+                              <span className="text-white text-base">
+                                {add.totalLbs.toFixed(1)} lb <small className="text-[9px] text-zinc-500 font-mono">({(add.totalLbs / 2.20462).toFixed(1)} kg)</small>
+                              </span>
+                              <div className="text-right">
+                                <span className="text-[9px] text-zinc-400 block font-mono">Despl. {add.volDisp.toFixed(4)} bbl ({(add.volDisp * 0.158987).toFixed(4)} m³)</span>
+                                <span className="text-emerald-400 text-[9px] font-mono block">~{add.sacks} envases ({add.pkgSize} lb)</span>
+                              </div>
                             </div>
                           </div>
                         ))}
