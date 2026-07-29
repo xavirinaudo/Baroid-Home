@@ -93,6 +93,14 @@ const Sidebar = ({
         </button>
 
         <button
+          onClick={() => { setActiveSector('formulation'); setSearchQuery(''); setIsMobileSidebarOpen(false); }}
+          className={`w-full flex items-center gap-4 px-4 py-4 rounded-xl text-sm font-semibold transition-all hover:bg-zinc-50 dark:hover:bg-slate-800/50 ${activeSector === 'formulation' && !searchQuery ? 'sidebar-item-active shadow-lg' : 'text-zinc-600 dark:text-zinc-400'}`}
+        >
+          <Icon name="beaker" size={18} />
+          <span className="truncate">{t.tabFormulation}</span>
+        </button>
+
+        <button
           onClick={() => { setActiveSector('inventory'); setSearchQuery(''); setIsMobileSidebarOpen(false); }}
           className={`w-full flex items-center gap-4 px-4 py-4 rounded-xl text-sm font-semibold transition-all hover:bg-zinc-50 dark:hover:bg-slate-800/50 ${activeSector === 'inventory' && !searchQuery ? 'sidebar-item-active shadow-lg' : 'text-zinc-600 dark:text-zinc-400'}`}
         >

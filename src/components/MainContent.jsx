@@ -4,6 +4,7 @@ import GreetingDashboard from './GreetingDashboard';
 import FluidCalculator from './FluidCalculator';
 import InventoryConciliation from './InventoryConciliation';
 import PiletasSystem from './PiletasSystem';
+import FluidFormulation from './FluidFormulation';
 import { translations, translateText } from '../data/translations';
 
 const getDisplayUrl = (url) => {
@@ -167,21 +168,22 @@ const MainContent = ({
                     </div>
                 )}
                 <header className="mb-10 lg:mb-14">
-                    {(!searchQuery && activeSector !== 'favorites' && activeSector !== 'calculator' && activeSector !== 'inventory' && activeSector !== 'piletas') && <GreetingDashboard lang={lang} />}
+                    {(!searchQuery && activeSector !== 'favorites' && activeSector !== 'calculator' && activeSector !== 'inventory' && activeSector !== 'piletas' && activeSector !== 'formulation') && <GreetingDashboard lang={lang} />}
                     <div className="space-y-3 lg:space-y-4">
                         <div className="flex items-center gap-3">
                             <div className="w-1.5 h-6 bg-halliburton-red rounded-full"></div>
                             <span className="text-[12px] font-bold text-halliburton-red uppercase tracking-widest">
-                                {activeSector === 'favorites' ? t.favorites : (activeSector === 'calculator' ? t.tabEng : (activeSector === 'inventory' ? t.invReconcTitle : (activeSector === 'piletas' ? t.pitsSystemTitle : (translateText(sectors.find(s => s.id === activeSector)?.name, lang) || (lang === 'es' ? 'Explorar' : 'Explore')))))}
+                                {activeSector === 'favorites' ? t.favorites : (activeSector === 'calculator' ? t.tabEng : (activeSector === 'formulation' ? t.tabFormulation : (activeSector === 'inventory' ? t.invReconcTitle : (activeSector === 'piletas' ? t.pitsSystemTitle : (translateText(sectors.find(s => s.id === activeSector)?.name, lang) || (lang === 'es' ? 'Explorar' : 'Explore')))))}
                             </span>
                         </div>
                         <h2 className="text-3xl lg:text-5xl font-black uppercase italic leading-none tracking-tighter text-zinc-800 dark:text-white truncate">
-                            {activeSector === 'favorites' ? t.favorites : (activeSector === 'calculator' ? t.fluidCalculatorTitle : (activeSector === 'inventory' ? t.invReconcSubtitle : (activeSector === 'piletas' ? t.pitsSystemTitle : (translateText(sectors.find(s => s.id === activeSector)?.name, lang) || (lang === 'es' ? 'Directorio' : 'Directory')))))}
+                            {activeSector === 'favorites' ? t.favorites : (activeSector === 'calculator' ? t.fluidCalculatorTitle : (activeSector === 'formulation' ? t.tabFormulation : (activeSector === 'inventory' ? t.invReconcSubtitle : (activeSector === 'piletas' ? t.pitsSystemTitle : (translateText(sectors.find(s => s.id === activeSector)?.name, lang) || (lang === 'es' ? 'Directorio' : 'Directory')))))}
                         </h2>
                     </div>
                 </header>
                 <div className="space-y-20">
                     {activeSector === 'calculator' ? <FluidCalculator isEditing={isEditing} lang={lang} /> :
+                        activeSector === 'formulation' ? <FluidFormulation isEditing={isEditing} lang={lang} /> :
                         activeSector === 'inventory' ? <InventoryConciliation isEditing={isEditing} lang={lang} /> :
                             activeSector === 'piletas' ? <PiletasSystem isEditing={isEditing} lang={lang} /> :
                                 displaySectors.map(sec => (

@@ -443,7 +443,7 @@ const App = () => {
                 color: '#CC0000',
                 subsectors: [{ id: 'fs1', name: translateText('Documentos Destacados', lang), links: favoritesList }]
             }];
-        } else if (activeSector === 'calculator' || activeSector === 'inventory' || activeSector === 'piletas') {
+        } else if (activeSector === 'calculator' || activeSector === 'inventory' || activeSector === 'piletas' || activeSector === 'formulation') {
             data = [];
         } else {
             data = sectors.filter(s => s.id === activeSector);
