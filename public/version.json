@@ -1,6 +1,6 @@
 {
-  "version": "2.1.2",
+  "version": "2.1.3",
   "releaseDate": "2026-07-29",
   "description": "Fusión inteligente de base de datos y corrección de visualización en tarjetas de accesos.",
-  "description_en": "Readability improvements for packaging in fluid formulation."
+  "description_en": "Definitive removal of the formulation tab inside fluid calculator."
 }
