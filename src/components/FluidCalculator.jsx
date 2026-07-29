@@ -70,8 +70,11 @@ const FluidCalculator = ({ isEditing, lang }) => {
     mlAgNo3: '12.0',
     normality: '0.282',
     mlSample: '2.0',
+    mlEdta: '2.5',
+    mlSampleCa: '2.0',
     sgLgs: '2.60',
     sgBarite: '4.20',
+    sgOil: '0.84',
     hasBarite: true
   });
 
@@ -437,97 +440,140 @@ const FluidCalculator = ({ isEditing, lang }) => {
     const addedVol = (tons / sgB) * (mixUnits.vol === 'bbl' ? 6.2898 : 1);
     return (vol + addedVol).toFixed(2);
   };  const getLgsRetortResult = () => {
-    const { vWater, vOil, mudWeight, mlAgNo3, normality, mlSample, sgLgs, sgBarite, hasBarite } = lgsRetort;
+    const { vWater, vOil, mudWeight, mlAgNo3, normality, mlSample, mlEdta, mlSampleCa, sgLgs, sgBarite, sgOil, hasBarite } = lgsRetort;
 
-    const vw = parseFloat(vWater);
-    const vo = parseFloat(vOil);
+    const phi_W = parseFloat(vWater);
+    const phi_NAF = parseFloat(vOil);
     const mw = parseFloat(mudWeight);
     const ml = parseFloat(mlAgNo3);
     const norm = parseFloat(normality);
     const mls = parseFloat(mlSample);
-    const sglg = parseFloat(sgLgs) || 2.60;
-    const sgb = parseFloat(sgBarite) || 4.20;
+    const mledta = parseFloat(mlEdta);
+    const mlsca = parseFloat(mlSampleCa);
+    
+    // Constantes por defecto estándar Baroid
+    const rho_NAF = parseFloat(sgOil) || 0.84;
+    const rho_WM = parseFloat(sgBarite) || 4.20;
+    const rho_LG = parseFloat(sgLgs) || 2.60;
 
-    if (isNaN(vw) || isNaN(vo) || isNaN(mw) || isNaN(ml) || isNaN(norm) || isNaN(mls) || mls <= 0) {
-      return { invalid: true, msg: 'Ingrese valores numéricos válidos (Volumen de muestra debe ser mayor a 0).' };
+    if (
+      isNaN(phi_W) || isNaN(phi_NAF) || isNaN(mw) || 
+      isNaN(ml) || isNaN(norm) || isNaN(mls) || mls <= 0 || 
+      isNaN(mledta) || isNaN(mlsca) || mlsca <= 0 ||
+      isNaN(rho_NAF) || isNaN(rho_WM) || isNaN(rho_LG)
+    ) {
+      return { invalid: true, msg: lang === 'es' ? 'Ingrese valores numéricos válidos (Volumen de muestra debe ser mayor a 0).' : 'Enter valid numerical values (Sample volume must be greater than 0).' };
     }
 
-    if (vw < 0 || vo < 0 || mw < 0 || ml < 0 || norm < 0) {
-      return { invalid: true, msg: 'Los valores no pueden ser negativos.' };
+    if (phi_W < 0 || phi_NAF < 0 || mw < 0 || ml < 0 || norm < 0 || mledta < 0 || mlsca < 0 || rho_NAF < 0 || rho_WM < 0 || rho_LG < 0) {
+      return { invalid: true, msg: lang === 'es' ? 'Los valores no pueden ser negativos.' : 'Values cannot be negative.' };
     }
 
-    if (vw + vo > 100) {
-      return { invalid: true, msg: 'La suma de Agua% y Aceite% no puede superar el 100%.' };
+    if (phi_W + phi_NAF > 100) {
+      return { invalid: true, msg: lang === 'es' ? 'La suma de Agua% y Aceite% no puede superar el 100%.' : 'The sum of Water% and Oil% cannot exceed 100%.' };
     }
 
-    // 1. Cloruros y Salinidad
+    if (phi_W <= 0) {
+      return { invalid: true, msg: lang === 'es' ? 'El porcentaje de agua (Vw) debe ser mayor a 0 para calcular la salinidad.' : 'Water percentage (Vw) must be greater than 0 to calculate salinity.' };
+    }
+
+    // FASE A: Especiación Estequiométrica de Sales
     let factor = norm * 35450;
     if (Math.abs(norm - 0.282) < 0.005) factor = 10000;
     else if (Math.abs(norm - 0.0282) < 0.0005) factor = 1000;
 
-    if (vw <= 0) {
-      return { invalid: true, msg: 'El porcentaje de agua (Vw) debe ser mayor a 0 para calcular la salinidad.' };
-    }
+    // c_Cl_df: Cloruros en lodo entero (mg/L)
+    const c_Cl_df = (ml * factor) / mls;
+    
+    // c_Ca_df: Calcio en lodo entero (mg/L) mediante titulación con EDTA 0.1 M
+    const c_Ca_df = (mledta * 4000.0) / mlsca;
 
-    const cl_mgL = (ml * factor * 100) / (mls * vw);
-    const nacl_mgL = cl_mgL * 1.648;
+    const c_Cl_theoretical = 1.769 * c_Ca_df;
+    let c_NaCl_df = 0.0;
+    let c_CaCl2_df = 0.0;
 
-    // Brine density in SG
-    const rho_brine = 0.998 + (1.142e-6 * cl_mgL) - (4.926e-13 * Math.pow(cl_mgL, 2));
-
-    // WPS in ppm
-    const wps = nacl_mgL / rho_brine;
-
-    // 2. Corrección de volumen por sal
-    const v_sal = vw * (-3.025e-4 + (5.068e-7 * cl_mgL) + (4.96e-13 * Math.pow(cl_mgL, 2)));
-
-    // Sólidos suspendidos reales volume %
-    const v_ss = Math.max(0, (100 - vw - vo) - v_sal);
-
-    // Volumen real de salmuera %
-    const v_brine = vw + v_sal;
-
-    // 3. Mud weight conversion (to ppg if metric)
-    const mwPpg = unitMode === 'field' ? mw : glToPPG(mw);
-
-    // ASG (Average Solids Gravity)
-    const rho_o = 0.84;
-    let asg = 0;
-    if (v_ss > 0) {
-      asg = ((11.9826 * mwPpg) - (v_brine * rho_brine) - (vo * rho_o)) / v_ss;
-    }
-
-    // 4. LGS %
-    let pctLgs = 0;
-    if (hasBarite && sgb > sglg && v_ss > 0) {
-      pctLgs = ((sgb - asg) / (sgb - sglg)) * v_ss;
-      if (pctLgs < 0) pctLgs = 0;
-      if (pctLgs > v_ss) pctLgs = v_ss;
+    if (c_Cl_df <= c_Cl_theoretical) {
+      c_NaCl_df = 0.0;
+      c_CaCl2_df = 1.565 * c_Cl_df;
     } else {
-      pctLgs = v_ss;
+      const c_Cl_NaCl = c_Cl_df - c_Cl_theoretical;
+      c_CaCl2_df = 2.769 * c_Ca_df;
+      c_NaCl_df = 1.648 * c_Cl_NaCl;
     }
 
-    const pctBarite = Math.max(0, v_ss - pctLgs);
+    // FASE B: Fracción en Peso en la Fase Acuosa (Redondeo a 2 Decimales)
+    const water_mass_factor = 10000.0 * phi_W;
+    const denom = c_CaCl2_df + c_NaCl_df + water_mass_factor;
+    
+    const w_CaCl2 = Math.round((c_CaCl2_df / denom) * 100 * 100) / 100;
+    const w_NaCl = Math.round((c_NaCl_df / denom) * 100 * 100) / 100;
+    const w_total = w_CaCl2 + w_NaCl;
 
-    // LGS concentration in weight
-    const lgs_ppb = pctLgs * sglg * 3.505;
-    const barite_ppb = pctBarite * sgb * 3.505;
+    // FASE C: Salinidad (WPS) y Densidad de Salmuera (Redondeo a 5 Decimales)
+    const WPS = w_total * 10000.0;
+    const rho_B_raw = 0.99707 + (0.006504 * w_NaCl) + (0.007923 * w_CaCl2) + 
+                      (0.00008334 * w_NaCl * w_CaCl2) + (0.00004395 * Math.pow(w_NaCl, 2)) + 
+                      (0.00004964 * Math.pow(w_CaCl2, 2));
+    const rho_B = Math.round(rho_B_raw * 100000) / 100000;
 
-    const lgs_mass = unitMode === 'field' ? lgs_ppb : lgs_ppb * 2.853;
-    const barite_mass = unitMode === 'field' ? barite_ppb : barite_ppb * 2.853;
+    // FASE D: Corrección Volumétrica (Redondeo a 2 Decimales)
+    const phi_B_raw = ((phi_W * 100.0) / (100.0 - w_total)) * (1.0 / rho_B);
+    const phi_B = Math.round(phi_B_raw * 100) / 100;
+    
+    const phi_DS_raw = 100.0 - (phi_NAF + phi_B);
+    const phi_DS = Math.round(phi_DS_raw * 100) / 100;
+
+    // FASE E: Gravedad Específica de Sólidos (ASG) (Redondeo a 3 Decimales)
+    const rho_df_ppg = unitMode === 'field' ? mw : glToPPG(mw);
+    const rho_SS_raw = ((rho_df_ppg * 11.98) - (rho_NAF * phi_NAF) - (rho_B * phi_B)) / phi_DS;
+    const ASG = Math.round(rho_SS_raw * 1000) / 1000;
+
+    // FASE F: Desglose de Sólidos HGS/LGS (Redondeo a 2 Decimales)
+    let phi_WM = 0.0;
+    let phi_LG = 0.0;
+
+    if (hasBarite) {
+      if (ASG < rho_LG) {
+        phi_WM = 0.0;
+        phi_LG = phi_DS;
+      } else if (ASG > rho_WM) {
+        phi_WM = phi_DS;
+        phi_LG = 0.0;
+      } else {
+        const phi_WM_raw = phi_DS * ((ASG - rho_LG) / (rho_WM - rho_LG));
+        phi_WM = Math.round(phi_WM_raw * 100) / 100;
+        phi_LG = Math.round((phi_DS - phi_WM) * 100) / 100;
+      }
+    } else {
+      phi_WM = 0.0;
+      phi_LG = phi_DS;
+    }
+
+    // FASE G: Conversión a Concentraciones ppb (Redondeo a 2 Decimales)
+    const HGS_ppb = Math.round((phi_WM * rho_WM * 3.505) * 100) / 100;
+    const LGS_ppb = Math.round((phi_LG * rho_LG * 3.505) * 100) / 100;
+
+    const lgs_mass = unitMode === 'field' ? LGS_ppb : Math.round((LGS_ppb * 2.853) * 100) / 100;
+    const barite_mass = unitMode === 'field' ? HGS_ppb : Math.round((HGS_ppb * 2.853) * 100) / 100;
 
     return {
       invalid: false,
-      cl_mgL,
-      nacl_mgL,
-      rho_brine,
-      wps,
-      v_sal,
-      v_ss,
-      v_brine,
-      asg,
-      pctLgs,
-      pctBarite,
+      cl_mgL: c_Cl_df,
+      c_Cl_df,
+      c_Ca_df,
+      c_NaCl_df,
+      c_CaCl2_df,
+      w_CaCl2,
+      w_NaCl,
+      w_total,
+      wps: WPS,
+      rho_brine: rho_B,
+      v_sal: Math.round((phi_B - phi_W) * 100) / 100,
+      v_ss: phi_DS,
+      v_brine: phi_B,
+      asg: ASG,
+      pctLgs: phi_LG,
+      pctBarite: phi_WM,
       lgs_mass,
       barite_mass
     };
@@ -1147,40 +1193,60 @@ const FluidCalculator = ({ isEditing, lang }) => {
                 </div>
               </div>
 
-              {/* Section 2: Salinidad */}
-              <div className="space-y-4 pt-2">
-                <h5 className="text-[11px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest border-b border-zinc-100 dark:border-zinc-800 pb-1">{t.retortTitrationHeader}</h5>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-[12px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">mL AgNO₃</label>
-                    <input type="number" value={lgsRetort.mlAgNo3} onChange={e => setLgsRetort({ ...lgsRetort, mlAgNo3: e.target.value })} className="w-full input-style text-xl font-bold" placeholder="12.0" />
+              {/* Section 2: Titulaciones */}
+              <div className="space-y-6 pt-2">
+                <h5 className="text-[11px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest border-b border-zinc-100 dark:border-zinc-800 pb-1">{lang === 'es' ? '2. Titulaciones y Reactivos' : '2. Titrations & Reagents'}</h5>
+                
+                {/* 2.1 Cloruros */}
+                <div className="space-y-4 bg-zinc-50/40 dark:bg-slate-900/20 p-4 rounded-2xl border border-zinc-100 dark:border-zinc-800/40">
+                  <h6 className="text-[11px] font-black text-halliburton-red uppercase tracking-wider">{t.retortTitrationClHeader}</h6>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-[11px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">mL AgNO₃</label>
+                      <input type="number" value={lgsRetort.mlAgNo3} onChange={e => setLgsRetort({ ...lgsRetort, mlAgNo3: e.target.value })} className="w-full input-style text-lg font-bold" placeholder="12.0" />
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">{lang === 'es' ? 'mL Muestra Lodo' : 'mL Mud Sample'}</label>
+                      <input type="number" value={lgsRetort.mlSample} onChange={e => setLgsRetort({ ...lgsRetort, mlSample: e.target.value })} className="w-full input-style text-lg font-bold" placeholder="2.0" />
+                    </div>
                   </div>
                   <div>
-                    <label className="text-[12px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">mL Muestra</label>
-                    <input type="number" value={lgsRetort.mlSample} onChange={e => setLgsRetort({ ...lgsRetort, mlSample: e.target.value })} className="w-full input-style text-xl font-bold" placeholder="2.0" />
+                    <label className="text-[11px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">Normalidad AgNO₃ (N)</label>
+                    <div className="flex gap-2">
+                      {['0.0282', '0.282'].map(norm => (
+                        <button
+                          key={norm}
+                          type="button"
+                          onClick={() => setLgsRetort({ ...lgsRetort, normality: norm })}
+                          className={`flex-1 py-2.5 rounded-xl text-[10px] font-black transition-all border ${lgsRetort.normality === norm ? 'bg-zinc-900 text-white border-zinc-900 shadow-md ring-2 ring-halliburton-red/10' : 'bg-zinc-50 dark:bg-slate-900 text-zinc-400 border-zinc-200 dark:border-zinc-800 hover:border-halliburton-red'}`}
+                        >
+                          {norm} N
+                        </button>
+                      ))}
+                      <input
+                        type="number"
+                        value={['0.0282', '0.282'].includes(lgsRetort.normality) ? '' : lgsRetort.normality}
+                        onChange={e => setLgsRetort({ ...lgsRetort, normality: e.target.value })}
+                        placeholder="Otra..."
+                        className="w-24 bg-white dark:bg-slate-800 border-2 border-zinc-200 dark:border-zinc-700 rounded-xl px-2 text-center text-sm font-bold focus:border-halliburton-red outline-none transition-all"
+                        step="0.0001"
+                      />
+                    </div>
                   </div>
                 </div>
-                <div>
-                  <label className="text-[12px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">Normalidad AgNO₃ (N)</label>
-                  <div className="flex gap-2">
-                    {['0.0282', '0.282'].map(norm => (
-                      <button
-                        key={norm}
-                        type="button"
-                        onClick={() => setLgsRetort({ ...lgsRetort, normality: norm })}
-                        className={`flex-1 py-3 rounded-xl text-[10px] font-black transition-all border ${lgsRetort.normality === norm ? 'bg-zinc-900 text-white border-zinc-900 shadow-md ring-2 ring-halliburton-red/10' : 'bg-zinc-50 dark:bg-slate-900 text-zinc-400 border-zinc-200 dark:border-zinc-800 hover:border-halliburton-red'}`}
-                      >
-                        {norm} N
-                      </button>
-                    ))}
-                    <input
-                      type="number"
-                      value={['0.0282', '0.282'].includes(lgsRetort.normality) ? '' : lgsRetort.normality}
-                      onChange={e => setLgsRetort({ ...lgsRetort, normality: e.target.value })}
-                      placeholder="Otra..."
-                      className="w-24 bg-white dark:bg-slate-800 border-2 border-zinc-200 dark:border-zinc-700 rounded-xl px-2 text-center text-sm font-bold focus:border-halliburton-red outline-none transition-all"
-                      step="0.0001"
-                    />
+
+                {/* 2.2 Calcio */}
+                <div className="space-y-4 bg-zinc-50/40 dark:bg-slate-900/20 p-4 rounded-2xl border border-zinc-100 dark:border-zinc-800/40">
+                  <h6 className="text-[11px] font-black text-halliburton-red uppercase tracking-wider">{t.retortTitrationCaHeader}</h6>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-[11px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">{t.retortEdtaVol}</label>
+                      <input type="number" value={lgsRetort.mlEdta} onChange={e => setLgsRetort({ ...lgsRetort, mlEdta: e.target.value })} className="w-full input-style text-lg font-bold" placeholder="2.5" />
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">{t.retortSampleCaVol}</label>
+                      <input type="number" value={lgsRetort.mlSampleCa} onChange={e => setLgsRetort({ ...lgsRetort, mlSampleCa: e.target.value })} className="w-full input-style text-lg font-bold" placeholder="2.0" />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1200,7 +1266,7 @@ const FluidCalculator = ({ isEditing, lang }) => {
                     {t.retortContainsBarite}
                   </label>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className={`grid ${lgsRetort.hasBarite ? 'grid-cols-3' : 'grid-cols-2'} gap-4`}>
                   <div>
                     <label className="text-[12px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">{t.retortSgLgs}</label>
                     <input type="number" value={lgsRetort.sgLgs} onChange={e => setLgsRetort({ ...lgsRetort, sgLgs: e.target.value })} className="w-full input-style text-xl font-bold" placeholder="2.60" step="0.01" />
@@ -1211,6 +1277,10 @@ const FluidCalculator = ({ isEditing, lang }) => {
                       <input type="number" value={lgsRetort.sgBarite} onChange={e => setLgsRetort({ ...lgsRetort, sgBarite: e.target.value })} className="w-full input-style text-xl font-bold" placeholder="4.20" step="0.01" />
                     </div>
                   )}
+                  <div>
+                    <label className="text-[12px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">{t.retortSgNaf}</label>
+                    <input type="number" value={lgsRetort.sgOil} onChange={e => setLgsRetort({ ...lgsRetort, sgOil: e.target.value })} className="w-full input-style text-xl font-bold" placeholder="0.84" step="0.01" />
+                  </div>
                 </div>
               </div>
             </div>
@@ -1743,7 +1813,19 @@ const FluidCalculator = ({ isEditing, lang }) => {
                     const res = getLgsRetortResult();
                     if (res.invalid) return;
                     copyToClipboard(
-                      `ANÁLISIS RETORTA & CLORUROS:\n- WPS (Salinidad): ${res.wps.toFixed(0)} ppm\n- Cloruros: ${res.cl_mgL.toFixed(0)} mg/L\n- Sólidos Suspendidos Totales (Vss): ${res.v_ss.toFixed(2)}%\n- ASG: ${res.asg.toFixed(3)}\n- LGS: ${res.pctLgs.toFixed(2)}% (${res.lgs_mass.toFixed(1)} ${unitMode === 'field' ? 'ppb' : 'kg/m³'})\n- Barita: ${res.pctBarite.toFixed(2)}% (${res.barite_mass.toFixed(1)} ${unitMode === 'field' ? 'ppb' : 'kg/m³'})`
+                      `ANÁLISIS RETORTA & CLORUROS (ESTÁNDAR BAROID):\n` +
+                      `- WPS (Salinidad): ${res.wps.toFixed(0)} ppm\n` +
+                      `- Cloruros Lodo: ${res.cl_mgL.toFixed(0)} mg/L\n` +
+                      `- Calcio Lodo: ${res.c_Ca_df.toFixed(0)} mg/L\n` +
+                      `- NaCl Salmuera: ${res.w_NaCl.toFixed(2)} %p\n` +
+                      `- CaCl2 Salmuera: ${res.w_CaCl2.toFixed(2)} %p\n` +
+                      `- NaCl Lodo: ${res.c_NaCl_df.toFixed(0)} mg/L\n` +
+                      `- CaCl2 Lodo: ${res.c_CaCl2_df.toFixed(0)} mg/L\n` +
+                      `- Dens. Salmuera: ${res.rho_brine.toFixed(5)} SG\n` +
+                      `- Sólidos Secos (Vds): ${res.v_ss.toFixed(2)}%\n` +
+                      `- ASG: ${res.asg.toFixed(3)}\n` +
+                      `- LGS: ${res.pctLgs.toFixed(2)}% (${res.lgs_mass.toFixed(2)} ${unitMode === 'field' ? 'ppb' : 'kg/m³'})\n` +
+                      `- Barita (HGS): ${res.pctBarite.toFixed(2)}% (${res.barite_mass.toFixed(2)} ${unitMode === 'field' ? 'ppb' : 'kg/m³'})`
                     );
                   }}
                   className="p-3 bg-white/10 hover:bg-halliburton-red rounded-2xl transition-all shadow-lg flex items-center gap-2 text-[10px] font-black uppercase tracking-widest"
@@ -1765,9 +1847,14 @@ const FluidCalculator = ({ isEditing, lang }) => {
                       <h5 className="text-5xl font-black italic">{getLgsRetortResult().wps.toLocaleString('es-AR', { maximumFractionDigits: 0 })}</h5>
                       <span className="text-lg font-black opacity-60 italic uppercase">PPM</span>
                     </div>
-                    <div className="grid grid-cols-2 gap-4 mt-4 pt-4 border-t border-white/10 text-[9px] font-black uppercase tracking-wider text-white/80">
-                      <div>Cloruros: <span className="text-white font-bold">{getLgsRetortResult().cl_mgL.toLocaleString('es-AR', { maximumFractionDigits: 0 })} mg/L</span></div>
-                      <div>NaCl Equiv: <span className="text-white font-bold">{getLgsRetortResult().nacl_mgL.toLocaleString('es-AR', { maximumFractionDigits: 0 })} mg/L</span></div>
+                    <div className="grid grid-cols-2 gap-2 mt-4 pt-4 border-t border-white/10 text-[9px] font-black uppercase tracking-wider text-white/80">
+                      <div>{lang === 'es' ? 'NaCl Salmuera' : 'NaCl Brine'}: <span className="text-white font-bold">{getLgsRetortResult().w_NaCl.toFixed(2)} %p</span></div>
+                      <div>{lang === 'es' ? 'CaCl₂ Salmuera' : 'CaCl₂ Brine'}: <span className="text-white font-bold">{getLgsRetortResult().w_CaCl2.toFixed(2)} %p</span></div>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-white/10 text-[8px] font-black uppercase tracking-wider text-white/60">
+                      <div>Cloruros: <span className="text-white font-bold">{getLgsRetortResult().c_Cl_df.toLocaleString('es-AR', { maximumFractionDigits: 0 })} mg/L</span></div>
+                      <div>NaCl Lodo: <span className="text-white font-bold">{getLgsRetortResult().c_NaCl_df.toLocaleString('es-AR', { maximumFractionDigits: 0 })} mg/L</span></div>
+                      <div>CaCl₂ Lodo: <span className="text-white font-bold">{getLgsRetortResult().c_CaCl2_df.toLocaleString('es-AR', { maximumFractionDigits: 0 })} mg/L</span></div>
                     </div>
                   </div>
 
@@ -1784,7 +1871,7 @@ const FluidCalculator = ({ isEditing, lang }) => {
                       </div>
                       <div className="mt-3 pt-3 border-t border-white/5 flex items-baseline justify-between text-[11px] font-bold text-zinc-400">
                         <span>Masa:</span>
-                        <span className="text-white font-black">{getLgsRetortResult().lgs_mass.toFixed(1)} {unitMode === 'field' ? 'ppb' : 'kg/m³'}</span>
+                        <span className="text-white font-black">{getLgsRetortResult().lgs_mass.toFixed(2)} {unitMode === 'field' ? 'ppb' : 'kg/m³'}</span>
                       </div>
                     </div>
 
@@ -1799,7 +1886,7 @@ const FluidCalculator = ({ isEditing, lang }) => {
                       </div>
                       <div className="mt-3 pt-3 border-t border-white/5 flex items-baseline justify-between text-[11px] font-bold text-zinc-400">
                         <span>Masa:</span>
-                        <span className="text-white font-black">{lgsRetort.hasBarite ? getLgsRetortResult().barite_mass.toFixed(1) : '0.0'} {unitMode === 'field' ? 'ppb' : 'kg/m³'}</span>
+                        <span className="text-white font-black">{lgsRetort.hasBarite ? getLgsRetortResult().barite_mass.toFixed(2) : '0.00'} {unitMode === 'field' ? 'ppb' : 'kg/m³'}</span>
                       </div>
                     </div>
                   </div>
@@ -1808,9 +1895,9 @@ const FluidCalculator = ({ isEditing, lang }) => {
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                     {[
                       { label: 'ASG (Solids SG)', val: getLgsRetortResult().asg.toFixed(3), color: getLgsRetortResult().asg > 4.2 || getLgsRetortResult().asg < 2.5 ? 'text-yellow-400' : 'text-zinc-200' },
-                      { label: lang === 'es' ? 'Dens. Salmuera' : 'Brine Density', val: getLgsRetortResult().rho_brine.toFixed(3) + ' SG', color: 'text-zinc-300' },
+                      { label: lang === 'es' ? 'Dens. Salmuera' : 'Brine Density', val: getLgsRetortResult().rho_brine.toFixed(5) + ' SG', color: 'text-zinc-300' },
                       { label: lang === 'es' ? 'Vol. Sal Disuelta' : 'Dissolved Salt Vol', val: getLgsRetortResult().v_sal.toFixed(2) + '%', color: 'text-zinc-400' },
-                      { label: lang === 'es' ? 'Sólidos Reales (Vss)' : 'Total Solids (Vss)', val: getLgsRetortResult().v_ss.toFixed(2) + '%', color: 'text-zinc-200' }
+                      { label: lang === 'es' ? 'Sólidos Secos (Vds)' : 'Dry Solids (Vds)', val: getLgsRetortResult().v_ss.toFixed(2) + '%', color: 'text-zinc-200' }
                     ].map(m => (
                       <div key={m.label} className="p-4 bg-white/5 rounded-2xl border border-white/5 text-center">
                         <span className="text-[8px] font-black text-zinc-500 uppercase block mb-1 tracking-widest leading-tight">{m.label}</span>

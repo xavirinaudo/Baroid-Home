@@ -355,6 +355,11 @@ export const translations = {
     retortBariteVol: "Barita (Sólidos de Alta Gravedad)",
     retortLgsWeight: "Concentración de LGS en Peso",
     retortBariteWeight: "Concentración de Barita en Peso",
+    retortSgNaf: "SG de Aceite (NAF)",
+    retortEdtaVol: "mL EDTA (0.1 M)",
+    retortSampleCaVol: "mL Muestra Calcio",
+    retortTitrationClHeader: "2.1 Titulación de Cloruros",
+    retortTitrationCaHeader: "2.2 Titulación de Calcio",
 
     // Rheology Section
     rheoFixedParams: "Parámetros Fijos",
@@ -659,6 +664,11 @@ export const translations = {
     retortBariteVol: "Barite (High Gravity Solids)",
     retortLgsWeight: "LGS Concentration by Weight",
     retortBariteWeight: "Barite Concentration by Weight",
+    retortSgNaf: "NAF SG (Oil)",
+    retortEdtaVol: "mL EDTA (0.1 M)",
+    retortSampleCaVol: "mL Calcium Sample",
+    retortTitrationClHeader: "2.1 Chloride Titration",
+    retortTitrationCaHeader: "2.2 Calcium Titration",
 
     // Rheology Section
     rheoFixedParams: "Fixed Rheological Parameters",
