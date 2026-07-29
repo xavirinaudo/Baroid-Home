@@ -173,7 +173,7 @@ const MainContent = ({
                         <div className="flex items-center gap-3">
                             <div className="w-1.5 h-6 bg-halliburton-red rounded-full"></div>
                             <span className="text-[12px] font-bold text-halliburton-red uppercase tracking-widest">
-                                {activeSector === 'favorites' ? t.favorites : (activeSector === 'calculator' ? t.tabEng : (activeSector === 'formulation' ? t.tabFormulation : (activeSector === 'inventory' ? t.invReconcTitle : (activeSector === 'piletas' ? t.pitsSystemTitle : (translateText(sectors.find(s => s.id === activeSector)?.name, lang) || (lang === 'es' ? 'Explorar' : 'Explore')))))}
+                                {activeSector === 'favorites' ? t.favorites : (activeSector === 'calculator' ? t.tabEng : (activeSector === 'formulation' ? t.engineeringFluids : (activeSector === 'inventory' ? t.invReconcTitle : (activeSector === 'piletas' ? t.pitsSystemTitle : (translateText(sectors.find(s => s.id === activeSector)?.name, lang) || (lang === 'es' ? 'Explorar' : 'Explore')))))}
                             </span>
                         </div>
                         <h2 className="text-3xl lg:text-5xl font-black uppercase italic leading-none tracking-tighter text-zinc-800 dark:text-white truncate">
