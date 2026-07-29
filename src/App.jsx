@@ -7,7 +7,8 @@ import UpdateModal from './components/UpdateModal';
 import { INITIAL_DATA_REFINED } from './data/initialData';
 import { translations, translateText } from './data/translations';
 
-const CURRENT_CODE_VERSION = '2.1.3';
+/* global __APP_VERSION__ */
+const CURRENT_CODE_VERSION = typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : 'dev';
 
 const mergeData = (localSectors, defaultSectors) => {
     const isCustomId = (id) => {
@@ -116,6 +117,7 @@ const App = () => {
                 'baroid_calc_tabs_v6',
                 'baroid_calc_tabs_v5',
                 'baroid_calc_tabs_v4',
+                'baroid_calc_tabs_v3',
                 'baroid_treatment_config',
                 'baroid_hub_data_v6',
                 'baroid_hub_data_v5',
@@ -164,6 +166,9 @@ const App = () => {
     }, []);
 
     useEffect(() => {
+        // En desarrollo local no queremos alertar sobre actualizaciones
+        if (import.meta.env.DEV) return;
+
         const checkVersion = async () => {
             try {
                 // Fetch from the absolute base path to avoid relative trailing-slash issues

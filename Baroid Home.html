@@ -481,17 +481,26 @@
             // Treatment Visibility State (No reordering here as per user request)
             const [treatmentConfig, setTreatmentConfig] = useState(() => {
                 const saved = localStorage.getItem('baroid_treatment_config');
-                return saved ? JSON.parse(saved) : [
+                if (!saved) return [
                     { id: 'lime', label: 'Cal (Limpiar Carb.)', visible: true },
                     { id: 'sodaAsh', label: 'Soda Ash (Rem. Ca++)', visible: true },
                     { id: 'sodiumBicarb', label: 'Bicarb. (Rem. Ca++)', visible: true }
                 ];
+                try {
+                    return JSON.parse(saved).filter(t => t.id !== 'formulation');
+                } catch (e) {
+                    return [
+                        { id: 'lime', label: 'Cal (Limpiar Carb.)', visible: true },
+                        { id: 'sodaAsh', label: 'Soda Ash (Rem. Ca++)', visible: true },
+                        { id: 'sodiumBicarb', label: 'Bicarb. (Rem. Ca++)', visible: true }
+                    ];
+                }
             });
 
             // Tabs Configuration State (Order and Visibility)
             const [tabsConfig, setTabsConfig] = useState(() => {
                 const saved = localStorage.getItem('baroid_calc_tabs_v3');
-                return saved ? JSON.parse(saved) : [
+                const defaultTabs = [
                     { id: 'conv', label: 'Conversor de Unidades', icon: 'repeat', visible: true },
                     { id: 'barite', label: 'Ajuste de Densidad', icon: 'arrow-up-circle', visible: true },
                     { id: 'mixing', label: 'Mezcla (Balance Masa)', icon: 'blend', visible: true },
@@ -501,6 +510,19 @@
                     { id: 'fit', label: 'Integridad (FIT)', icon: 'shield-check', visible: true },
                     { id: 'pfmf', label: 'Pf/Mf & Tratamiento', icon: 'beaker', visible: true }
                 ];
+                if (!saved) return defaultTabs;
+                try {
+                    const parsed = JSON.parse(saved).filter(t => t.id !== 'formulation');
+                    const merged = [...parsed];
+                    defaultTabs.forEach(defTab => {
+                        if (!merged.some(t => t.id === defTab.id)) {
+                            merged.push(defTab);
+                        }
+                    });
+                    return merged;
+                } catch (e) {
+                    return defaultTabs;
+                }
             });
 
             useEffect(() => {
@@ -4172,7 +4194,7 @@
 
                     <button onClick={() => { setActiveSector('formulation'); setSearchQuery(''); }} className={`w-full flex items-center gap-4 px-4 py-4 rounded-xl text-sm font-semibold transition-all hover:bg-zinc-50 dark:hover:bg-slate-800/50 ${activeSector === 'formulation' && !searchQuery ? 'sidebar-item-active shadow-lg' : 'text-zinc-600 dark:text-zinc-400'}`}>
                         <Icon name="beaker" size={18} />
-                        <span className="truncate">FormulaciÃ³n Fluidos</span>
+                        <span className="truncate">Formulación de Fluidos</span>
                     </button>
                     <div className="h-[1px] bg-zinc-100 dark:bg-zinc-800 my-4 mx-4"></div>
                     <p className="text-[10px] text-zinc-400 font-black uppercase tracking-[0.2em] ml-4 mb-2">SECTORES</p>
@@ -5253,13 +5275,20 @@
                     const keysToRemove = [
                         'baroid_piletas_v8',
                         'baroid_fluid_systems_v4',
+                        'baroid_calc_tabs_v7',
+                        'baroid_calc_tabs_v6',
+                        'baroid_calc_tabs_v5',
+                        'baroid_calc_tabs_v4',
                         'baroid_calc_tabs_v3',
                         'baroid_treatment_config',
+                        'baroid_hub_data_v6',
                         'baroid_hub_data_v5',
                         'baroid_calc_tabs_v2',
                         'baroid_card_size',
                         'baroid_dark_mode',
-                        'baroid_notes'
+                        'baroid_notes',
+                        'baroid_products_inventory_v2',
+                        'baroid_inventory_entries_v1'
                     ];
                     keysToRemove.forEach(k => localStorage.removeItem(k));
                     window.location.reload();
