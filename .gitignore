@@ -7,3 +7,7 @@ dist/
 
 # Ignore the Vite subproject folder
 Baroid_PWA/
+
+# Agent files
+task.md
+walkthrough.md
