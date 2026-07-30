@@ -60,18 +60,18 @@ const FluidFormulation = ({ isEditing, lang }) => {
 
       if (newMode === 'metric') {
         if (volFinalVal > 0) newVolFinal = (volFinalVal * 0.158987).toFixed(2);
-        if (densFinalVal > 0) newDensFinal = (densFinalVal / 8.33).toFixed(2);
+        if (densFinalVal > 0) newDensFinal = Math.round(densFinalVal * 119.826).toString();
         if (saltConcVal > 0) newSaltConc = (saltConcVal * 2.853).toFixed(1);
-        if (wbmD1Val > 0) newWbmD1 = (wbmD1Val / 8.33).toFixed(2);
-        if (wbmD2Val > 0) newWbmD2 = (wbmD2Val / 8.33).toFixed(2);
+        if (wbmD1Val > 0) newWbmD1 = Math.round(wbmD1Val * 119.826).toString();
+        if (wbmD2Val > 0) newWbmD2 = Math.round(wbmD2Val * 119.826).toString();
         if (wbmV1Val > 0) newWbmV1 = (wbmV1Val * 0.158987).toFixed(2);
         if (wbmV2Val > 0) newWbmV2 = (wbmV2Val * 0.158987).toFixed(2);
       } else {
         if (volFinalVal > 0) newVolFinal = (volFinalVal / 0.158987).toFixed(0);
-        if (densFinalVal > 0) newDensFinal = (densFinalVal * 8.33).toFixed(2);
+        if (densFinalVal > 0) newDensFinal = (densFinalVal / 119.826).toFixed(2);
         if (saltConcVal > 0) newSaltConc = (saltConcVal / 2.853).toFixed(1);
-        if (wbmD1Val > 0) newWbmD1 = (wbmD1Val * 8.33).toFixed(2);
-        if (wbmD2Val > 0) newWbmD2 = (wbmD2Val * 8.33).toFixed(2);
+        if (wbmD1Val > 0) newWbmD1 = (wbmD1Val / 119.826).toFixed(2);
+        if (wbmD2Val > 0) newWbmD2 = (wbmD2Val / 119.826).toFixed(2);
         if (wbmV1Val > 0) newWbmV1 = (wbmV1Val / 0.158987).toFixed(0);
         if (wbmV2Val > 0) newWbmV2 = (wbmV2Val / 0.158987).toFixed(0);
       }
@@ -237,7 +237,7 @@ const FluidFormulation = ({ isEditing, lang }) => {
     let df = df_input;
     if (unitMode === 'metric') {
       vf = vf_input * 6.28981; // m³ to bbl
-      df = df_input * 8.33;    // SG to ppg
+      df = df_input / 119.826;  // g/L to ppg
     }
     
     if (formType === 'obm') {
@@ -397,7 +397,7 @@ const FluidFormulation = ({ isEditing, lang }) => {
         fTotal_m3: F_total * 0.158987,
         gTotal: G_total,
         dFaseFluida,
-        dFaseFluida_sg: dFaseFluida / 8.33,
+        dFaseFluida_gL: dFaseFluida * 119.826,
         volWM,
         volWM_m3: volWM * 0.158987,
         massWM,
@@ -423,8 +423,8 @@ const FluidFormulation = ({ isEditing, lang }) => {
       let d1 = parseFloat(formSystem.wbmD1) || 0;
       let d2 = parseFloat(formSystem.wbmD2) || 0;
       if (unitMode === 'metric') {
-        d1 = d1 * 8.33; // SG to ppg
-        d2 = d2 * 8.33; // SG to ppg
+        d1 = d1 / 119.826; // g/L to ppg
+        d2 = d2 / 119.826; // g/L to ppg
       }
       
       const wbmMode = formSystem.wbmMode;
@@ -623,7 +623,7 @@ const FluidFormulation = ({ isEditing, lang }) => {
           vc_m3: V_c * 0.158987,
           gTotal: G_total,
           vf: unitMode === 'metric' ? vFinalCalculated * 0.158987 : vFinalCalculated,
-          df: unitMode === 'metric' ? dFinalCalculated / 8.33 : dFinalCalculated,
+          df: unitMode === 'metric' ? dFinalCalculated * 119.826 : dFinalCalculated,
           vf_bbl: vFinalCalculated,
           df_ppg: dFinalCalculated,
           d1: parseFloat(formSystem.wbmD1) || 0,
@@ -689,14 +689,14 @@ const FluidFormulation = ({ isEditing, lang }) => {
                     </div>
                     <div>
                       <label className="text-[11px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-1.5 block">
-                        {t.formFinalDensity} (Df - {unitMode === 'field' ? 'ppg' : 'SG'})
+                        {t.formFinalDensity} (Df - {unitMode === 'field' ? 'ppg' : 'g/L'})
                       </label>
                       <input
                         type="number"
                         value={formSystem.densFinal}
                         onChange={e => setFormSystem({ ...formSystem, densFinal: e.target.value })}
                         className="w-full input-style text-lg font-bold bg-yellow-500/5 focus:bg-white"
-                        placeholder={unitMode === 'field' ? "12.0" : "1.44"}
+                        placeholder={unitMode === 'field' ? "12.0" : "1440"}
                         step="0.01"
                       />
                     </div>
@@ -994,38 +994,38 @@ const FluidFormulation = ({ isEditing, lang }) => {
                       <div className="grid grid-cols-3 gap-3">
                         <div>
                           <label className="text-[10px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-tight mb-1 block">
-                            Df ({unitMode === 'field' ? 'ppg' : 'SG'})
+                            Df ({unitMode === 'field' ? 'ppg' : 'g/L'})
                           </label>
                           <input
                             type="number"
                             value={formSystem.densFinal}
                             onChange={e => setFormSystem({ ...formSystem, densFinal: e.target.value })}
                             className="w-full input-style text-sm font-bold bg-yellow-500/5 focus:bg-white text-center"
-                            placeholder={unitMode === 'field' ? "11.5" : "1.38"}
+                            placeholder={unitMode === 'field' ? "11.5" : "1380"}
                           />
                         </div>
                         <div>
                           <label className="text-[10px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-tight mb-1 block">
-                            D1 ({unitMode === 'field' ? 'ppg' : 'SG'})
+                            D1 ({unitMode === 'field' ? 'ppg' : 'g/L'})
                           </label>
                           <input
                             type="number"
                             value={formSystem.wbmD1}
                             onChange={e => setFormSystem({ ...formSystem, wbmD1: e.target.value })}
                             className="w-full input-style text-sm font-bold bg-yellow-500/5 focus:bg-white text-center"
-                            placeholder={unitMode === 'field' ? "12.5" : "1.50"}
+                            placeholder={unitMode === 'field' ? "12.5" : "1500"}
                           />
                         </div>
                         <div>
                           <label className="text-[10px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-tight mb-1 block">
-                            D2 ({unitMode === 'field' ? 'ppg' : 'SG'})
+                            D2 ({unitMode === 'field' ? 'ppg' : 'g/L'})
                           </label>
                           <input
                             type="number"
                             value={formSystem.wbmD2}
                             onChange={e => setFormSystem({ ...formSystem, wbmD2: e.target.value })}
                             className="w-full input-style text-sm font-bold bg-yellow-500/5 focus:bg-white text-center"
-                            placeholder={unitMode === 'field' ? "8.33" : "1.00"}
+                            placeholder={unitMode === 'field' ? "8.33" : "1000"}
                           />
                         </div>
                       </div>
@@ -1048,14 +1048,14 @@ const FluidFormulation = ({ isEditing, lang }) => {
                         </div>
                         <div>
                           <label className="text-[11px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-1.5 block">
-                            D1 ({unitMode === 'field' ? 'ppg' : 'SG'})
+                            D1 ({unitMode === 'field' ? 'ppg' : 'g/L'})
                           </label>
                           <input
                             type="number"
                             value={formSystem.wbmD1}
                             onChange={e => setFormSystem({ ...formSystem, wbmD1: e.target.value })}
                             className="w-full input-style text-lg font-bold bg-yellow-500/5 focus:bg-white"
-                            placeholder={unitMode === 'field' ? "12.5" : "1.50"}
+                            placeholder={unitMode === 'field' ? "12.5" : "1500"}
                           />
                         </div>
                       </div>
@@ -1074,14 +1074,14 @@ const FluidFormulation = ({ isEditing, lang }) => {
                         </div>
                         <div>
                           <label className="text-[11px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-1.5 block">
-                            D2 ({unitMode === 'field' ? 'ppg' : 'SG'})
+                            D2 ({unitMode === 'field' ? 'ppg' : 'g/L'})
                           </label>
                           <input
                             type="number"
                             value={formSystem.wbmD2}
                             onChange={e => setFormSystem({ ...formSystem, wbmD2: e.target.value })}
                             className="w-full input-style text-lg font-bold bg-yellow-500/5 focus:bg-white"
-                            placeholder={unitMode === 'field' ? "8.33" : "1.00"}
+                            placeholder={unitMode === 'field' ? "8.33" : "1000"}
                           />
                         </div>
                       </div>
@@ -1273,9 +1273,9 @@ const FluidFormulation = ({ isEditing, lang }) => {
                           </span>
                           <div className="flex items-baseline gap-1.5">
                             <h5 className="text-3xl font-black italic text-halliburton-red">
-                              {unitMode === 'field' ? res.dFaseFluida.toFixed(2) : res.dFaseFluida_sg.toFixed(2)}
+                              {unitMode === 'field' ? res.dFaseFluida.toFixed(2) : res.dFaseFluida_gL.toFixed(0)}
                             </h5>
-                            <span className="text-xs font-bold opacity-40 uppercase">{unitMode === 'field' ? 'PPG' : 'SG'}</span>
+                            <span className="text-xs font-bold opacity-40 uppercase">{unitMode === 'field' ? 'PPG' : 'g/L'}</span>
                           </div>
                         </div>
                         <div className="p-6 bg-white/5 rounded-[2rem] border border-white/10">
@@ -1334,9 +1334,9 @@ const FluidFormulation = ({ isEditing, lang }) => {
                           </span>
                           <div className="flex items-baseline gap-1.5">
                             <h5 className="text-3xl font-black italic text-zinc-200">
-                              {res.df.toFixed(2)}
+                              {unitMode === 'field' ? res.df.toFixed(2) : res.df.toFixed(0)}
                             </h5>
-                            <span className="text-xs font-bold opacity-40 uppercase">{unitMode === 'field' ? 'PPG' : 'SG'}</span>
+                            <span className="text-xs font-bold opacity-40 uppercase">{unitMode === 'field' ? 'PPG' : 'g/L'}</span>
                           </div>
                         </div>
                       </>
@@ -1346,7 +1346,7 @@ const FluidFormulation = ({ isEditing, lang }) => {
                   {/* Breakdown & Packaging Recipe */}
                   <div className="bg-white/5 p-6 rounded-[2rem] border border-white/10 space-y-4">
                     <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 block border-b border-white/5 pb-2">
-                      Receta de Mezclado Comercial ({unitMode === 'field' ? 'LBS' : 'KG'} & {unitMode === 'field' ? 'BBL' : 'M³'})
+                      Receta de Mezclado Comercial ({unitMode === 'field' ? 'LBS / GAL' : 'KG / LT'} & {unitMode === 'field' ? 'BBL' : 'M³'})
                     </span>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-bold uppercase tracking-wider">
                       {res.type === 'obm' ? (
@@ -1357,16 +1357,16 @@ const FluidFormulation = ({ isEditing, lang }) => {
                             <div className="flex justify-between items-baseline">
                               {unitMode === 'field' ? (
                                 <>
-                                  <span className="text-white text-base">{res.volNap.toFixed(2)} bbl <small className="text-[9px] text-zinc-500 font-mono">({res.volNap_m3.toFixed(2)} m³)</small></span>
+                                  <span className="text-white text-base">{res.volNap.toFixed(2)} bbl</span>
                                   <span className="text-zinc-400 text-[10px] font-mono">
-                                    {((res.volNap * 42 * (parseFloat(formSystem.sgOil) * 8.345))).toFixed(0)} lb ({((res.volNap * 42 * (parseFloat(formSystem.sgOil) * 8.345)) / 2.20462).toFixed(0)} kg)
+                                    {((res.volNap * 42 * (parseFloat(formSystem.sgOil) * 8.345))).toFixed(0)} lb
                                   </span>
                                 </>
                               ) : (
                                 <>
-                                  <span className="text-white text-base">{res.volNap_m3.toFixed(2)} m³ <small className="text-[9px] text-zinc-500 font-mono">({res.volNap.toFixed(2)} bbl)</small></span>
+                                  <span className="text-white text-base">{res.volNap_m3.toFixed(2)} m³</span>
                                   <span className="text-zinc-400 text-[10px] font-mono">
-                                    {((res.volNap * 42 * (parseFloat(formSystem.sgOil) * 8.345)) / 2.20462).toFixed(0)} kg ({((res.volNap * 42 * (parseFloat(formSystem.sgOil) * 8.345))).toFixed(0)} lb)
+                                    {((res.volNap * 42 * (parseFloat(formSystem.sgOil) * 8.345)) / 2.20462).toFixed(0)} kg
                                   </span>
                                 </>
                               )}
@@ -1379,16 +1379,16 @@ const FluidFormulation = ({ isEditing, lang }) => {
                             <div className="flex justify-between items-baseline">
                               {unitMode === 'field' ? (
                                 <>
-                                  <span className="text-white text-base">{res.volWater.toFixed(2)} bbl <small className="text-[9px] text-zinc-500 font-mono">({res.volWater_m3.toFixed(2)} m³)</small></span>
+                                  <span className="text-white text-base">{res.volWater.toFixed(2)} bbl</span>
                                   <span className="text-zinc-400 text-[10px] font-mono">
-                                    {((res.volWater * 42 * 8.33)).toFixed(0)} lb ({((res.volWater * 42 * 8.33) / 2.20462).toFixed(0)} kg)
+                                    {((res.volWater * 42 * 8.33)).toFixed(0)} lb
                                   </span>
                                 </>
                               ) : (
                                 <>
-                                  <span className="text-white text-base">{res.volWater_m3.toFixed(2)} m³ <small className="text-[9px] text-zinc-500 font-mono">({res.volWater.toFixed(2)} bbl)</small></span>
+                                  <span className="text-white text-base">{res.volWater_m3.toFixed(2)} m³</span>
                                   <span className="text-zinc-400 text-[10px] font-mono">
-                                    {((res.volWater * 42 * 8.33) / 2.20462).toFixed(0)} kg ({((res.volWater * 42 * 8.33)).toFixed(0)} lb)
+                                    {((res.volWater * 42 * 8.33) / 2.20462).toFixed(0)} kg
                                   </span>
                                 </>
                               )}
@@ -1401,12 +1401,12 @@ const FluidFormulation = ({ isEditing, lang }) => {
                             <div className="flex justify-between items-baseline">
                               {unitMode === 'field' ? (
                                 <>
-                                  <span className="text-white text-base">{res.massSalt.toFixed(1)} lb <small className="text-[9px] text-zinc-500 font-mono">({res.massSalt_kg.toFixed(1)} kg)</small></span>
+                                  <span className="text-white text-base">{res.massSalt.toFixed(1)} lb</span>
                                   <span className="inline-block px-2.5 py-1 bg-red-500/10 border border-red-500/20 text-red-400 rounded-lg text-[9px] font-mono font-bold">~{res.sacksSalt} sacos (50 lb)</span>
                                 </>
                               ) : (
                                 <>
-                                  <span className="text-white text-base">{res.massSalt_kg.toFixed(1)} kg <small className="text-[9px] text-zinc-500 font-mono">({res.massSalt.toFixed(1)} lb)</small></span>
+                                  <span className="text-white text-base">{res.massSalt_kg.toFixed(1)} kg</span>
                                   <span className="inline-block px-2.5 py-1 bg-red-500/10 border border-red-500/20 text-red-400 rounded-lg text-[9px] font-mono font-bold">~{res.sacksSalt} sacos (25 kg)</span>
                                 </>
                               )}
@@ -1419,17 +1419,17 @@ const FluidFormulation = ({ isEditing, lang }) => {
                             <div className="flex justify-between items-baseline">
                               {unitMode === 'field' ? (
                                 <>
-                                  <span className="text-white text-base">{res.massWM.toFixed(0)} lb <small className="text-[9px] text-zinc-500 font-mono">({res.massWM_kg.toFixed(0)} kg)</small></span>
+                                  <span className="text-white text-base">{res.massWM.toFixed(0)} lb</span>
                                   <div className="text-right flex flex-col items-end gap-1">
-                                    <span className="text-[9px] text-zinc-400 block font-mono">{res.volWM.toFixed(2)} bbl ({res.volWM_m3.toFixed(2)} m³)</span>
+                                    <span className="text-[9px] text-zinc-400 block font-mono">{res.volWM.toFixed(2)} bbl</span>
                                     <span className="inline-block px-2.5 py-1 bg-orange-500/10 border border-orange-500/20 text-orange-400 rounded-lg text-[9px] font-mono font-bold">~{res.sacksWM} sacos (100 lb)</span>
                                   </div>
                                 </>
                               ) : (
                                 <>
-                                  <span className="text-white text-base">{res.massWM_kg.toFixed(0)} kg <small className="text-[9px] text-zinc-500 font-mono">({res.massWM.toFixed(0)} lb)</small></span>
+                                  <span className="text-white text-base">{res.massWM_kg.toFixed(0)} kg</span>
                                   <div className="text-right flex flex-col items-end gap-1">
-                                    <span className="text-[9px] text-zinc-400 block font-mono">{res.volWM_m3.toFixed(2)} m³ ({res.volWM.toFixed(2)} bbl)</span>
+                                    <span className="text-[9px] text-zinc-400 block font-mono">{res.volWM_m3.toFixed(2)} m³</span>
                                     <span className="inline-block px-2.5 py-1 bg-orange-500/10 border border-orange-500/20 text-orange-400 rounded-lg text-[9px] font-mono font-bold">~{res.sacksWM} sacos (50 kg)</span>
                                   </div>
                                 </>
@@ -1444,13 +1444,10 @@ const FluidFormulation = ({ isEditing, lang }) => {
                             <span className="text-zinc-400 text-[10px]">Lodo Base 1</span>
                             <div className="flex justify-between items-baseline">
                               <span className="text-white text-base">
-                                {res.v1.toFixed(2)} {unitMode === 'field' ? 'bbl' : 'm³'}{' '}
-                                <small className="text-[9px] text-zinc-500 font-mono">
-                                  ({(unitMode === 'field' ? res.v1 * 0.158987 : res.v1_bbl).toFixed(2)} {unitMode === 'field' ? 'm³' : 'bbl'})
-                                </small>
+                                {res.v1.toFixed(2)} {unitMode === 'field' ? 'bbl' : 'm³'}
                               </span>
                               <span className="text-zinc-400 text-[10px] font-mono">
-                                D: {res.d1.toFixed(2)} {unitMode === 'field' ? 'ppg' : 'SG'}
+                                D: {unitMode === 'field' ? res.d1.toFixed(2) + ' ppg' : res.d1.toFixed(0) + ' g/L'}
                               </span>
                             </div>
                           </div>
@@ -1460,13 +1457,10 @@ const FluidFormulation = ({ isEditing, lang }) => {
                             <span className="text-zinc-400 text-[10px]">Diluyente 2</span>
                             <div className="flex justify-between items-baseline">
                               <span className="text-white text-base">
-                                {res.v2.toFixed(2)} {unitMode === 'field' ? 'bbl' : 'm³'}{' '}
-                                <small className="text-[9px] text-zinc-500 font-mono">
-                                  ({(unitMode === 'field' ? res.v2 * 0.158987 : res.v2_bbl).toFixed(2)} {unitMode === 'field' ? 'm³' : 'bbl'})
-                                </small>
+                                {res.v2.toFixed(2)} {unitMode === 'field' ? 'bbl' : 'm³'}
                               </span>
                               <span className="text-zinc-400 text-[10px] font-mono">
-                                D: {res.d2.toFixed(2)} {unitMode === 'field' ? 'ppg' : 'SG'}
+                                D: {unitMode === 'field' ? res.d2.toFixed(2) + ' ppg' : res.d2.toFixed(0) + ' g/L'}
                               </span>
                             </div>
                           </div>
@@ -1476,21 +1470,17 @@ const FluidFormulation = ({ isEditing, lang }) => {
                       {/* Chemical Additives */}
                       {res.finalAdditives.map((add, idx) => {
                         let massPrimary = "";
-                        let massSecondary = "";
                         let sacksLabel = "";
 
                         if (add.isLiquid) {
                           massPrimary = unitMode === 'field' ? `${add.totalVal.toFixed(1)} gal` : `${add.totalValMetric.toFixed(1)} lt`;
-                          massSecondary = unitMode === 'field' ? `${add.totalValMetric.toFixed(1)} lt` : `${add.totalVal.toFixed(1)} gal`;
                           sacksLabel = unitMode === 'field' ? `~${add.sacks} envases (${add.pkgSize} gal)` : `~${add.sacks} envases (${add.pkgSize} lt)`;
                         } else {
                           massPrimary = unitMode === 'field' ? `${add.totalLbs.toFixed(1)} lb` : `${add.totalKg.toFixed(1)} kg`;
-                          massSecondary = unitMode === 'field' ? `${add.totalKg.toFixed(1)} kg` : `${add.totalLbs.toFixed(1)} lb`;
                           sacksLabel = unitMode === 'field' ? `~${add.sacks} envases (${add.pkgSize} lb)` : `~${add.sacks} envases (${add.pkgSize} kg)`;
                         }
 
                         const volDispPrimary = unitMode === 'field' ? `${add.volDisp.toFixed(4)} bbl` : `${(add.volDisp * 0.158987).toFixed(4)} m³`;
-                        const volDispSecondary = unitMode === 'field' ? `${(add.volDisp * 0.158987).toFixed(4)} m³` : `${add.volDisp.toFixed(4)} bbl`;
                         
                         return (
                           <div key={idx} className="p-4 bg-white/5 border border-white/10 rounded-2xl col-span-1 md:col-span-2 flex flex-col justify-between space-y-2">
@@ -1500,10 +1490,10 @@ const FluidFormulation = ({ isEditing, lang }) => {
                             </div>
                             <div className="flex justify-between items-baseline">
                               <span className="text-white text-base">
-                                {massPrimary} <small className="text-[9px] text-zinc-500 font-mono">({massSecondary})</small>
+                                {massPrimary}
                               </span>
                               <div className="text-right flex flex-col items-end gap-1">
-                                <span className="text-[9px] text-zinc-400 block font-mono">Despl. {volDispPrimary} ({volDispSecondary})</span>
+                                <span className="text-[9px] text-zinc-400 block font-mono">Despl. {volDispPrimary}</span>
                                 <span className="inline-block px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-lg text-[9px] font-mono font-bold">{sacksLabel}</span>
                               </div>
                             </div>
