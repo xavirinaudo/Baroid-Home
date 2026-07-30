@@ -4182,6 +4182,11 @@
                         <span className="truncate">Calculadora Fluidos</span>
                     </button>
 
+                    <button onClick={() => { setActiveSector('formulation'); setSearchQuery(''); }} className={`w-full flex items-center gap-4 px-4 py-4 rounded-xl text-sm font-semibold transition-all hover:bg-zinc-50 dark:hover:bg-slate-800/50 ${activeSector === 'formulation' && !searchQuery ? 'sidebar-item-active shadow-lg' : 'text-zinc-600 dark:text-zinc-400'}`}>
+                        <Icon name="beaker" size={18} />
+                        <span className="truncate">Formulación de Fluidos</span>
+                    </button>
+
                     <button onClick={() => { setActiveSector('inventory'); setSearchQuery(''); }} className={`w-full flex items-center gap-4 px-4 py-4 rounded-xl text-sm font-semibold transition-all hover:bg-zinc-50 dark:hover:bg-slate-800/50 ${activeSector === 'inventory' && !searchQuery ? 'sidebar-item-active shadow-lg' : 'text-zinc-600 dark:text-zinc-400'}`}>
                         <Icon name="clipboard-check" size={18} />
                         <span className="truncate">Conciliación Inventario</span>
@@ -4190,11 +4195,6 @@
                     <button onClick={() => { setActiveSector('piletas'); setSearchQuery(''); }} className={`w-full flex items-center gap-4 px-4 py-4 rounded-xl text-sm font-semibold transition-all hover:bg-zinc-50 dark:hover:bg-slate-800/50 ${activeSector === 'piletas' && !searchQuery ? 'sidebar-item-active shadow-lg' : 'text-zinc-600 dark:text-zinc-400'}`}>
                         <Icon name="layout" size={18} />
                         <span className="truncate">Sistema de Piletas</span>
-                    </button>
-
-                    <button onClick={() => { setActiveSector('formulation'); setSearchQuery(''); }} className={`w-full flex items-center gap-4 px-4 py-4 rounded-xl text-sm font-semibold transition-all hover:bg-zinc-50 dark:hover:bg-slate-800/50 ${activeSector === 'formulation' && !searchQuery ? 'sidebar-item-active shadow-lg' : 'text-zinc-600 dark:text-zinc-400'}`}>
-                        <Icon name="beaker" size={18} />
-                        <span className="truncate">Formulación de Fluidos</span>
                     </button>
                     <div className="h-[1px] bg-zinc-100 dark:bg-zinc-800 my-4 mx-4"></div>
                     <p className="text-[10px] text-zinc-400 font-black uppercase tracking-[0.2em] ml-4 mb-2">SECTORES</p>
@@ -4304,11 +4304,11 @@
                             <div className="flex items-center gap-3">
                                 <div className="w-1.5 h-6 bg-halliburton-red rounded-full"></div>
                                 <span className="text-[12px] font-bold text-halliburton-red uppercase tracking-widest">
-                                    {activeSector === 'favorites' ? 'Acceso Rápido' : (activeSector === 'calculator' ? 'Ingeniería' : (activeSector === 'inventory' ? 'Auditoría' : (activeSector === 'piletas' ? 'Volumen Activo' : (sectors.find(s => s.id === activeSector)?.name || 'Explorar'))))}
+                                    {activeSector === 'favorites' ? 'Acceso Rápido' : (activeSector === 'calculator' ? 'Ingeniería' : (activeSector === 'formulation' ? 'Ingeniería' : (activeSector === 'inventory' ? 'Auditoría' : (activeSector === 'piletas' ? 'Volumen Activo' : (sectors.find(s => s.id === activeSector)?.name || 'Explorar')))))}
                                 </span>
                             </div>
                             <h2 className="text-5xl font-black uppercase italic leading-none tracking-tighter text-halliburton-dark dark:text-white truncate">
-                                {activeSector === 'favorites' ? 'Mis Favoritos' : (activeSector === 'calculator' ? 'Calculadora de Fluidos' : (activeSector === 'inventory' ? 'Conciliación de Inventario' : (activeSector === 'piletas' ? 'Sistema de Piletas' : (sectors.find(s => s.id === activeSector)?.name || 'Directorio'))))}
+                                {activeSector === 'favorites' ? 'Mis Favoritos' : (activeSector === 'calculator' ? 'Calculadora de Fluidos' : (activeSector === 'formulation' ? 'Formulación de Fluidos' : (activeSector === 'inventory' ? 'Conciliación de Inventario' : (activeSector === 'piletas' ? 'Sistema de Piletas' : (sectors.find(s => s.id === activeSector)?.name || 'Directorio')))))}
                             </h2>
                         </div>
                     </header>

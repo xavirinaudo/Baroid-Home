@@ -205,6 +205,7 @@ export const translations = {
 
     // Fluid Calculator General
     engineeringFluids: "Ingeniería de Fluidos",
+    fluidCalculatorTitle: "Calculadora de Fluidos",
     solutionsFluids: "Soluciones de Fluidos",
     unitField: "Campo",
     unitMetric: "Métrico",
@@ -569,6 +570,7 @@ export const translations = {
 
     // Fluid Calculator General
     engineeringFluids: "Fluid Engineering",
+    fluidCalculatorTitle: "Fluid Calculator",
     solutionsFluids: "Fluid Solutions",
     unitField: "Field",
     unitMetric: "Metric",
