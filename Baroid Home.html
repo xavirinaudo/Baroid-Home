@@ -4936,16 +4936,115 @@ const FluidFormulation = ({ isEditing, lang }) => {
   });
 
   const [obmAdditives, setObmAdditives] = useState([
-    { id: '1', name: 'GELTONE II (Clay)', sg: '1.70', concentration: '6.0', packageSize: '50' },
-    { id: '2', name: 'EZ MUL (Emulsifier)', sg: '0.98', concentration: '8.0', packageSize: '400' },
-    { id: '3', name: 'LIME (Alkalinity)', sg: '2.20', concentration: '4.0', packageSize: '50' }
+    { id: '1', name: 'GELTONE II (Clay)', sg: '1.70', concentration: '6.0', packageSize: '50', isLiquid: false },
+    { id: '2', name: 'EZ MUL (Emulsifier)', sg: '0.98', concentration: '8.0', packageSize: '400', isLiquid: true },
+    { id: '3', name: 'LIME (Alkalinity)', sg: '2.20', concentration: '4.0', packageSize: '50', isLiquid: false }
   ]);
 
   const [wbmAdditives, setWbmAdditives] = useState([
-    { id: '1', name: 'AQUAGEL (Bentonite)', sg: '2.60', concentration: '15.0', packageSize: '100' },
-    { id: '2', name: 'BARAZAN D (Xanthan)', sg: '1.50', concentration: '1.5', packageSize: '50' },
-    { id: '3', name: 'SODA ASH', sg: '2.50', concentration: '0.5', packageSize: '50' }
+    { id: '1', name: 'AQUAGEL (Bentonite)', sg: '2.60', concentration: '15.0', packageSize: '100', isLiquid: false },
+    { id: '2', name: 'BARAZAN D (Xanthan)', sg: '1.50', concentration: '1.5', packageSize: '50', isLiquid: false },
+    { id: '3', name: 'SODA ASH', sg: '2.50', concentration: '0.5', packageSize: '50', isLiquid: false }
   ]);
+
+  const handleUnitModeChange = (newMode) => {
+    if (newMode === unitMode) return;
+
+    setFormSystem(prev => {
+      const volFinalVal = parseFloat(prev.volFinal) || 0;
+      const densFinalVal = parseFloat(prev.densFinal) || 0;
+      const saltConcVal = parseFloat(prev.saltConc) || 0;
+      const wbmD1Val = parseFloat(prev.wbmD1) || 0;
+      const wbmD2Val = parseFloat(prev.wbmD2) || 0;
+      const wbmV1Val = parseFloat(prev.wbmV1) || 0;
+      const wbmV2Val = parseFloat(prev.wbmV2) || 0;
+
+      let newVolFinal = prev.volFinal;
+      let newDensFinal = prev.densFinal;
+      let newSaltConc = prev.saltConc;
+      let newWbmD1 = prev.wbmD1;
+      let newWbmD2 = prev.wbmD2;
+      let newWbmV1 = prev.wbmV1;
+      let newWbmV2 = prev.wbmV2;
+
+      if (newMode === 'metric') {
+        if (volFinalVal > 0) newVolFinal = (volFinalVal * 0.158987).toFixed(2);
+        if (densFinalVal > 0) newDensFinal = (densFinalVal / 8.33).toFixed(2);
+        if (saltConcVal > 0) newSaltConc = (saltConcVal * 2.853).toFixed(1);
+        if (wbmD1Val > 0) newWbmD1 = (wbmD1Val / 8.33).toFixed(2);
+        if (wbmD2Val > 0) newWbmD2 = (wbmD2Val / 8.33).toFixed(2);
+        if (wbmV1Val > 0) newWbmV1 = (wbmV1Val * 0.158987).toFixed(2);
+        if (wbmV2Val > 0) newWbmV2 = (wbmV2Val * 0.158987).toFixed(2);
+      } else {
+        if (volFinalVal > 0) newVolFinal = (volFinalVal / 0.158987).toFixed(0);
+        if (densFinalVal > 0) newDensFinal = (densFinalVal * 8.33).toFixed(2);
+        if (saltConcVal > 0) newSaltConc = (saltConcVal / 2.853).toFixed(1);
+        if (wbmD1Val > 0) newWbmD1 = (wbmD1Val * 8.33).toFixed(2);
+        if (wbmD2Val > 0) newWbmD2 = (wbmD2Val * 8.33).toFixed(2);
+        if (wbmV1Val > 0) newWbmV1 = (wbmV1Val / 0.158987).toFixed(0);
+        if (wbmV2Val > 0) newWbmV2 = (wbmV2Val / 0.158987).toFixed(0);
+      }
+
+      return {
+        ...prev,
+        volFinal: newVolFinal,
+        densFinal: newDensFinal,
+        saltConc: newSaltConc,
+        wbmD1: newWbmD1,
+        wbmD2: newWbmD2,
+        wbmV1: newWbmV1,
+        wbmV2: newWbmV2
+      };
+    });
+
+    setObmAdditives(prev =>
+      prev.map(add => {
+        const conc = parseFloat(add.concentration) || 0;
+        const pkg = parseFloat(add.packageSize) || 0;
+        let newConc = add.concentration;
+        let newPkg = add.packageSize;
+
+        if (newMode === 'metric') {
+          if (conc > 0) newConc = (conc * 2.853).toFixed(2);
+          if (pkg > 0) newPkg = Math.round(pkg / 2.20462).toString();
+        } else {
+          if (conc > 0) newConc = (conc / 2.853).toFixed(2);
+          if (pkg > 0) newPkg = Math.round(pkg * 2.20462).toString();
+        }
+
+        return {
+          ...add,
+          concentration: newConc,
+          packageSize: newPkg
+        };
+      })
+    );
+
+    setWbmAdditives(prev =>
+      prev.map(add => {
+        const conc = parseFloat(add.concentration) || 0;
+        const pkg = parseFloat(add.packageSize) || 0;
+        let newConc = add.concentration;
+        let newPkg = add.packageSize;
+
+        if (newMode === 'metric') {
+          if (conc > 0) newConc = (conc * 2.853).toFixed(2);
+          if (pkg > 0) newPkg = Math.round(pkg / 2.20462).toString();
+        } else {
+          if (conc > 0) newConc = (conc / 2.853).toFixed(2);
+          if (pkg > 0) newPkg = Math.round(pkg * 2.20462).toString();
+        }
+
+        return {
+          ...add,
+          concentration: newConc,
+          packageSize: newPkg
+        };
+      })
+    );
+
+    setUnitMode(newMode);
+  };
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text).then(() => {
@@ -4979,7 +5078,9 @@ const FluidFormulation = ({ isEditing, lang }) => {
         txt += `- Sal Seca: ${res.massSalt_kg.toFixed(2)} kg (~${res.sacksSalt} sacos de 25 kg)\n`;
         txt += `- Barita: ${res.massWM_kg.toFixed(2)} kg (~${res.sacksWM} sacos de 50 kg)\n`;
         res.finalAdditives.forEach(add => {
-          txt += `- ${add.name}: ${add.totalKg.toFixed(2)} kg (~${add.sacks} envases de ${add.pkgSize} kg) [Conc: ${add.concentration} kg/m³]\n`;
+          const valMetric = add.isLiquid ? add.totalValMetric : add.totalKg;
+          const uMetric = add.isLiquid ? 'lt' : 'kg';
+          txt += `- ${add.name}: ${valMetric.toFixed(2)} ${uMetric} (~${add.sacks} envases de ${add.pkgSize} ${uMetric}) [Conc: ${add.concentration} kg/m³]\n`;
         });
       } else {
         txt += `Volumen Final Target: ${res.vf.toFixed(2)} bbl\n`;
@@ -4996,7 +5097,9 @@ const FluidFormulation = ({ isEditing, lang }) => {
         txt += `- Sal Seca: ${res.massSalt.toFixed(2)} lbs (~${res.sacksSalt} sacos de 50 lbs)\n`;
         txt += `- Barita: ${res.massWM.toFixed(2)} lbs (~${res.sacksWM} sacos de 100 lbs)\n`;
         res.finalAdditives.forEach(add => {
-          txt += `- ${add.name}: ${add.totalLbs.toFixed(2)} lbs (~${add.sacks} envases de ${add.pkgSize} lbs) [Conc: ${add.concentration} ppb]\n`;
+          const valField = add.isLiquid ? add.totalVal : add.totalLbs;
+          const uField = add.isLiquid ? 'gal' : 'lbs';
+          txt += `- ${add.name}: ${valField.toFixed(2)} ${uField} (~${add.sacks} envases de ${add.pkgSize} ${uField}) [Conc: ${add.concentration} ppb]\n`;
         });
       }
     } else {
@@ -5006,8 +5109,6 @@ const FluidFormulation = ({ isEditing, lang }) => {
       const volUnit = isMetric ? "m³" : "bbl";
       const densUnit = isMetric ? "SG" : "ppg";
       const concUnit = isMetric ? "kg/m³" : "ppb";
-      const weightUnit = isMetric ? "kg" : "lbs";
-      const pkgUnit = isMetric ? "kg" : "lbs";
 
       if (res.mode === 'weights') {
         txt += `MODO: Calcular Volúmenes de Mezcla\n`;
@@ -5026,8 +5127,9 @@ const FluidFormulation = ({ isEditing, lang }) => {
       }
       txt += `RECETA DE ADITIVOS:\n`;
       res.finalAdditives.forEach(add => {
-        const massVal = isMetric ? add.totalKg : add.totalLbs;
-        txt += `- ${add.name}: ${massVal.toFixed(2)} ${weightUnit} (~${add.sacks} envases de ${add.pkgSize} ${pkgUnit}) [Conc: ${add.concentration} ${concUnit}]\n`;
+        const val = isMetric ? (add.isLiquid ? add.totalValMetric : add.totalKg) : (add.isLiquid ? add.totalVal : add.totalLbs);
+        const unit = isMetric ? (add.isLiquid ? 'lt' : 'kg') : (add.isLiquid ? 'gal' : 'lbs');
+        txt += `- ${add.name}: ${val.toFixed(2)} ${unit} (~${add.sacks} envases de ${add.pkgSize} ${unit}) [Conc: ${add.concentration} ${concUnit}]\n`;
       });
     }
     txt += `=========================================\n`;
@@ -5074,13 +5176,25 @@ const FluidFormulation = ({ isEditing, lang }) => {
       let F_total = 0; // bbl
       let G_total = 0; // bbl * ppg
       const abcAdditives = obmAdditives.map(add => {
-        const sg = parseFloat(add.sg) || 0;
+        const sg = parseFloat(add.sg) || 1.0;
         let conc = parseFloat(add.concentration) || 0;
-        let pkg = parseFloat(add.packageSize) || 50;
+        const pkgSizeVal = parseFloat(add.packageSize) || (add.isLiquid ? (unitMode === 'metric' ? 20 : 5) : (unitMode === 'metric' ? 25 : 50));
 
         if (unitMode === 'metric') {
           conc = conc / 2.853; // kg/m³ to ppb
-          pkg = pkg * 2.20462; // kg to lbs
+        }
+
+        let pkg = pkgSizeVal;
+        if (add.isLiquid) {
+          if (unitMode === 'metric') {
+            pkg = (pkgSizeVal / 3.78541) * sg * 8.345;
+          } else {
+            pkg = pkgSizeVal * sg * 8.345;
+          }
+        } else {
+          if (unitMode === 'metric') {
+            pkg = pkgSizeVal * 2.20462;
+          }
         }
 
         const ppgEq = sg * 8.345;
@@ -5140,17 +5254,47 @@ const FluidFormulation = ({ isEditing, lang }) => {
       const finalAdditives = abcAdditives.map(add => {
         const totalLbs = add.totalLbs;
         const totalKg = totalLbs / 2.20462;
-        const sacks = unitMode === 'metric'
-          ? Math.ceil(totalKg / (parseFloat(add.packageSize) || 25)) // package size is entered in kg
-          : Math.ceil(totalLbs / add.pkg);                           // in lb
+        const sgVal = parseFloat(add.sg) || 1.0;
+        
+        let totalVal = 0;
+        let totalValMetric = 0;
+        let unitLabelField = 'lb';
+        let unitLabelMetric = 'kg';
+        let sacks = 0;
+
+        if (add.isLiquid) {
+          const totalGal = totalLbs / (sgVal * 8.345);
+          const totalLiters = totalKg / sgVal;
+          totalVal = totalGal;
+          totalValMetric = totalLiters;
+          unitLabelField = 'gal';
+          unitLabelMetric = 'lt';
+          sacks = unitMode === 'metric'
+            ? Math.ceil(totalLiters / (parseFloat(add.packageSize) || 20))
+            : Math.ceil(totalGal / (parseFloat(add.pkg) || 5));
+        } else {
+          totalVal = totalLbs;
+          totalValMetric = totalKg;
+          unitLabelField = 'lb';
+          unitLabelMetric = 'kg';
+          sacks = unitMode === 'metric'
+            ? Math.ceil(totalKg / (parseFloat(add.packageSize) || 25))
+            : Math.ceil(totalLbs / (parseFloat(add.pkg) || 50));
+        }
+
         return {
           name: add.name,
+          isLiquid: add.isLiquid,
           concentration: add.concentration,
           totalLbs: totalLbs,
           totalKg: totalKg,
           volDisp: add.volDisp,
           sacks: sacks,
-          pkgSize: add.packageSize
+          pkgSize: add.packageSize,
+          totalVal,
+          totalValMetric,
+          unitLabelField,
+          unitLabelMetric
         };
       });
 
@@ -5198,13 +5342,25 @@ const FluidFormulation = ({ isEditing, lang }) => {
       let V_c = 0; // bbl
       let G_total = 0; // bbl * ppg
       const abcAdditives = wbmAdditives.map(add => {
-        const sg = parseFloat(add.sg) || 0;
+        const sg = parseFloat(add.sg) || 1.0;
         let conc = parseFloat(add.concentration) || 0;
-        let pkg = parseFloat(add.packageSize) || 50;
+        const pkgSizeVal = parseFloat(add.packageSize) || (add.isLiquid ? (unitMode === 'metric' ? 20 : 5) : (unitMode === 'metric' ? 25 : 50));
 
         if (unitMode === 'metric') {
           conc = conc / 2.853; // kg/m³ to ppb
-          pkg = pkg * 2.20462; // kg to lbs
+        }
+
+        let pkg = pkgSizeVal;
+        if (add.isLiquid) {
+          if (unitMode === 'metric') {
+            pkg = (pkgSizeVal / 3.78541) * sg * 8.345;
+          } else {
+            pkg = pkgSizeVal * sg * 8.345;
+          }
+        } else {
+          if (unitMode === 'metric') {
+            pkg = pkgSizeVal * 2.20462;
+          }
         }
 
         const ppgEq = sg * 8.345;
@@ -5242,17 +5398,47 @@ const FluidFormulation = ({ isEditing, lang }) => {
         const finalAdditives = abcAdditives.map(add => {
           const totalLbs = add.totalLbs;
           const totalKg = totalLbs / 2.20462;
-          const sacks = unitMode === 'metric'
-            ? Math.ceil(totalKg / (parseFloat(add.packageSize) || 25))
-            : Math.ceil(totalLbs / add.pkg);
+          const sgVal = parseFloat(add.sg) || 1.0;
+          
+          let totalVal = 0;
+          let totalValMetric = 0;
+          let unitLabelField = 'lb';
+          let unitLabelMetric = 'kg';
+          let sacks = 0;
+
+          if (add.isLiquid) {
+            const totalGal = totalLbs / (sgVal * 8.345);
+            const totalLiters = totalKg / sgVal;
+            totalVal = totalGal;
+            totalValMetric = totalLiters;
+            unitLabelField = 'gal';
+            unitLabelMetric = 'lt';
+            sacks = unitMode === 'metric'
+              ? Math.ceil(totalLiters / (parseFloat(add.packageSize) || 20))
+              : Math.ceil(totalGal / (parseFloat(add.pkg) || 5));
+          } else {
+            totalVal = totalLbs;
+            totalValMetric = totalKg;
+            unitLabelField = 'lb';
+            unitLabelMetric = 'kg';
+            sacks = unitMode === 'metric'
+              ? Math.ceil(totalKg / (parseFloat(add.packageSize) || 25))
+              : Math.ceil(totalLbs / (parseFloat(add.pkg) || 50));
+          }
+
           return {
             name: add.name,
+            isLiquid: add.isLiquid,
             concentration: add.concentration,
             totalLbs: totalLbs,
             totalKg: totalKg,
             volDisp: add.volDisp,
             sacks: sacks,
-            pkgSize: add.packageSize
+            pkgSize: add.packageSize,
+            totalVal,
+            totalValMetric,
+            unitLabelField,
+            unitLabelMetric
           };
         });
 
@@ -5287,20 +5473,49 @@ const FluidFormulation = ({ isEditing, lang }) => {
         const dFinalCalculated = vFinalCalculated > 0 ? (v1 * d1 + v2 * d2 + G_total) / vFinalCalculated : 0; // ppg
 
         const finalAdditives = abcAdditives.map(add => {
-          const conc = parseFloat(add.concentration) || 0;
-          const totalLbs = conc * vFinalCalculated;
+          const totalLbs = add.totalLbs;
           const totalKg = totalLbs / 2.20462;
-          const sacks = unitMode === 'metric'
-            ? Math.ceil(totalKg / (parseFloat(add.packageSize) || 25))
-            : Math.ceil(totalLbs / add.pkg);
+          const sgVal = parseFloat(add.sg) || 1.0;
+          
+          let totalVal = 0;
+          let totalValMetric = 0;
+          let unitLabelField = 'lb';
+          let unitLabelMetric = 'kg';
+          let sacks = 0;
+
+          if (add.isLiquid) {
+            const totalGal = totalLbs / (sgVal * 8.345);
+            const totalLiters = totalKg / sgVal;
+            totalVal = totalGal;
+            totalValMetric = totalLiters;
+            unitLabelField = 'gal';
+            unitLabelMetric = 'lt';
+            sacks = unitMode === 'metric'
+              ? Math.ceil(totalLiters / (parseFloat(add.packageSize) || 20))
+              : Math.ceil(totalGal / (parseFloat(add.pkg) || 5));
+          } else {
+            totalVal = totalLbs;
+            totalValMetric = totalKg;
+            unitLabelField = 'lb';
+            unitLabelMetric = 'kg';
+            sacks = unitMode === 'metric'
+              ? Math.ceil(totalKg / (parseFloat(add.packageSize) || 25))
+              : Math.ceil(totalLbs / (parseFloat(add.pkg) || 50));
+          }
+
           return {
             name: add.name,
+            isLiquid: add.isLiquid,
             concentration: add.concentration,
             totalLbs: totalLbs,
             totalKg: totalKg,
             volDisp: add.volDisp,
             sacks: sacks,
-            pkgSize: add.packageSize
+            pkgSize: add.packageSize,
+            totalVal,
+            totalValMetric,
+            unitLabelField,
+            unitLabelMetric
           };
         });
 
@@ -5332,8 +5547,8 @@ const FluidFormulation = ({ isEditing, lang }) => {
     <div className="space-y-6">
       {/* Unit Toggle Button */}
       <div className="flex bg-zinc-100 dark:bg-slate-800 p-1.5 rounded-2xl border border-zinc-200 dark:border-zinc-700 self-start inline-flex">
-        <button onClick={() => setUnitMode('field')} className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${unitMode === 'field' ? 'bg-halliburton-red text-white shadow-md' : 'text-zinc-500'}`}>{t.unitField}</button>
-        <button onClick={() => setUnitMode('metric')} className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${unitMode === 'metric' ? 'bg-halliburton-red text-white shadow-md' : 'text-zinc-500'}`}>{t.unitMetric}</button>
+        <button onClick={() => handleUnitModeChange('field')} className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${unitMode === 'field' ? 'bg-halliburton-red text-white shadow-md' : 'text-zinc-500'}`}>{t.unitField}</button>
+        <button onClick={() => handleUnitModeChange('metric')} className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${unitMode === 'metric' ? 'bg-halliburton-red text-white shadow-md' : 'text-zinc-500'}`}>{t.unitMetric}</button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
@@ -5539,17 +5754,18 @@ const FluidFormulation = ({ isEditing, lang }) => {
 
                   {/* Column Headers */}
                   <div className="grid grid-cols-12 gap-2 px-3 text-[9px] font-black uppercase text-zinc-400 dark:text-zinc-500 tracking-wider">
-                    <div className="col-span-4">Nombre Producto</div>
+                    <div className="col-span-3">Nombre Producto</div>
+                    <div className="col-span-2 text-center">Tipo</div>
                     <div className="col-span-2 text-center">SG</div>
-                    <div className="col-span-3 text-center">Conc ({unitMode === 'field' ? 'ppb' : 'kg/m³'})</div>
-                    <div className="col-span-2 text-center">Empaque ({unitMode === 'field' ? 'lb' : 'kg'})</div>
+                    <div className="col-span-2 text-center">Conc ({unitMode === 'field' ? 'ppb' : 'kg/m³'})</div>
+                    <div className="col-span-2 text-center">Empaque ({unitMode === 'field' ? 'lb' : 'kg/lt'})</div>
                     <div className="col-span-1"></div>
                   </div>
 
                   <div className="space-y-3">
                     {obmAdditives.map((add, idx) => (
                       <div key={add.id} className="grid grid-cols-12 gap-2 items-center bg-white dark:bg-slate-800 p-3 rounded-2xl border border-zinc-100 dark:border-zinc-700/50 shadow-sm relative group/row">
-                        <div className="col-span-4">
+                        <div className="col-span-3">
                           <input
                             type="text"
                             value={add.name}
@@ -5561,6 +5777,26 @@ const FluidFormulation = ({ isEditing, lang }) => {
                             className="w-full bg-zinc-50 dark:bg-slate-900 border border-zinc-200 dark:border-zinc-700 rounded-lg p-1.5 text-xs font-bold focus:border-halliburton-red outline-none"
                             placeholder="Nombre Producto"
                           />
+                        </div>
+                        <div className="col-span-2">
+                          <select
+                            value={add.isLiquid ? 'liquid' : 'solid'}
+                            onChange={e => {
+                              const isLiq = e.target.value === 'liquid';
+                              const newAdd = [...obmAdditives];
+                              newAdd[idx].isLiquid = isLiq;
+                              if (isLiq) {
+                                newAdd[idx].packageSize = unitMode === 'field' ? '5' : '20';
+                              } else {
+                                newAdd[idx].packageSize = unitMode === 'field' ? '50' : '25';
+                              }
+                              setObmAdditives(newAdd);
+                            }}
+                            className="w-full bg-zinc-50 dark:bg-slate-900 border border-zinc-200 dark:border-zinc-700 rounded-lg p-1.5 text-xs font-bold focus:border-halliburton-red outline-none shadow-inner"
+                          >
+                            <option value="solid">Sólido</option>
+                            <option value="liquid">Líquido</option>
+                          </select>
                         </div>
                         <div className="col-span-2">
                           <input
@@ -5576,7 +5812,7 @@ const FluidFormulation = ({ isEditing, lang }) => {
                             step="0.01"
                           />
                         </div>
-                        <div className="col-span-3">
+                        <div className="col-span-2">
                           <input
                             type="number"
                             value={add.concentration}
@@ -5600,7 +5836,7 @@ const FluidFormulation = ({ isEditing, lang }) => {
                               setObmAdditives(newAdd);
                             }}
                             className="w-full bg-zinc-50 dark:bg-slate-900 border border-zinc-200 dark:border-zinc-700 rounded-lg p-1.5 text-xs font-bold text-center focus:border-halliburton-red outline-none"
-                            placeholder={unitMode === 'field' ? "Env. lb" : "Env. kg"}
+                            placeholder={add.isLiquid ? (unitMode === 'field' ? "Env. gal" : "Env. lt") : (unitMode === 'field' ? "Env. lb" : "Env. kg")}
                           />
                         </div>
                         <div className="col-span-1 text-center">
@@ -5793,17 +6029,18 @@ const FluidFormulation = ({ isEditing, lang }) => {
 
                   {/* Column Headers */}
                   <div className="grid grid-cols-12 gap-2 px-3 text-[9px] font-black uppercase text-zinc-400 dark:text-zinc-500 tracking-wider">
-                    <div className="col-span-4">Nombre Producto</div>
+                    <div className="col-span-3">Nombre Producto</div>
+                    <div className="col-span-2 text-center">Tipo</div>
                     <div className="col-span-2 text-center">SG</div>
-                    <div className="col-span-3 text-center">Conc ({unitMode === 'field' ? 'ppb' : 'kg/m³'})</div>
-                    <div className="col-span-2 text-center">Empaque ({unitMode === 'field' ? 'lb' : 'kg'})</div>
+                    <div className="col-span-2 text-center">Conc ({unitMode === 'field' ? 'ppb' : 'kg/m³'})</div>
+                    <div className="col-span-2 text-center">Empaque ({unitMode === 'field' ? 'lb' : 'kg/lt'})</div>
                     <div className="col-span-1"></div>
                   </div>
 
                   <div className="space-y-3">
                     {wbmAdditives.map((add, idx) => (
                       <div key={add.id} className="grid grid-cols-12 gap-2 items-center bg-white dark:bg-slate-800 p-3 rounded-2xl border border-zinc-100 dark:border-zinc-700/50 shadow-sm relative group/row">
-                        <div className="col-span-4">
+                        <div className="col-span-3">
                           <input
                             type="text"
                             value={add.name}
@@ -5815,6 +6052,26 @@ const FluidFormulation = ({ isEditing, lang }) => {
                             className="w-full bg-zinc-50 dark:bg-slate-900 border border-zinc-200 dark:border-zinc-700 rounded-lg p-1.5 text-xs font-bold focus:border-halliburton-red outline-none"
                             placeholder="Nombre Producto"
                           />
+                        </div>
+                        <div className="col-span-2">
+                          <select
+                            value={add.isLiquid ? 'liquid' : 'solid'}
+                            onChange={e => {
+                              const isLiq = e.target.value === 'liquid';
+                              const newAdd = [...wbmAdditives];
+                              newAdd[idx].isLiquid = isLiq;
+                              if (isLiq) {
+                                newAdd[idx].packageSize = unitMode === 'field' ? '5' : '20';
+                              } else {
+                                newAdd[idx].packageSize = unitMode === 'field' ? '50' : '25';
+                              }
+                              setWbmAdditives(newAdd);
+                            }}
+                            className="w-full bg-zinc-50 dark:bg-slate-900 border border-zinc-200 dark:border-zinc-700 rounded-lg p-1.5 text-xs font-bold focus:border-halliburton-red outline-none shadow-inner"
+                          >
+                            <option value="solid">Sólido</option>
+                            <option value="liquid">Líquido</option>
+                          </select>
                         </div>
                         <div className="col-span-2">
                           <input
@@ -5830,7 +6087,7 @@ const FluidFormulation = ({ isEditing, lang }) => {
                             step="0.01"
                           />
                         </div>
-                        <div className="col-span-3">
+                        <div className="col-span-2">
                           <input
                             type="number"
                             value={add.concentration}
@@ -5854,7 +6111,7 @@ const FluidFormulation = ({ isEditing, lang }) => {
                               setWbmAdditives(newAdd);
                             }}
                             className="w-full bg-zinc-50 dark:bg-slate-900 border border-zinc-200 dark:border-zinc-700 rounded-lg p-1.5 text-xs font-bold text-center focus:border-halliburton-red outline-none"
-                            placeholder={unitMode === 'field' ? "Env. lb" : "Env. kg"}
+                            placeholder={add.isLiquid ? (unitMode === 'field' ? "Env. gal" : "Env. lt") : (unitMode === 'field' ? "Env. lb" : "Env. kg")}
                           />
                         </div>
                         <div className="col-span-1 text-center">
@@ -6127,11 +6384,22 @@ const FluidFormulation = ({ isEditing, lang }) => {
                       
                       {/* Chemical Additives */}
                       {res.finalAdditives.map((add, idx) => {
-                        const massPrimary = unitMode === 'field' ? `${add.totalLbs.toFixed(1)} lb` : `${add.totalKg.toFixed(1)} kg`;
-                        const massSecondary = unitMode === 'field' ? `${add.totalKg.toFixed(1)} kg` : `${add.totalLbs.toFixed(1)} lb`;
+                        let massPrimary = "";
+                        let massSecondary = "";
+                        let sacksLabel = "";
+
+                        if (add.isLiquid) {
+                          massPrimary = unitMode === 'field' ? `${add.totalVal.toFixed(1)} gal` : `${add.totalValMetric.toFixed(1)} lt`;
+                          massSecondary = unitMode === 'field' ? `${add.totalValMetric.toFixed(1)} lt` : `${add.totalVal.toFixed(1)} gal`;
+                          sacksLabel = unitMode === 'field' ? `~${add.sacks} envases (${add.pkgSize} gal)` : `~${add.sacks} envases (${add.pkgSize} lt)`;
+                        } else {
+                          massPrimary = unitMode === 'field' ? `${add.totalLbs.toFixed(1)} lb` : `${add.totalKg.toFixed(1)} kg`;
+                          massSecondary = unitMode === 'field' ? `${add.totalKg.toFixed(1)} kg` : `${add.totalLbs.toFixed(1)} lb`;
+                          sacksLabel = unitMode === 'field' ? `~${add.sacks} envases (${add.pkgSize} lb)` : `~${add.sacks} envases (${add.pkgSize} kg)`;
+                        }
+
                         const volDispPrimary = unitMode === 'field' ? `${add.volDisp.toFixed(4)} bbl` : `${(add.volDisp * 0.158987).toFixed(4)} m³`;
                         const volDispSecondary = unitMode === 'field' ? `${(add.volDisp * 0.158987).toFixed(4)} m³` : `${add.volDisp.toFixed(4)} bbl`;
-                        const sacksLabel = unitMode === 'field' ? `~${add.sacks} envases (${add.pkgSize} lb)` : `~${add.sacks} envases (${add.pkgSize} kg)`;
                         
                         return (
                           <div key={idx} className="p-4 bg-white/5 border border-white/10 rounded-2xl col-span-1 md:col-span-2 flex flex-col justify-between space-y-2">
@@ -7560,11 +7828,11 @@ const MainContent = ({
                         <div className="flex items-center gap-3">
                             <div className="w-1.5 h-6 bg-halliburton-red rounded-full"></div>
                             <span className="text-[12px] font-bold text-halliburton-red uppercase tracking-widest">
-                                {activeSector === 'favorites' ? t.favorites : (activeSector === 'calculator' ? t.engineeringFluids : (activeSector === 'formulation' ? t.engineeringFluids : (activeSector === 'inventory' ? t.invReconcTitle : (activeSector === 'piletas' ? t.pitsSystemTitle : (translateText(sectors.find(s => s.id === activeSector)?.name, lang) || (lang === 'es' ? 'Explorar' : 'Explore')))))}
+                                {activeSector === 'favorites' ? t.favorites : (activeSector === 'calculator' ? t.engineeringFluids : (activeSector === 'formulation' ? t.engineeringFluids : (activeSector === 'inventory' ? t.invReconcTitle : (activeSector === 'piletas' ? t.pitsSystemTitle : (translateText(sectors.find(s => s.id === activeSector)?.name, lang) || (lang === 'es' ? 'Explorar' : 'Explore'))))))}
                             </span>
                         </div>
                         <h2 className="text-3xl lg:text-5xl font-black uppercase italic leading-none tracking-tighter text-zinc-800 dark:text-white truncate">
-                            {activeSector === 'favorites' ? t.favorites : (activeSector === 'calculator' ? t.fluidCalculatorTitle : (activeSector === 'formulation' ? t.tabFormulation : (activeSector === 'inventory' ? t.invReconcSubtitle : (activeSector === 'piletas' ? t.pitsSystemTitle : (translateText(sectors.find(s => s.id === activeSector)?.name, lang) || (lang === 'es' ? 'Directorio' : 'Directory')))))}
+                            {activeSector === 'favorites' ? t.favorites : (activeSector === 'calculator' ? t.fluidCalculatorTitle : (activeSector === 'formulation' ? t.tabFormulation : (activeSector === 'inventory' ? t.invReconcSubtitle : (activeSector === 'piletas' ? t.pitsSystemTitle : (translateText(sectors.find(s => s.id === activeSector)?.name, lang) || (lang === 'es' ? 'Directorio' : 'Directory'))))))}
                         </h2>
                     </div>
                 </header>
@@ -7713,7 +7981,7 @@ const MainContent = ({
 
 
 /* global __APP_VERSION__ */
-const CURRENT_CODE_VERSION = '83eb2a7';
+const CURRENT_CODE_VERSION = '3318c06';
 
 const mergeData = (localSectors, defaultSectors) => {
     const isCustomId = (id) => {
