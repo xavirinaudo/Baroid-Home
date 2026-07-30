@@ -1,0 +1,20 @@
+- [x] Limpieza de código y UI sobrante en la Calculadora de Fluidos de la aplicación del repositorio
+    - [x] Eliminar estados obsoletos (`formType`, `formSystem`, `obmAdditives`, `wbmAdditives`) de `FluidCalculator.jsx`
+    - [x] Eliminar funciones en desuso (`copyFormulationRecipe` y `getFormulationResult`) de `FluidCalculator.jsx`
+    - [x] Eliminar sección sobrante de aditivos del lado izquierdo (inputs) que interfería en otras sub-pestañas
+    - [x] Eliminar tarjeta duplicada de desglose/receta del lado derecho (resultados) que se renderizaba incorrectamente en Reología
+    - [x] Validar mediante diagnóstico sintáctico automatizado que el archivo `FluidCalculator.jsx` tenga exactamente 0 desalineaciones de llaves/paréntesis y compile perfectamente
+- [x] Portar y sincronizar cambios del sistema métrico en Formulación de Fluidos a `Baroid Home.html`
+    - [x] Definir el componente React `FluidFormulation` dentro de `Baroid Home.html`
+    - [x] Agregar botón de navegación con ícono de matraz (beaker) en el Sidebar para el sector de formulación
+    - [x] Actualizar la cabecera e incorporar el renderizado condicional del componente `FluidFormulation` en `MainContent`
+    - [x] Excluir el sector de formulación del listado general en `displaySectors` y en las condiciones del greeting dashboard
+    - [x] Sincronizar todos los textos en español usando un diccionario de traducción local dentro del componente inyectado
+- [x] Resolver inconsistencia y bucle en el cartel de actualización pendiente (`CURRENT_CODE_VERSION`)
+    - [x] Sincronizar `CURRENT_CODE_VERSION` en `Baroid Home.html` cambiándolo de `2.1.0` a `2.1.3`
+    - [x] Validar que `src/App.jsx` y `Baroid Home.html` estén alineados exactamente con `public/version.json` en la versión `2.1.3`
+- [x] Revisión y adaptación dinámica de unidades al sistema métrico (Argentina)
+    - [x] Píldoras (Slugs): Convertir la barita requerida a `tn` (toneladas métricas) en métrico. Hacer dinámicas las etiquetas de entrada de presión (`Válvulas/Motor`, `MPD SBP` y `Margen Seguridad`) a `kg/cm²` y convertirlas internamente a `PSI` en la ecuación de altura.
+    - [x] Hidrostática: Mostrar la presión hidrostática principal en `kg/cm²` si el modo métrico está activo y `PSI` en el equivalente inferior.
+    - [x] Prueba de Integridad (FIT): Mostrar la presión de prueba principal en `kg/cm²` en métrico, actualizar el texto instructivo de pozo y el reporte copiado al portapapeles.
+    - [x] Aplicar cambios de manera unificada tanto en el repositorio (`FluidCalculator.jsx` y `translations.js`) como en la versión standalone (`Baroid Home.html`).

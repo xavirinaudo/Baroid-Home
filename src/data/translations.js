@@ -216,7 +216,7 @@ export const translations = {
     tabBarite: "Ajuste de Densidad",
     tabRheology: "Perfil Reológico",
     tabMixing: "Mezcla (Balance Masa)",
-    tabLgsRetort: "Cálculo LGS & Retorta",
+    tabLgsRetort: "Cálculo LGS y WPS",
     tabLgs: "Dilución LGS",
     tabOwr: "Relación Aceite/Agua",
     tabEng: "Hidrostática & Capacidad",
@@ -264,11 +264,11 @@ export const translations = {
     slugCapCalc: "Capacidad Calc.",
     slugDensMud: "Dens. Fluido",
     slugDensSlug: "Dens. Píldora",
-    slugSafetyMargin: "Margen Seguridad (PSI)",
+    slugSafetyMargin: "Margen Seguridad",
     slugVolToPrepare: "Vol. a Preparar",
     slugAdvFactors: "Factores de Resistencia (Opcional)",
-    slugValveResist: "Válvulas/Motor (PSI)",
-    slugMpdSbp: "MPD SBP (PSI)",
+    slugValveResist: "Válvulas/Motor",
+    slugMpdSbp: "MPD SBP",
     slugAdvTip1: "Válvulas/Motor: Presión extra necesaria para vencer el resorte del Float Valve o la resistencia interna de motores/MWD.",
     slugAdvTip2: "MPD SBP: Contrapresión de superficie aplicada en el anular.",
     slugRequiredVol: "Volumen de Píldora Requerido",
@@ -278,7 +278,7 @@ export const translations = {
     slugSackUnit: "sacos (150 kg)",
 
     // Oil Water Ratio Section
-    owrTitle: "Análisis de Retorta (OWR)",
+    owrTitle: "Relación Aceite/Agua (OWR)",
     owrVolOil: "% Vol Aceite",
     owrVolWater: "% Vol Agua",
     owrVolSolids: "% Vol Sólidos (Calc.)",
@@ -340,7 +340,7 @@ export const translations = {
     lgsFactor: "Factor de Dilución (V2/V1)",
 
     // LGS Retort Section
-    retortTitle: "Retorta y Salinidad (LGS)",
+    retortTitle: "Cálculo LGS y WPS",
     retortDataHeader: "1. Datos de Retorta",
     retortTitrationHeader: "2. Titulación por Cloruros",
     retortSolidProperties: "3. Propiedades de Sólidos",
@@ -581,7 +581,7 @@ export const translations = {
     tabBarite: "Weight-Up Calculations",
     tabRheology: "Rheology Profile",
     tabMixing: "Fluid Blending (Mass Balance)",
-    tabLgsRetort: "LGS & Retort Calculations",
+    tabLgsRetort: "LGS & WPS Calculations",
     tabLgs: "LGS Dilution",
     tabOwr: "Oil/Water Ratio (OWR)",
     tabEng: "Hydrostatics & Capacity",
@@ -629,11 +629,11 @@ export const translations = {
     slugCapCalc: "Calculated Capacity",
     slugDensMud: "Mud Weight (MW)",
     slugDensSlug: "Slug Weight",
-    slugSafetyMargin: "Safety Margin (PSI)",
+    slugSafetyMargin: "Safety Margin",
     slugVolToPrepare: "Volume to Mix",
     slugAdvFactors: "Resistance Factors (Optional)",
-    slugValveResist: "Float Valve / Mud Motor (PSI)",
-    slugMpdSbp: "MPD Surface Back Pressure (PSI)",
+    slugValveResist: "Float Valve / Mud Motor",
+    slugMpdSbp: "MPD Surface Back Pressure",
     slugAdvTip1: "Float Valve/Mud Motor: Additional pressure needed to crack open float valves or overcome downhole motor/MWD resistance.",
     slugAdvTip2: "MPD SBP: Surface back pressure applied in the annulus by the MPD unit.",
     slugRequiredVol: "Required Slug Volume",
@@ -643,7 +643,7 @@ export const translations = {
     slugSackUnit: "sacks (150 kg)",
 
     // Oil Water Ratio Section
-    owrTitle: "Retort Analysis (OWR)",
+    owrTitle: "Oil/Water Ratio (OWR)",
     owrVolOil: "% Vol Oil",
     owrVolWater: "% Vol Water",
     owrVolSolids: "% Vol Solids (Calc.)",
@@ -705,7 +705,7 @@ export const translations = {
     lgsFactor: "Dilution Factor (V2/V1)",
 
     // LGS Retort Section
-    retortTitle: "Retort & Salinity (LGS)",
+    retortTitle: "LGS & WPS Calculations",
     retortDataHeader: "1. Retort Input Data",
     retortTitrationHeader: "2. Chloride Titration",
     retortSolidProperties: "3. Solid Phase Properties",

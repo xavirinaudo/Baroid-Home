@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import Icon from './Icon';
 import { translations } from '../data/translations';
 
@@ -119,7 +119,7 @@ const FluidCalculator = ({ isEditing, lang }) => {
       { id: 'barite', label: 'Ajuste de Densidad', icon: 'arrow-up-circle', visible: true },
       { id: 'rheology', label: 'Perfil Reológico', icon: 'trending-up', visible: true },
       { id: 'mixing', label: 'Mezcla (Balance Masa)', icon: 'blend', visible: true },
-      { id: 'lgs_retort', label: 'Cálculo LGS & Retorta', icon: 'percent', visible: true },
+      { id: 'lgs_retort', label: 'Cálculo LGS y WPS', icon: 'percent', visible: true },
       { id: 'lgs', label: 'Dilución LGS', icon: 'sliders', visible: true },
       { id: 'owr', label: 'Relación Aceite/Agua', icon: 'droplets', visible: true },
       { id: 'eng', label: 'Hidrostática & Capacidad', icon: 'droplet', visible: true },
@@ -231,9 +231,10 @@ const FluidCalculator = ({ isEditing, lang }) => {
     const ds = parseFloat(densSlug);
     const l = parseFloat(lengthSeca);
 
-    const pSafe = parseFloat(safetyPressure || 0);
-    const pValve = parseFloat(valveResist || 0);
-    const pMPD = parseFloat(mpdSBP || 0);
+    const pressFactor = unitMode === 'field' ? 1 : 14.2233;
+    const pSafe = (parseFloat(safetyPressure) || 0) * pressFactor;
+    const pValve = (parseFloat(valveResist) || 0) * pressFactor;
+    const pMPD = (parseFloat(mpdSBP) || 0) * pressFactor;
     const totalExtraPressure = (isNaN(pSafe) ? 0 : pSafe) + (isNaN(pValve) ? 0 : pValve) + (isNaN(pMPD) ? 0 : pMPD);
 
     if (isNaN(dm) || isNaN(ds) || isNaN(l) || ds <= dm) {
@@ -949,11 +950,11 @@ const FluidCalculator = ({ isEditing, lang }) => {
                   <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="text-[12px] font-black text-zinc-500 dark:text-zinc-400 uppercase mb-2 block">{t.slugValveResist}</label>
+                        <label className="text-[12px] font-black text-zinc-500 dark:text-zinc-400 uppercase mb-2 block">{t.slugValveResist} ({unitMode === 'field' ? 'PSI' : 'kg/cm²'})</label>
                         <input type="number" value={slug.valveResist} onChange={e => setSlug({ ...slug, valveResist: e.target.value })} className="w-full input-style" placeholder="Resorte/Fricción" />
                       </div>
                       <div>
-                        <label className="text-[12px] font-black text-zinc-500 dark:text-zinc-400 uppercase mb-2 block">{t.slugMpdSbp}</label>
+                        <label className="text-[12px] font-black text-zinc-500 dark:text-zinc-400 uppercase mb-2 block">{t.slugMpdSbp} ({unitMode === 'field' ? 'PSI' : 'kg/cm²'})</label>
                         <input type="number" value={slug.mpdSBP} onChange={e => setSlug({ ...slug, mpdSBP: e.target.value })} className="w-full input-style" placeholder="Contrapresión" />
                       </div>
                     </div>
@@ -976,7 +977,7 @@ const FluidCalculator = ({ isEditing, lang }) => {
               </div>
               <div className="grid grid-cols-2 gap-4 border-t border-zinc-100 dark:border-zinc-800 pt-4">
                 <div>
-                  <label className="text-[13px] font-black text-halliburton-red uppercase tracking-widest mb-2 block">{t.slugSafetyMargin}</label>
+                  <label className="text-[13px] font-black text-halliburton-red uppercase tracking-widest mb-2 block">{t.slugSafetyMargin} ({unitMode === 'field' ? 'PSI' : 'kg/cm²'})</label>
                   <input type="number" value={slug.safetyPressure} onChange={e => setSlug({ ...slug, safetyPressure: e.target.value })} className="w-full input-style text-xl font-bold" placeholder="200" />
                 </div>
                 <div>
@@ -1400,11 +1401,15 @@ const FluidCalculator = ({ isEditing, lang }) => {
                 <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform"><Icon name="droplet" size={80} /></div>
                 <span className="text-[10px] font-black uppercase tracking-[0.3em] opacity-60">{t.hydroPressure}</span>
                 <div className="flex items-baseline gap-2 mt-2">
-                  <h5 className="text-7xl font-black italic">{getHydrostatic()}</h5>
-                  <span className="text-xl font-bold opacity-60 italic uppercase tracking-tighter">PSI</span>
+                  <h5 className="text-7xl font-black italic">
+                    {unitMode === 'field' ? getHydrostatic() : psiToKgCm2(getHydrostatic()).toFixed(2)}
+                  </h5>
+                  <span className="text-xl font-bold opacity-60 italic uppercase tracking-tighter">
+                    {unitMode === 'field' ? 'PSI' : 'kg/cm²'}
+                  </span>
                 </div>
                 <div className="mt-4 pt-4 border-t border-white/10 text-[10px] font-bold uppercase tracking-widest opacity-80 italic">
-                  Eq: {psiToKgCm2(getHydrostatic()).toFixed(2)} kg/cm²
+                  Eq: {unitMode === 'field' ? psiToKgCm2(getHydrostatic()).toFixed(2) + ' kg/cm²' : getHydrostatic() + ' PSI'}
                 </div>
               </div>
               <div className="bg-zinc-900 p-10 rounded-[3.5rem] text-white shadow-2xl relative overflow-hidden group">
@@ -1460,6 +1465,7 @@ const FluidCalculator = ({ isEditing, lang }) => {
                     </div>
                   </div>
                   <div className="p-4 bg-white/5 rounded-2xl border border-white/10">
+                <div className="p-4 bg-white/5 rounded-2xl border border-white/10">
                     <span className="text-[10px] font-black text-zinc-400 uppercase block mb-1">{lang === 'es' ? 'Mud del Sistema Activo' : 'Active System Mud'}</span>
                     <div className="flex items-baseline gap-2">
                       <h5 className="text-3xl font-black italic text-zinc-200">{getSlugResult().volInitial}</h5>
@@ -1471,7 +1477,7 @@ const FluidCalculator = ({ isEditing, lang }) => {
                   <span className="text-[11px] font-black text-halliburton-red uppercase block mb-1">{lang === 'es' ? 'Barita Requerida' : 'Required Barite'}</span>
                   <div className="flex items-baseline gap-2">
                     <h5 className="text-6xl font-black italic">{getSlugResult().tons}</h5>
-                    <span className="text-xl font-bold opacity-40 uppercase">Tons</span>
+                    <span className="text-xl font-bold opacity-40 uppercase">{lang === 'es' ? 'Ton' : 'Tons'}</span>
                   </div>
                   <p className="text-[10px] font-black text-zinc-500 mt-2 uppercase tracking-widest italic leading-tight">{lang === 'es' ? 'Mezclar v. inicial + barita para vencer la hidrostática del anular, válvulas y MPD.' : 'Blend initial volume + barite to overcome annular hydrostatics, float valves, and MPD.'}</p>
                 </div>
@@ -1572,7 +1578,7 @@ const FluidCalculator = ({ isEditing, lang }) => {
               <div className="flex justify-between items-start mb-8">
                 <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500 block">{lang === 'es' ? 'Reporte para Supervisión' : 'Supervision Report'}</span>
                 <button
-                  onClick={() => copyToClipboard(`REPORTE PRUEBA FIT:\n- EMW Objetivo: ${fit.targetEMW} ${unitMode === 'field' ? 'ppg' : 'g/L'}\n- Dens. Actual: ${fit.currentMW} ${unitMode === 'field' ? 'ppg' : 'g/L'}\n- TVD Zapata: ${fit.shoeTVD} ${unitMode === 'field' ? 'ft' : 'm'}\n- PRESIÓN SUPERFICIE: ${getFITResult().surfacePSI} PSI`)}
+                  onClick={() => copyToClipboard(`REPORTE PRUEBA FIT:\n- EMW Objetivo: ${fit.targetEMW} ${unitMode === 'field' ? 'ppg' : 'g/L'}\n- Dens. Actual: ${fit.currentMW} ${unitMode === 'field' ? 'ppg' : 'g/L'}\n- TVD Zapata: ${fit.shoeTVD} ${unitMode === 'field' ? 'ft' : 'm'}\n- PRESIÓN SUPERFICIE: ${unitMode === 'field' ? getFITResult().surfacePSI + ' PSI' : getFITResult().surface + ' kg/cm² (' + getFITResult().surfacePSI + ' PSI)'}`)}
                   className="p-3 bg-white/10 hover:bg-halliburton-red rounded-2xl transition-all shadow-lg flex items-center gap-2 text-[10px] font-black uppercase tracking-widest"
                 >
                   <Icon name="share-2" size={14} /> {lang === 'es' ? 'Copiar Reporte' : 'Copy Report'}
@@ -1583,20 +1589,24 @@ const FluidCalculator = ({ isEditing, lang }) => {
                 <div className="relative inline-block">
                   <span className="text-[11px] font-black text-halliburton-red uppercase block mb-1 tracking-widest italic">{lang === 'es' ? 'Presión a aplicar en manómetro' : 'Gauge Pressure to Apply'}</span>
                   <div className="flex items-baseline gap-3">
-                    <h5 className="text-8xl font-black italic text-white drop-shadow-2xl">{getFITResult().surfacePSI}</h5>
-                    <span className="text-2xl font-black text-halliburton-red uppercase italic tracking-tighter">PSI</span>
+                    <h5 className="text-8xl font-black italic text-white drop-shadow-2xl">
+                      {unitMode === 'field' ? getFITResult().surfacePSI : getFITResult().surface}
+                    </h5>
+                    <span className="text-2xl font-black text-halliburton-red uppercase italic tracking-tighter">
+                      {unitMode === 'field' ? 'PSI' : 'kg/cm²'}
+                    </span>
                   </div>
-                  {unitMode === 'metric' && (
-                    <div className="text-[10px] font-bold text-zinc-500 uppercase mt-2">
-                      {lang === 'es' ? 'Equivalente:' : 'Equivalent:'} {getFITResult().surface} kg/cm²
-                    </div>
-                  )}
+                  <div className="text-[10px] font-bold text-zinc-500 uppercase mt-2">
+                    {lang === 'es' ? 'Equivalente:' : 'Equivalent:'} {unitMode === 'field' ? psiToKgCm2(getFITResult().surfacePSI).toFixed(1) + ' kg/cm²' : getFITResult().surfacePSI + ' PSI'}
+                  </div>
                 </div>
 
                 <div className="bg-halliburton-red/10 border border-halliburton-red/20 p-5 rounded-3xl">
                   <p className="text-[10px] font-black text-white uppercase tracking-widest mb-1">{lang === 'es' ? 'Instrucción para Pozo:' : 'Wellbore Instruction:'}</p>
                   <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-[0.1em] italic leading-relaxed">
-                    {lang === 'es' ? `Cerrar pozo y bombear lentamente hasta alcanzar ${getFITResult().surfacePSI} PSI en superficie. Mantener estable por 5 minutos para verificar integridad.` : `Shut in well and pump slowly until reaching ${getFITResult().surfacePSI} PSI surface pressure. Hold stable for 5 minutes to verify integrity.`}
+                    {lang === 'es'
+                      ? `Cerrar pozo y bombear lentamente hasta alcanzar ${unitMode === 'field' ? getFITResult().surfacePSI + ' PSI' : getFITResult().surface + ' kg/cm² (' + getFITResult().surfacePSI + ' PSI)'} en superficie. Mantener estable por 5 minutos para verificar integridad.`
+                      : `Shut in well and pump slowly until reaching ${unitMode === 'field' ? getFITResult().surfacePSI + ' PSI' : getFITResult().surface + ' kg/cm² (' + getFITResult().surfacePSI + ' PSI)'} surface pressure. Hold stable for 5 minutes to verify integrity.`}
                   </p>
                 </div>
               </div>
@@ -1816,7 +1826,7 @@ const FluidCalculator = ({ isEditing, lang }) => {
                     const res = getLgsRetortResult();
                     if (res.invalid) return;
                     copyToClipboard(
-                      `ANÁLISIS RETORTA & CLORUROS (ESTÁNDAR BAROID):\n` +
+                      `ANÁLISIS LGS & WPS (ESTÁNDAR BAROID):\n` +
                       `- WPS (Salinidad): ${res.wps.toFixed(0)} ppm\n` +
                       `- Cloruros Lodo: ${res.cl_mgL.toFixed(0)} mg/L\n` +
                       `- Calcio Lodo: ${res.c_Ca_df.toFixed(0)} mg/L\n` +
@@ -1847,7 +1857,7 @@ const FluidCalculator = ({ isEditing, lang }) => {
                   <div className="bg-gradient-to-br from-halliburton-red to-[#a30000] p-6 rounded-[2.5rem] shadow-xl relative overflow-hidden">
                     <span className="text-[9px] font-black uppercase tracking-[0.3em] opacity-60">{lang === 'es' ? 'Salinidad Fase Acuosa (WPS)' : 'Water Phase Salinity (WPS)'}</span>
                     <div className="flex items-baseline gap-2 mt-1">
-                      <h5 className="text-5xl font-black italic">{getLgsRetortResult().wps.toLocaleString('es-AR', { maximumFractionDigits: 0 })}</h5>
+                      <h5 className="text-5xl font-black italic">{getLgsRetortResult().wps.toLocaleString(lang === 'es' ? 'es-AR' : 'en-US', { maximumFractionDigits: 0 })}</h5>
                       <span className="text-lg font-black opacity-60 italic uppercase">PPM</span>
                     </div>
                     <div className="grid grid-cols-2 gap-2 mt-4 pt-4 border-t border-white/10 text-[9px] font-black uppercase tracking-wider text-white/80">
@@ -1855,9 +1865,9 @@ const FluidCalculator = ({ isEditing, lang }) => {
                       <div>{lang === 'es' ? 'CaCl₂ Salmuera' : 'CaCl₂ Brine'}: <span className="text-white font-bold">{getLgsRetortResult().w_CaCl2.toFixed(2)} %p</span></div>
                     </div>
                     <div className="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-white/10 text-[8px] font-black uppercase tracking-wider text-white/60">
-                      <div>Cloruros: <span className="text-white font-bold">{getLgsRetortResult().c_Cl_df.toLocaleString('es-AR', { maximumFractionDigits: 0 })} mg/L</span></div>
-                      <div>NaCl Lodo: <span className="text-white font-bold">{getLgsRetortResult().c_NaCl_df.toLocaleString('es-AR', { maximumFractionDigits: 0 })} mg/L</span></div>
-                      <div>CaCl₂ Lodo: <span className="text-white font-bold">{getLgsRetortResult().c_CaCl2_df.toLocaleString('es-AR', { maximumFractionDigits: 0 })} mg/L</span></div>
+                      <div>Cloruros: <span className="text-white font-bold">{getLgsRetortResult().c_Cl_df.toLocaleString(lang === 'es' ? 'es-AR' : 'en-US', { maximumFractionDigits: 0 })} mg/L</span></div>
+                      <div>NaCl Lodo: <span className="text-white font-bold">{getLgsRetortResult().c_NaCl_df.toLocaleString(lang === 'es' ? 'es-AR' : 'en-US', { maximumFractionDigits: 0 })} mg/L</span></div>
+                      <div>CaCl₂ Lodo: <span className="text-white font-bold">{getLgsRetortResult().c_CaCl2_df.toLocaleString(lang === 'es' ? 'es-AR' : 'en-US', { maximumFractionDigits: 0 })} mg/L</span></div>
                     </div>
                   </div>
 
