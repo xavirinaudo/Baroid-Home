@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Icon from './Icon';
 import GreetingDashboard from './GreetingDashboard';
 import FluidCalculator from './FluidCalculator';
@@ -50,6 +50,7 @@ const MainContent = ({
     setShowUpdateBanner,
     onUpdateApp
 }) => {
+    const [unitMode, setUnitMode] = useState('field');
     const t = translations[lang] || translations['es'];
     return (
         <main className="flex-1 min-h-screen p-4 md:p-8 lg:p-12 overflow-x-hidden relative text-left">
@@ -182,8 +183,8 @@ const MainContent = ({
                     </div>
                 </header>
                 <div className="space-y-20">
-                    {activeSector === 'calculator' ? <FluidCalculator isEditing={isEditing} lang={lang} /> :
-                        activeSector === 'formulation' ? <FluidFormulation isEditing={isEditing} lang={lang} /> :
+                    {activeSector === 'calculator' ? <FluidCalculator isEditing={isEditing} lang={lang} unitMode={unitMode} setUnitMode={setUnitMode} /> :
+                        activeSector === 'formulation' ? <FluidFormulation isEditing={isEditing} lang={lang} unitMode={unitMode} setUnitMode={setUnitMode} /> :
                         activeSector === 'inventory' ? <InventoryConciliation isEditing={isEditing} lang={lang} /> :
                             activeSector === 'piletas' ? <PiletasSystem isEditing={isEditing} lang={lang} /> :
                                 displaySectors.map(sec => (

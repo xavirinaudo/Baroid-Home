@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Icon from './Icon';
 import { translations } from '../data/translations';
 
-const FluidCalculator = ({ isEditing, lang }) => {
+const FluidCalculator = ({ isEditing, lang, unitMode, setUnitMode }) => {
   const t = translations[lang] || translations['es'];
 
   const getTabLabel = (tabId) => {
@@ -32,7 +32,7 @@ const FluidCalculator = ({ isEditing, lang }) => {
     }
   };
   const [activeSubTab, setActiveSubTab] = useState('conv'); // 'conv', 'barite', 'mixing', 'eng', 'owr', 'slug', 'fit', 'pfmf', 'lgs'
-  const [unitMode, setUnitMode] = useState('field');
+
 
   // Engineering State
   const [eng, setEng] = useState({ dens: '', depth: '', diam: '' });
