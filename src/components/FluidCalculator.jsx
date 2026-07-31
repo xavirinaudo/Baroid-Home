@@ -1465,7 +1465,6 @@ const FluidCalculator = ({ isEditing, lang, unitMode, setUnitMode }) => {
                     </div>
                   </div>
                   <div className="p-4 bg-white/5 rounded-2xl border border-white/10">
-                <div className="p-4 bg-white/5 rounded-2xl border border-white/10">
                     <span className="text-[10px] font-black text-zinc-400 uppercase block mb-1">{lang === 'es' ? 'Mud del Sistema Activo' : 'Active System Mud'}</span>
                     <div className="flex items-baseline gap-2">
                       <h5 className="text-3xl font-black italic text-zinc-200">{getSlugResult().volInitial}</h5>
