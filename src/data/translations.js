@@ -246,6 +246,8 @@ export const translations = {
     bariteSg: "SG Material",
     bariteRequired: "Requerimiento de Barita",
     bariteTons: "Tons métricas",
+    bariteUsTons: "US Tons (Ton Cortas)",
+    baritePounds: "Libras (Lb)",
     bariteBasedOnSg: "Cálculo basado en SG",
     bariteEstFinalVol: "Volumen Final Estimado",
 
@@ -611,6 +613,8 @@ export const translations = {
     bariteSg: "Weighting Material SG",
     bariteRequired: "Barite Requirement",
     bariteTons: "Metric Tons",
+    bariteUsTons: "US Tons",
+    baritePounds: "Pounds (Lb)",
     bariteBasedOnSg: "Based on SG",
     bariteEstFinalVol: "Estimated Final Volume",
 

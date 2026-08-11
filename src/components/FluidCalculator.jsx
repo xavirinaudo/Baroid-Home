@@ -1424,18 +1424,40 @@ const FluidCalculator = ({ isEditing, lang, unitMode, setUnitMode }) => {
           )}
 
           {activeSubTab === 'barite' && (
-            <div className="bg-zinc-900 p-12 rounded-[3.5rem] text-white flex flex-col justify-center h-full relative overflow-hidden group">
+            <div className="bg-zinc-900 p-10 md:p-12 rounded-[3.5rem] text-white flex flex-col justify-center h-full relative overflow-hidden group">
               <div className="absolute -right-10 -bottom-10 opacity-5 group-hover:scale-110 transition-transform"><Icon name="arrow-up-circle" size={300} /></div>
               <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500 mb-6 block">{t.bariteRequired}</span>
-              <div className="space-y-10">
+              <div className="space-y-8">
                 <div>
                   <div className="flex items-baseline gap-3">
-                    <h5 className="text-8xl font-black text-halliburton-red italic">{getBariteTons()}</h5>
-                    <span className="text-2xl font-black opacity-40 uppercase italic">{t.bariteTons}</span>
+                    <h5 className="text-7xl lg:text-8xl font-black text-halliburton-red italic">{getBariteTons()}</h5>
+                    <span className="text-xl lg:text-2xl font-black opacity-40 uppercase italic">{t.bariteTons}</span>
                   </div>
-                  <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-4">{t.bariteBasedOnSg} {barite.sg}</p>
+                  <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-2">{t.bariteBasedOnSg} {barite.sg}</p>
                 </div>
-                <div className="p-6 bg-white/5 rounded-3xl border border-white/10 inline-block">
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="p-4 bg-white/5 rounded-2xl border border-white/10">
+                    <span className="text-[10px] font-black text-zinc-400 uppercase block mb-1">{t.bariteUsTons || (lang === 'es' ? 'US Tons (Ton Cortas)' : 'US Tons')}</span>
+                    <div className="flex items-baseline gap-2">
+                      <h6 className="text-2xl font-black italic text-zinc-100">
+                        {(parseFloat(getBariteTons()) * 1.10231131).toFixed(2)}
+                      </h6>
+                      <span className="text-xs font-bold opacity-40 uppercase">US Ton</span>
+                    </div>
+                  </div>
+                  <div className="p-4 bg-white/5 rounded-2xl border border-white/10">
+                    <span className="text-[10px] font-black text-halliburton-red uppercase block mb-1">{t.baritePounds || (lang === 'es' ? 'Libras (Lb)' : 'Pounds (Lb)')}</span>
+                    <div className="flex items-baseline gap-2">
+                      <h6 className="text-2xl font-black italic text-halliburton-red">
+                        {(parseFloat(getBariteTons()) * 2204.6226).toLocaleString('en-US', { maximumFractionDigits: 1 })}
+                      </h6>
+                      <span className="text-xs font-bold opacity-40 uppercase">Lb</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-5 bg-white/5 rounded-3xl border border-white/10 inline-block">
                   <span className="text-[9px] font-black text-zinc-500 uppercase block mb-1">{t.bariteEstFinalVol}</span>
                   <p className="text-xl font-black italic">
                     {(parseFloat(barite.vol || 0) + (getBariteTons() / (parseFloat(barite.sg) || 4.2) * (bariteUnits.vol === 'bbl' ? 6.2898 : 1))).toFixed(2)} {bariteUnits.vol}
@@ -1476,7 +1498,12 @@ const FluidCalculator = ({ isEditing, lang, unitMode, setUnitMode }) => {
                   <span className="text-[11px] font-black text-halliburton-red uppercase block mb-1">{lang === 'es' ? 'Barita Requerida' : 'Required Barite'}</span>
                   <div className="flex items-baseline gap-2">
                     <h5 className="text-6xl font-black italic">{getSlugResult().tons}</h5>
-                    <span className="text-xl font-bold opacity-40 uppercase">{lang === 'es' ? 'Ton' : 'Tons'}</span>
+                    <span className="text-xl font-bold opacity-40 uppercase">{lang === 'es' ? 'Ton métricas' : 'Metric Tons'}</span>
+                  </div>
+                  <div className="flex items-center gap-3 mt-2 text-xs font-bold text-zinc-400">
+                    <span className="text-zinc-200">{(parseFloat(getSlugResult().tons || 0) * 1.10231131).toFixed(2)} US Ton</span>
+                    <span>•</span>
+                    <span className="text-halliburton-red">{(parseFloat(getSlugResult().tons || 0) * 2204.6226).toLocaleString('en-US', { maximumFractionDigits: 1 })} Lb</span>
                   </div>
                   <p className="text-[10px] font-black text-zinc-500 mt-2 uppercase tracking-widest italic leading-tight">{lang === 'es' ? 'Mezclar v. inicial + barita para vencer la hidrostática del anular, válvulas y MPD.' : 'Blend initial volume + barite to overcome annular hydrostatics, float valves, and MPD.'}</p>
                 </div>
@@ -1713,6 +1740,17 @@ const FluidCalculator = ({ isEditing, lang, unitMode, setUnitMode }) => {
                           <div className="flex items-baseline gap-2">
                             <h5 className="text-4xl font-black italic text-halliburton-red">{getMixDensificationTons()}</h5>
                             <span className="text-xs font-bold opacity-40 uppercase">{lang === 'es' ? 'Tons métricas' : 'Metric Tons'}</span>
+                          </div>
+                          <div className="flex items-center gap-4 mt-3 pt-3 border-t border-white/10 text-xs font-bold">
+                            <div>
+                              <span className="text-[9px] font-black text-zinc-500 block uppercase">US Tons</span>
+                              <span className="text-sm font-black text-zinc-200">{(parseFloat(getMixDensificationTons()) * 1.10231131).toFixed(2)} US Ton</span>
+                            </div>
+                            <div className="h-6 w-px bg-white/10" />
+                            <div>
+                              <span className="text-[9px] font-black text-zinc-500 block uppercase">{lang === 'es' ? 'Libras' : 'Pounds'}</span>
+                              <span className="text-sm font-black text-halliburton-red">{(parseFloat(getMixDensificationTons()) * 2204.6226).toLocaleString('en-US', { maximumFractionDigits: 1 })} Lb</span>
+                            </div>
                           </div>
                         </div>
                         <Icon name="arrow-up-circle" size={32} className="text-white/10" />
