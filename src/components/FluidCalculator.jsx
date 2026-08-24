@@ -852,6 +852,164 @@ const FluidCalculator = ({ isEditing, lang, unitMode, setUnitMode }) => {
     };
   };
 
+  const getWpsAdjustResult = () => {
+    const {
+      systemVol, currentWps, desiredWps, retortWater, retortOil,
+      saltPurity, sackWeightSalt, sackWeightBarite, targetOilRatio,
+      dieselDensity, mudWeight, maintainOwr
+    } = wpsAdj;
+
+    if (!systemVol || !currentWps || !desiredWps || !retortWater || !retortOil || !saltPurity || !sackWeightSalt || !sackWeightBarite || !mudWeight) {
+      return { invalid: true, msg: lang === 'es' ? 'Ingrese todos los campos requeridos.' : 'Please enter all required fields.' };
+    }
+
+    const volSys = parseFloat(systemVol);
+    const wpsCurr = parseFloat(currentWps);
+    const wpsDes = parseFloat(desiredWps);
+    const retW = parseFloat(retortWater);
+    const retO = parseFloat(retortOil);
+    const purity = parseFloat(saltPurity);
+    const sackS = parseFloat(sackWeightSalt);
+    const sackB = parseFloat(sackWeightBarite);
+    const targetO = parseFloat(targetOilRatio);
+    const dieselD = parseFloat(dieselDensity) || (unitMode === 'field' ? 7.0 : 0.84);
+    const mudW = parseFloat(mudWeight);
+
+    if (isNaN(volSys) || isNaN(wpsCurr) || isNaN(wpsDes) || isNaN(retW) || isNaN(retO) || isNaN(purity) || isNaN(sackS) || isNaN(sackB) || isNaN(mudW)) {
+      return { invalid: true, msg: lang === 'es' ? 'Los valores ingresados deben ser numéricos.' : 'All values must be numeric.' };
+    }
+
+    if (volSys <= 0 || wpsCurr <= 0 || wpsDes <= 0 || retW <= 0 || purity <= 0 || sackS <= 0 || sackB <= 0 || mudW <= 0) {
+      return { invalid: true, msg: lang === 'es' ? 'Los valores de control deben ser mayores a cero.' : 'Control values must be greater than zero.' };
+    }
+
+    if (purity > 100) {
+      return { invalid: true, msg: lang === 'es' ? 'La pureza de la sal no puede superar el 100%.' : 'Salt purity cannot exceed 100%.' };
+    }
+
+    if (retW + retO > 100) {
+      return { invalid: true, msg: lang === 'es' ? 'La suma de retorta agua y aceite no puede superar el 100%.' : 'Water and oil retort sum cannot exceed 100%.' };
+    }
+
+    // CONVERSIONES A UNIDADES API PARA EL CÁLCULO INTERNO
+    let v_sys_bbl = volSys;
+    let mw_ppg = mudW;
+    let diesel_ppg = dieselD;
+    let sack_salt_lb = sackS;
+    let sack_barite_lb = sackB;
+
+    if (unitMode === 'metric') {
+      v_sys_bbl = volSys * 6.28981; // m3 to bbl
+      mw_ppg = mudW * 8.345; // SG to ppg
+      diesel_ppg = dieselD * 8.345; // SG to ppg
+      sack_salt_lb = sackS * 2.20462; // kg to lb
+      sack_barite_lb = sackB * 2.20462; // kg to lb
+    }
+
+    // TABLA CaCl2 OFICIAL (BAROID HANDBOOK)
+    const cacl2BrineTable = [
+      { ppm: 150000, saltLbs: 61.21 }, { ppm: 160000, saltLbs: 65.84 }, { ppm: 170000, saltLbs: 70.54 },
+      { ppm: 180000, saltLbs: 75.30 }, { ppm: 190000, saltLbs: 80.18 }, { ppm: 200000, saltLbs: 85.10 },
+      { ppm: 210000, saltLbs: 90.16 }, { ppm: 220000, saltLbs: 95.22 }, { ppm: 230000, saltLbs: 100.42 },
+      { ppm: 240000, saltLbs: 105.62 }, { ppm: 250000, saltLbs: 111.01 }, { ppm: 260000, saltLbs: 116.39 },
+      { ppm: 270000, saltLbs: 121.94 }, { ppm: 280000, saltLbs: 127.48 }, { ppm: 290000, saltLbs: 133.21 },
+      { ppm: 300000, saltLbs: 138.94 }, { ppm: 310000, saltLbs: 144.83 }, { ppm: 320000, saltLbs: 150.72 },
+      { ppm: 330000, saltLbs: 156.81 }, { ppm: 340000, saltLbs: 162.90 }, { ppm: 350000, saltLbs: 169.18 },
+      { ppm: 360000, saltLbs: 175.47 }, { ppm: 370000, saltLbs: 181.94 }, { ppm: 380000, saltLbs: 188.41 },
+      { ppm: 390000, saltLbs: 195.07 }, { ppm: 400000, saltLbs: 201.74 }
+    ];
+
+    const lookupSaltPpb = (wpsPpm) => {
+      const w = Math.max(150000, Math.min(400000, wpsPpm));
+      for (let i = 0; i < cacl2BrineTable.length - 1; i++) {
+        const w1 = cacl2BrineTable[i].ppm;
+        const s1 = cacl2BrineTable[i].saltLbs;
+        const w2 = cacl2BrineTable[i+1].ppm;
+        const s2 = cacl2BrineTable[i+1].saltLbs;
+        if (w >= w1 && w <= w2) {
+          const factor = (w - w1) / (w2 - w1);
+          return s1 + factor * (s2 - s1);
+        }
+      }
+      return cacl2BrineTable[cacl2BrineTable.length - 1].saltLbs;
+    };
+
+    let waterToAdd_bbl = 0;
+    let oilToAdd_bbl = 0;
+    let saltToAdd_lb = 0;
+    let bariteToAdd_lb = 0;
+    let treatmentType = 'none';
+
+    if (Math.abs(wpsDes - wpsCurr) < 0.1) {
+      treatmentType = 'none';
+    } else if (wpsDes > wpsCurr) {
+      // CASO A: AUMENTO DE SALINIDAD (SAL SECA)
+      treatmentType = 'increase';
+      const wpsCurrDec = wpsCurr * 1e-6;
+      const wpsDesDec = wpsDes * 1e-6;
+      const ppb_current = 350.0 * (1.0 / (1.0 / wpsCurrDec - 1.0)) * (retW / 100.0);
+      const ppb_desired = 350.0 * (1.0 / (1.0 / wpsDesDec - 1.0)) * (retW / 100.0);
+      const ppb_to_add = (ppb_desired - ppb_current) / (purity / 100.0);
+      
+      saltToAdd_lb = ppb_to_add * v_sys_bbl;
+    } else {
+      // CASO B: DISMINUCIÓN DE SALINIDAD (DILUCIÓN)
+      treatmentType = 'decrease';
+      const v_w_init = v_sys_bbl * (retW / 100.0);
+      const ppb_salt_brine_current = lookupSaltPpb(wpsCurr);
+      const total_salt_lbs = v_w_init * ppb_salt_brine_current;
+      const ppb_salt_brine_desired = lookupSaltPpb(wpsDes);
+      
+      const v_w_desired = total_salt_lbs / ppb_salt_brine_desired;
+      waterToAdd_bbl = v_w_desired - v_w_init;
+      if (waterToAdd_bbl < 0) waterToAdd_bbl = 0;
+
+      if (maintainOwr) {
+        const v_o_init = v_sys_bbl * (retO / 100.0);
+        const targetW = 100.0 - targetO;
+        if (targetW > 0) {
+          oilToAdd_bbl = ((targetO / targetW) * (v_w_init + waterToAdd_bbl)) - v_o_init;
+          if (oilToAdd_bbl < 0) oilToAdd_bbl = 0;
+        }
+      }
+
+      const bariteDenom = 35.05 - mw_ppg;
+      if (bariteDenom > 0) {
+        const bariteNumer = waterToAdd_bbl * (mw_ppg - 8.345) + oilToAdd_bbl * (mw_ppg - diesel_ppg);
+        const v_b_add_bbl = bariteNumer / bariteDenom;
+        if (v_b_add_bbl > 0) {
+          bariteToAdd_lb = v_b_add_bbl * 1472.0;
+        }
+      }
+    }
+
+    let waterToAdd = waterToAdd_bbl;
+    let oilToAdd = oilToAdd_bbl;
+    let saltToAdd = saltToAdd_lb;
+    let bariteToAdd = bariteToAdd_lb;
+
+    if (unitMode === 'metric') {
+      waterToAdd = waterToAdd_bbl / 6.28981;
+      oilToAdd = oilToAdd_bbl / 6.28981;
+      saltToAdd = saltToAdd_lb * 0.453592;
+      bariteToAdd = bariteToAdd_lb * 0.453592;
+    }
+
+    const sacksSalt = saltToAdd_lb / (sack_salt_lb || 80);
+    const sacksBarite = bariteToAdd_lb / (sack_barite_lb || 100);
+
+    return {
+      invalid: false,
+      treatmentType,
+      waterToAdd,
+      oilToAdd,
+      saltToAdd,
+      bariteToAdd,
+      sacksSalt,
+      sacksBarite
+    };
+  };
+
   const lgsRetortResult = getLgsRetortResult();
 
   // Unit toggle converter for Retort Mud weight
@@ -869,6 +1027,36 @@ const FluidCalculator = ({ isEditing, lang, unitMode, setUnitMode }) => {
         }
       }
       return prev;
+    });
+  }, [unitMode]);
+
+  // Unit toggle converter for WPS Adjustment inputs
+  useEffect(() => {
+    setWpsAdj(prev => {
+      const vol = parseFloat(prev.systemVol);
+      const mw = parseFloat(prev.mudWeight);
+      const diesel = parseFloat(prev.dieselDensity);
+      const sackSalt = parseFloat(prev.sackWeightSalt);
+      const sackBarite = parseFloat(prev.sackWeightBarite);
+
+      const next = { ...prev };
+
+      // We only convert if there is actual input or to adjust default weights
+      if (unitMode === 'metric') {
+        if (!isNaN(vol)) next.systemVol = (vol / 6.28981).toFixed(1);
+        if (!isNaN(mw)) next.mudWeight = (mw / 8.345).toFixed(2);
+        if (!isNaN(diesel)) next.dieselDensity = (diesel / 8.345).toFixed(2);
+        if (!isNaN(sackSalt)) next.sackWeightSalt = (sackSalt / 2.20462).toFixed(1);
+        if (!isNaN(sackBarite)) next.sackWeightBarite = (sackBarite / 2.20462).toFixed(1);
+      } else {
+        if (!isNaN(vol)) next.systemVol = (vol * 6.28981).toFixed(1);
+        if (!isNaN(mw)) next.mudWeight = (mw * 8.345).toFixed(2);
+        if (!isNaN(diesel)) next.dieselDensity = (diesel * 8.345).toFixed(2);
+        if (!isNaN(sackSalt)) next.sackWeightSalt = (sackSalt * 2.20462).toFixed(1);
+        if (!isNaN(sackBarite)) next.sackWeightBarite = (sackBarite * 2.20462).toFixed(1);
+      }
+
+      return next;
     });
   }, [unitMode]);
 
@@ -1391,12 +1579,25 @@ const FluidCalculator = ({ isEditing, lang, unitMode, setUnitMode }) => {
               </div>
               <div>
                 <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block italic text-halliburton-red">{t.owrTargetRatio}</label>
-                <div className="flex gap-2">
+                <div className="flex gap-2 mb-3">
                   {['70', '75', '80', '85', '90'].map(r => (
-                    <button key={r} onClick={() => setOwr({ ...owr, targetRatio: r })} className={`flex-1 py-3 rounded-xl text-[10px] font-black transition-all border ${owr.targetRatio === r ? 'bg-halliburton-red text-white border-halliburton-red shadow-lg' : 'bg-zinc-50 dark:bg-slate-900 text-zinc-400 border-zinc-200 dark:border-zinc-800'}`}>
+                    <button type="button" tabIndex={-1} key={r} onClick={() => setOwr({ ...owr, targetRatio: r })} className={`flex-1 py-3 rounded-xl text-[10px] font-black transition-all border ${owr.targetRatio === r ? 'bg-halliburton-red text-white border-halliburton-red shadow-lg' : 'bg-zinc-50 dark:bg-slate-900 text-zinc-400 border-zinc-200 dark:border-zinc-800'}`}>
                       {r}/{100 - r}
                     </button>
                   ))}
+                </div>
+                <div className="flex items-center gap-3 bg-zinc-50 dark:bg-slate-900/40 p-4 rounded-3xl border border-zinc-150 dark:border-zinc-800/50">
+                  <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest flex-1">{lang === 'es' ? 'Personalizado (% Aceite)' : 'Custom (% Oil)'}</span>
+                  <input
+                    type="number"
+                    min="50"
+                    max="99"
+                    value={owr.targetRatio}
+                    onChange={e => setOwr({ ...owr, targetRatio: e.target.value })}
+                    className="w-24 bg-white dark:bg-slate-950 border-2 border-zinc-250 dark:border-zinc-800 focus:border-halliburton-red focus:outline-none rounded-xl py-1 text-center font-black text-sm text-zinc-800 dark:text-white"
+                    placeholder="80"
+                  />
+                  <span className="text-xs font-black text-zinc-400">{owr.targetRatio || '0'}/{100 - (parseFloat(owr.targetRatio) || 0)}</span>
                 </div>
               </div>
             </div>
@@ -1862,6 +2063,104 @@ const FluidCalculator = ({ isEditing, lang, unitMode, setUnitMode }) => {
               </div>
             </div>
           )}
+
+          {activeSubTab === 'wps_adjust' && (
+            <div className="space-y-6">
+              <h4 className="text-[14px] font-black text-halliburton-red uppercase tracking-widest mb-4 italic">{t.wpsAdjustTitle}</h4>
+              
+              {/* Grupo 1: Geometría y Sistema */}
+              <div className="space-y-4">
+                <h5 className="text-[11px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest border-b border-zinc-100 dark:border-zinc-800 pb-1">{lang === 'es' ? '1. Parámetros del Sistema' : '1. System Parameters'}</h5>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="text-[11px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">{t.wpsAdjustSysVol} ({unitMode === 'field' ? 'bbl' : 'm³'})</label>
+                    <input type="number" value={wpsAdj.systemVol} onChange={e => setWpsAdj({ ...wpsAdj, systemVol: e.target.value })} className="w-full input-style text-xl font-bold" placeholder="1000" />
+                  </div>
+                  <div>
+                    <label className="text-[11px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">{t.wpsAdjustMudWeight} ({unitMode === 'field' ? 'ppg' : 'SG'})</label>
+                    <input type="number" value={wpsAdj.mudWeight} onChange={e => setWpsAdj({ ...wpsAdj, mudWeight: e.target.value })} className="w-full input-style text-xl font-bold" placeholder="12.0" />
+                  </div>
+                  <div>
+                    <label className="text-[11px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">{t.wpsAdjustDieselDensity} ({unitMode === 'field' ? 'ppg' : 'SG'})</label>
+                    <input type="number" value={wpsAdj.dieselDensity} onChange={e => setWpsAdj({ ...wpsAdj, dieselDensity: e.target.value })} className="w-full input-style text-xl font-bold" placeholder="7.0" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Grupo 2: Salinidad y Retorta */}
+              <div className="space-y-4 pt-2">
+                <h5 className="text-[11px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest border-b border-zinc-100 dark:border-zinc-800 pb-1">{lang === 'es' ? '2. Salinidad y Retorta' : '2. Salinity & Retort'}</h5>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-[11px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">{t.wpsAdjustCurrentWps} (ppm)</label>
+                    <input type="number" value={wpsAdj.currentWps} onChange={e => setWpsAdj({ ...wpsAdj, currentWps: e.target.value })} className="w-full input-style text-xl font-bold" placeholder="250000" />
+                  </div>
+                  <div>
+                    <label className="text-[11px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">{t.wpsAdjustDesiredWps} (ppm)</label>
+                    <input type="number" value={wpsAdj.desiredWps} onChange={e => setWpsAdj({ ...wpsAdj, desiredWps: e.target.value })} className="w-full input-style text-xl font-bold" placeholder="200000" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-[11px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">{t.wpsAdjustRetortWater} (%)</label>
+                    <input type="number" value={wpsAdj.retortWater} onChange={e => setWpsAdj({ ...wpsAdj, retortWater: e.target.value })} className="w-full input-style text-xl font-bold" placeholder="15" />
+                  </div>
+                  <div>
+                    <label className="text-[11px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">{t.wpsAdjustRetortOil} (%)</label>
+                    <input type="number" value={wpsAdj.retortOil} onChange={e => setWpsAdj({ ...wpsAdj, retortOil: e.target.value })} className="w-full input-style text-xl font-bold" placeholder="70" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Grupo 3: Sal y Parámetros Químicos */}
+              <div className="space-y-4 pt-2">
+                <h5 className="text-[11px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest border-b border-zinc-100 dark:border-zinc-800 pb-1">{lang === 'es' ? '3. Aditivos y Ajustes' : '3. Additives & Settings'}</h5>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="text-[11px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">{t.wpsAdjustSaltPurity} (%)</label>
+                    <input type="number" value={wpsAdj.saltPurity} onChange={e => setWpsAdj({ ...wpsAdj, saltPurity: e.target.value })} className="w-full input-style text-lg font-bold" placeholder="97" />
+                  </div>
+                  <div>
+                    <label className="text-[11px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">{t.wpsAdjustSaltSack} ({unitMode === 'field' ? 'lb' : 'kg'})</label>
+                    <input type="number" value={wpsAdj.sackWeightSalt} onChange={e => setWpsAdj({ ...wpsAdj, sackWeightSalt: e.target.value })} className="w-full input-style text-lg font-bold" placeholder="80" />
+                  </div>
+                  <div>
+                    <label className="text-[11px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">{t.wpsAdjustBariteSack} ({unitMode === 'field' ? 'lb' : 'kg'})</label>
+                    <input type="number" value={wpsAdj.sackWeightBarite} onChange={e => setWpsAdj({ ...wpsAdj, sackWeightBarite: e.target.value })} className="w-full input-style text-lg font-bold" placeholder="100" />
+                  </div>
+                </div>
+                
+                <div className="flex flex-col gap-4 bg-zinc-50 dark:bg-slate-900/60 p-5 rounded-3xl border border-zinc-100 dark:border-zinc-800/60 mt-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest">{t.wpsAdjustMaintainOwr}</span>
+                    <input
+                      type="checkbox"
+                      checked={wpsAdj.maintainOwr}
+                      onChange={e => setWpsAdj({ ...wpsAdj, maintainOwr: e.target.checked })}
+                      className="w-5 h-5 rounded border-zinc-300 text-halliburton-red focus:ring-halliburton-red cursor-pointer"
+                    />
+                  </div>
+                  {wpsAdj.maintainOwr && (
+                    <div className="flex items-center justify-between gap-4 pt-2 border-t border-zinc-100 dark:border-zinc-800/80">
+                      <span className="text-[11px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest">{t.wpsAdjustTargetOwr} (% Aceite)</span>
+                      <div className="flex items-center gap-3">
+                        <input
+                          type="number"
+                          min="50"
+                          max="99"
+                          value={wpsAdj.targetOilRatio}
+                          onChange={e => setWpsAdj({ ...wpsAdj, targetOilRatio: e.target.value })}
+                          className="w-20 bg-white dark:bg-slate-950 border-2 border-zinc-200 dark:border-zinc-800 focus:border-halliburton-red focus:outline-none rounded-xl py-1 text-center font-black text-xs text-zinc-850 dark:text-white"
+                          placeholder="80"
+                        />
+                        <span className="text-xs font-black text-zinc-450 dark:text-zinc-400">{wpsAdj.targetOilRatio}/{100 - (parseFloat(wpsAdj.targetOilRatio) || 0)}</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Results Side */}
@@ -2065,6 +2364,136 @@ const FluidCalculator = ({ isEditing, lang, unitMode, setUnitMode }) => {
                 <span>{lang === 'es' ? 'Aceite' : 'Oil'} ({getOWRResult().current.split('/')[0]}%)</span>
                 <span>{lang === 'es' ? 'Agua' : 'Water'} ({getOWRResult().current.split('/')[1]}%)</span>
               </div>
+            </div>
+          )}
+
+          {activeSubTab === 'wps_adjust' && (
+            <div className="bg-zinc-900 p-12 rounded-[3.5rem] text-white flex flex-col justify-center h-full relative overflow-hidden group">
+              <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform">
+                <Icon name="flask-round" size={120} />
+              </div>
+
+              <div className="flex justify-between items-start mb-6">
+                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500 block">
+                  {t.wpsAdjustResultHeader}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const res = getWpsAdjustResult();
+                    if (res.invalid) return;
+                    let reportText = "";
+                    if (res.treatmentType === 'increase') {
+                      reportText = `TRATAMIENTO WPS (AUMENTO):\n- Vol. Sistema: ${wpsAdj.systemVol} ${unitMode === 'field' ? 'bbl' : 'm³'}\n- Salinidad: ${wpsAdj.currentWps} -> ${wpsAdj.desiredWps} ppm\n- Cloruro de Calcio comercial a agregar: ${res.saltToAdd.toFixed(1)} ${unitMode === 'field' ? 'lb' : 'kg'} (${res.sacksSalt.toFixed(1)} sacos de ${wpsAdj.sackWeightSalt} ${unitMode === 'field' ? 'lb' : 'kg'})`;
+                    } else if (res.treatmentType === 'decrease') {
+                      reportText = `TRATAMIENTO WPS (DILUCIÓN):\n- Vol. Sistema: ${wpsAdj.systemVol} ${unitMode === 'field' ? 'bbl' : 'm³'}\n- Salinidad: ${wpsAdj.currentWps} -> ${wpsAdj.desiredWps} ppm\n- Agua a agregar: ${res.waterToAdd.toFixed(1)} ${unitMode === 'field' ? 'bbl' : 'm³'}\n- Gasoil a agregar: ${res.oilToAdd.toFixed(1)} ${unitMode === 'field' ? 'bbl' : 'm³'}\n- Barita a agregar: ${res.bariteToAdd.toFixed(1)} ${unitMode === 'field' ? 'lb' : 'kg'} (${res.sacksBarite.toFixed(1)} sacos de ${wpsAdj.sackWeightBarite} ${unitMode === 'field' ? 'lb' : 'kg'})`;
+                    } else {
+                      reportText = `TRATAMIENTO WPS: No se requiere tratamiento. La salinidad está en el objetivo.`;
+                    }
+                    copyToClipboard(reportText);
+                  }}
+                  className="p-3 bg-white/10 hover:bg-halliburton-red rounded-2xl transition-all shadow-lg flex items-center gap-2 text-[10px] font-black uppercase tracking-widest"
+                >
+                  <Icon name="share-2" size={14} /> {lang === 'es' ? 'Copiar Reporte' : 'Copy Report'}
+                </button>
+              </div>
+
+              {getWpsAdjustResult().invalid ? (
+                <div className="p-5 bg-red-500/10 border border-red-500/20 rounded-2xl text-xs font-bold text-red-400 uppercase tracking-widest text-center">
+                  ⚠️ {getWpsAdjustResult().msg}
+                </div>
+              ) : (
+                <div className="space-y-8">
+                  {/* Diagnóstico Breve */}
+                  <div className="p-5 bg-white/5 border border-white/10 rounded-3xl">
+                    <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest block mb-2">{lang === 'es' ? 'Diagnóstico Operativo' : 'Operational Diagnosis'}</span>
+                    <p className="text-xs font-bold text-zinc-200 leading-relaxed uppercase">
+                      {getWpsAdjustResult().treatmentType === 'increase' && t.wpsAdjustIncreaseMsg}
+                      {getWpsAdjustResult().treatmentType === 'decrease' && t.wpsAdjustDecreaseMsg}
+                      {getWpsAdjustResult().treatmentType === 'none' && t.wpsAdjustNoChangeMsg}
+                    </p>
+                  </div>
+
+                  {getWpsAdjustResult().treatmentType === 'increase' && (
+                    <div className="space-y-4">
+                      <div className="p-6 bg-halliburton-red/10 border border-halliburton-red/20 rounded-[2.5rem] flex items-center justify-between">
+                        <div>
+                          <span className="text-[10px] font-black text-halliburton-red uppercase tracking-wider block mb-1 italic">{t.wpsAdjustSaltToAdd}</span>
+                          <span className="text-3xl font-black text-white italic">
+                            {getWpsAdjustResult().saltToAdd.toLocaleString(lang === 'es' ? 'es-AR' : 'en-US', { maximumFractionDigits: 1 })}
+                            <span className="text-xs font-bold opacity-45 uppercase ml-1.5">{unitMode === 'field' ? 'lb' : 'kg'}</span>
+                          </span>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block mb-1">{t.wpsAdjustSacks}</span>
+                          <span className="text-3xl font-black text-white italic">
+                            {getWpsAdjustResult().sacksSalt.toFixed(1)}
+                            <span className="text-xs font-bold opacity-45 ml-1">SXS</span>
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {getWpsAdjustResult().treatmentType === 'decrease' && (
+                    <div className="space-y-4">
+                      {/* Agua */}
+                      <div className="p-5 bg-blue-500/10 border border-blue-500/20 rounded-3xl flex items-center justify-between">
+                        <div>
+                          <span className="text-[10px] font-black text-blue-400 uppercase tracking-wider block mb-1 italic">{t.wpsAdjustWaterToAdd}</span>
+                          <span className="text-3xl font-black text-white italic">
+                            {getWpsAdjustResult().waterToAdd.toLocaleString(lang === 'es' ? 'es-AR' : 'en-US', { maximumFractionDigits: 1 })}
+                            <span className="text-xs font-bold opacity-45 uppercase ml-1.5">{unitMode === 'field' ? 'bbl' : 'm³'}</span>
+                          </span>
+                        </div>
+                        <Icon name="droplet" size={24} className="text-blue-400" />
+                      </div>
+
+                      {/* Gasoil */}
+                      {wpsAdj.maintainOwr && getWpsAdjustResult().oilToAdd > 0 && (
+                        <div className="p-5 bg-yellow-500/10 border border-yellow-500/20 rounded-3xl flex items-center justify-between">
+                          <div>
+                            <span className="text-[10px] font-black text-yellow-500 uppercase tracking-wider block mb-1 italic">{t.wpsAdjustOilToAdd}</span>
+                            <span className="text-3xl font-black text-white italic">
+                              {getWpsAdjustResult().oilToAdd.toLocaleString(lang === 'es' ? 'es-AR' : 'en-US', { maximumFractionDigits: 1 })}
+                              <span className="text-xs font-bold opacity-45 uppercase ml-1.5">{unitMode === 'field' ? 'bbl' : 'm³'}</span>
+                            </span>
+                          </div>
+                          <Icon name="fuel" size={24} className="text-yellow-500" />
+                        </div>
+                      )}
+
+                      {/* Barita */}
+                      {getWpsAdjustResult().bariteToAdd > 0 && (
+                        <div className="p-5 bg-emerald-500/10 border border-emerald-500/20 rounded-3xl flex items-center justify-between">
+                          <div>
+                            <span className="text-[10px] font-black text-emerald-400 uppercase tracking-wider block mb-1 italic">{t.wpsAdjustBariteToAdd}</span>
+                            <span className="text-3xl font-black text-white italic">
+                              {getWpsAdjustResult().bariteToAdd.toLocaleString(lang === 'es' ? 'es-AR' : 'en-US', { maximumFractionDigits: 1 })}
+                              <span className="text-xs font-bold opacity-45 uppercase ml-1.5">{unitMode === 'field' ? 'lb' : 'kg'}</span>
+                            </span>
+                          </div>
+                          <div className="text-right">
+                            <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block mb-1">{t.wpsAdjustSacks}</span>
+                            <span className="text-2xl font-black text-white italic">
+                              {getWpsAdjustResult().sacksBarite.toFixed(1)}
+                              <span className="text-xs font-bold opacity-45 ml-1">SXS</span>
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Resumen del objetivo */}
+                  <div className="flex gap-4 pt-4 border-t border-zinc-800 text-[10px] font-black text-zinc-500 uppercase tracking-wider justify-between">
+                    <div>WPS: <span className="text-zinc-300 font-bold">{wpsAdj.currentWps} → {wpsAdj.desiredWps} ppm</span></div>
+                    {wpsAdj.maintainOwr && getWpsAdjustResult().treatmentType === 'decrease' && (
+                      <div>OWR: <span className="text-zinc-300 font-bold">{wpsAdj.targetOilRatio}/{100 - parseFloat(wpsAdj.targetOilRatio)}</span></div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
