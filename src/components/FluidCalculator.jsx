@@ -738,6 +738,16 @@ const FluidCalculator = ({ isEditing, lang, unitMode, setUnitMode }) => {
       };
     });
 
+    // Determine profile type
+    let profileTypeKey = 'rheoProfileTypeBasic';
+    if (vp >= 30) {
+      profileTypeKey = 'rheoProfileTypeHeavy';
+    } else if (yp >= 30 && yp > vp) {
+      profileTypeKey = 'rheoProfileTypeHighYield';
+    } else if (vp < 20 && yp < 15) {
+      profileTypeKey = 'rheoProfileTypeLight';
+    }
+
     return {
       vp,
       yp,
@@ -747,7 +757,8 @@ const FluidCalculator = ({ isEditing, lang, unitMode, setUnitMode }) => {
       isReadingInverted,
       n,
       k,
-      data
+      data,
+      profileTypeKey
     };
   };
 
@@ -1363,68 +1374,55 @@ const FluidCalculator = ({ isEditing, lang, unitMode, setUnitMode }) => {
               </div>
 
               {rheoInputMode === 'params' ? (
-                <>
-                  {/* Presets */}
-                  <div className="bg-zinc-50 dark:bg-slate-900/60 p-4 rounded-3xl border border-zinc-100 dark:border-zinc-800/50 space-y-3">
-                    <span className="text-[10px] text-zinc-400 font-black uppercase tracking-widest block">{t.rheoPresets}</span>
-                    <div className="grid grid-cols-2 gap-2">
-                      <button type="button" onClick={() => setRheo({ vp: '18', yp: '12', tau0: '5' })} className="text-[10px] bg-white dark:bg-slate-800 hover:border-halliburton-red border border-zinc-100 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 py-2 px-3 rounded-xl transition-all font-black uppercase tracking-wider">{t.rheoPresetLight}</button>
-                      <button type="button" onClick={() => setRheo({ vp: '35', yp: '25', tau0: '12' })} className="text-[10px] bg-white dark:bg-slate-800 hover:border-halliburton-red border border-zinc-100 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 py-2 px-3 rounded-xl transition-all font-black uppercase tracking-wider">{t.rheoPresetHeavy}</button>
-                      <button type="button" onClick={() => setRheo({ vp: '22', yp: '38', tau0: '18' })} className="text-[10px] bg-white dark:bg-slate-800 hover:border-halliburton-red border border-zinc-100 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 py-2 px-3 rounded-xl transition-all font-black uppercase tracking-wider">{t.rheoPresetYield}</button>
-                      <button type="button" onClick={() => setRheo({ vp: '25', yp: '18', tau0: '8' })} className="text-[10px] bg-halliburton-red/10 border border-halliburton-red/20 text-halliburton-red py-2 px-3 rounded-xl transition-all font-black uppercase tracking-wider">{t.rheoPresetBasic}</button>
+                <div className="space-y-6">
+                  {/* VP */}
+                  <div className="bg-zinc-50 dark:bg-slate-900/40 p-4 rounded-3xl border border-zinc-100 dark:border-zinc-800/50">
+                    <div className="flex justify-between items-center mb-2">
+                      <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest">
+                        {t.rheoPlasticVisc} <span className="text-halliburton-red">(VP)</span>
+                      </label>
+                      <span className="text-[10px] font-bold text-zinc-400">cP</span>
+                    </div>
+                    <div className="flex gap-3 items-center">
+                      <button type="button" tabIndex={-1} onClick={() => setRheo(prev => ({ ...prev, vp: Math.max(1, (parseFloat(prev.vp) || 0) - 1).toString() }))} className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 font-bold transition-all hover:bg-zinc-100 dark:hover:bg-slate-700 flex items-center justify-center">-</button>
+                      <input type="range" min="1" max="100" value={parseFloat(rheo.vp) || 20} onChange={e => setRheo(prev => ({ ...prev, vp: e.target.value }))} className="flex-1 h-1.5 bg-zinc-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-halliburton-red" />
+                      <button type="button" tabIndex={-1} onClick={() => setRheo(prev => ({ ...prev, vp: Math.min(100, (parseFloat(prev.vp) || 0) + 1).toString() }))} className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 font-bold transition-all hover:bg-zinc-100 dark:hover:bg-slate-700 flex items-center justify-center">+</button>
+                      <input type="number" min="1" max="100" value={rheo.vp} onChange={e => setRheo(prev => ({ ...prev, vp: e.target.value }))} className="w-18 bg-white dark:bg-slate-800 border-2 border-zinc-200 dark:border-zinc-700 rounded-xl py-2 text-center font-bold text-zinc-800 dark:text-white focus:border-halliburton-red focus:outline-none" />
                     </div>
                   </div>
 
-                  <div className="space-y-6 pt-2">
-                    {/* VP */}
-                    <div className="bg-zinc-50 dark:bg-slate-900/40 p-4 rounded-3xl border border-zinc-100 dark:border-zinc-800/50">
-                      <div className="flex justify-between items-center mb-2">
-                        <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest">
-                          {t.rheoPlasticVisc} <span className="text-halliburton-red">(VP)</span>
-                        </label>
-                        <span className="text-[10px] font-bold text-zinc-400">cP</span>
-                      </div>
-                      <div className="flex gap-3 items-center">
-                        <button type="button" onClick={() => setRheo(prev => ({ ...prev, vp: Math.max(1, (parseFloat(prev.vp) || 0) - 1).toString() }))} className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 font-bold transition-all hover:bg-zinc-100 dark:hover:bg-slate-700 flex items-center justify-center">-</button>
-                        <input type="range" min="1" max="100" value={parseFloat(rheo.vp) || 20} onChange={e => setRheo(prev => ({ ...prev, vp: e.target.value }))} className="flex-1 h-1.5 bg-zinc-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-halliburton-red" />
-                        <button type="button" onClick={() => setRheo(prev => ({ ...prev, vp: Math.min(100, (parseFloat(prev.vp) || 0) + 1).toString() }))} className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 font-bold transition-all hover:bg-zinc-100 dark:hover:bg-slate-700 flex items-center justify-center">+</button>
-                        <input type="number" min="1" max="100" value={rheo.vp} onChange={e => setRheo(prev => ({ ...prev, vp: e.target.value }))} className="w-18 bg-white dark:bg-slate-800 border-2 border-zinc-200 dark:border-zinc-700 rounded-xl py-2 text-center font-bold text-zinc-800 dark:text-white focus:border-halliburton-red focus:outline-none" />
-                      </div>
+                  {/* YP */}
+                  <div className="bg-zinc-50 dark:bg-slate-900/40 p-4 rounded-3xl border border-zinc-100 dark:border-zinc-800/50">
+                    <div className="flex justify-between items-center mb-2">
+                      <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest">
+                        {t.rheoYieldPoint} <span className="text-halliburton-red">(YP)</span>
+                      </label>
+                      <span className="text-[10px] font-bold text-zinc-400">lb/100ft²</span>
                     </div>
-
-                    {/* YP */}
-                    <div className="bg-zinc-50 dark:bg-slate-900/40 p-4 rounded-3xl border border-zinc-100 dark:border-zinc-800/50">
-                      <div className="flex justify-between items-center mb-2">
-                        <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest">
-                          {t.rheoYieldPoint} <span className="text-halliburton-red">(YP)</span>
-                        </label>
-                        <span className="text-[10px] font-bold text-zinc-400">lb/100ft²</span>
-                      </div>
-                      <div className="flex gap-3 items-center">
-                        <button type="button" onClick={() => setRheo(prev => ({ ...prev, yp: Math.max(1, (parseFloat(prev.yp) || 0) - 1).toString() }))} className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 font-bold transition-all hover:bg-zinc-100 dark:hover:bg-slate-700 flex items-center justify-center">-</button>
-                        <input type="range" min="1" max="100" value={parseFloat(rheo.yp) || 15} onChange={e => setRheo(prev => ({ ...prev, yp: e.target.value }))} className="flex-1 h-1.5 bg-zinc-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-halliburton-red" />
-                        <button type="button" onClick={() => setRheo(prev => ({ ...prev, yp: Math.min(100, (parseFloat(prev.yp) || 0) + 1).toString() }))} className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 font-bold transition-all hover:bg-zinc-100 dark:hover:bg-slate-700 flex items-center justify-center">+</button>
-                        <input type="number" min="1" max="100" value={rheo.yp} onChange={e => setRheo(prev => ({ ...prev, yp: e.target.value }))} className="w-18 bg-white dark:bg-slate-800 border-2 border-zinc-200 dark:border-zinc-700 rounded-xl py-2 text-center font-bold text-zinc-800 dark:text-white focus:border-halliburton-red focus:outline-none" />
-                      </div>
-                    </div>
-
-                    {/* Tau0 */}
-                    <div className="bg-zinc-50 dark:bg-slate-900/40 p-4 rounded-3xl border border-zinc-100 dark:border-zinc-800/50">
-                      <div className="flex justify-between items-center mb-2">
-                        <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest">
-                          {t.rheoTrueYield} <span className="text-halliburton-red">(τ₀)</span>
-                        </label>
-                        <span className="text-[10px] font-bold text-zinc-400">lb/100ft²</span>
-                      </div>
-                      <div className="flex gap-3 items-center">
-                        <button type="button" onClick={() => setRheo(prev => ({ ...prev, tau0: Math.max(0, (parseFloat(prev.tau0) || 0) - 1).toString() }))} className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 font-bold transition-all hover:bg-zinc-100 dark:hover:bg-slate-700 flex items-center justify-center">-</button>
-                        <input type="range" min="0" max="80" value={parseFloat(rheo.tau0) || 6} onChange={e => setRheo(prev => ({ ...prev, tau0: e.target.value }))} className="flex-1 h-1.5 bg-zinc-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-halliburton-red" />
-                        <button type="button" onClick={() => setRheo(prev => ({ ...prev, tau0: Math.min(80, (parseFloat(prev.tau0) || 0) + 1).toString() }))} className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 font-bold transition-all hover:bg-zinc-100 dark:hover:bg-slate-700 flex items-center justify-center">+</button>
-                        <input type="number" min="0" max="80" value={rheo.tau0} onChange={e => setRheo(prev => ({ ...prev, tau0: e.target.value }))} className="w-18 bg-white dark:bg-slate-800 border-2 border-zinc-200 dark:border-zinc-700 rounded-xl py-2 text-center font-bold text-zinc-800 dark:text-white focus:border-halliburton-red focus:outline-none" />
-                      </div>
+                    <div className="flex gap-3 items-center">
+                      <button type="button" tabIndex={-1} onClick={() => setRheo(prev => ({ ...prev, yp: Math.max(1, (parseFloat(prev.yp) || 0) - 1).toString() }))} className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 font-bold transition-all hover:bg-zinc-100 dark:hover:bg-slate-700 flex items-center justify-center">-</button>
+                      <input type="range" min="1" max="100" value={parseFloat(rheo.yp) || 15} onChange={e => setRheo(prev => ({ ...prev, yp: e.target.value }))} className="flex-1 h-1.5 bg-zinc-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-halliburton-red" />
+                      <button type="button" tabIndex={-1} onClick={() => setRheo(prev => ({ ...prev, yp: Math.min(100, (parseFloat(prev.yp) || 0) + 1).toString() }))} className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 font-bold transition-all hover:bg-zinc-100 dark:hover:bg-slate-700 flex items-center justify-center">+</button>
+                      <input type="number" min="1" max="100" value={rheo.yp} onChange={e => setRheo(prev => ({ ...prev, yp: e.target.value }))} className="w-18 bg-white dark:bg-slate-800 border-2 border-zinc-200 dark:border-zinc-700 rounded-xl py-2 text-center font-bold text-zinc-800 dark:text-white focus:border-halliburton-red focus:outline-none" />
                     </div>
                   </div>
-                </>
+
+                  {/* Tau0 */}
+                  <div className="bg-zinc-50 dark:bg-slate-900/40 p-4 rounded-3xl border border-zinc-100 dark:border-zinc-800/50">
+                    <div className="flex justify-between items-center mb-2">
+                      <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest">
+                        {t.rheoTrueYield} <span className="text-halliburton-red">(τ₀)</span>
+                      </label>
+                      <span className="text-[10px] font-bold text-zinc-400">lb/100ft²</span>
+                    </div>
+                    <div className="flex gap-3 items-center">
+                      <button type="button" tabIndex={-1} onClick={() => setRheo(prev => ({ ...prev, tau0: Math.max(0, (parseFloat(prev.tau0) || 0) - 1).toString() }))} className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 font-bold transition-all hover:bg-zinc-100 dark:hover:bg-slate-700 flex items-center justify-center">-</button>
+                      <input type="range" min="0" max="80" value={parseFloat(rheo.tau0) || 6} onChange={e => setRheo(prev => ({ ...prev, tau0: e.target.value }))} className="flex-1 h-1.5 bg-zinc-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-halliburton-red" />
+                      <button type="button" tabIndex={-1} onClick={() => setRheo(prev => ({ ...prev, tau0: Math.min(80, (parseFloat(prev.tau0) || 0) + 1).toString() }))} className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 font-bold transition-all hover:bg-zinc-100 dark:hover:bg-slate-700 flex items-center justify-center">+</button>
+                      <input type="number" min="0" max="80" value={rheo.tau0} onChange={e => setRheo(prev => ({ ...prev, tau0: e.target.value }))} className="w-18 bg-white dark:bg-slate-800 border-2 border-zinc-200 dark:border-zinc-700 rounded-xl py-2 text-center font-bold text-zinc-800 dark:text-white focus:border-halliburton-red focus:outline-none" />
+                    </div>
+                  </div>
+                </div>
               ) : (
                 <div className="grid grid-cols-2 gap-4 pt-2">
                   {[
@@ -1445,6 +1443,7 @@ const FluidCalculator = ({ isEditing, lang, unitMode, setUnitMode }) => {
                       <div className="flex gap-2 items-center">
                         <button
                           type="button"
+                          tabIndex={-1}
                           onClick={() => setRheoReadings(prev => ({
                             ...prev,
                             [field.key]: Math.max(0, (parseFloat(prev[field.key]) || 0) - 1).toString()
@@ -1461,6 +1460,7 @@ const FluidCalculator = ({ isEditing, lang, unitMode, setUnitMode }) => {
                         />
                         <button
                           type="button"
+                          tabIndex={-1}
                           onClick={() => setRheoReadings(prev => ({
                             ...prev,
                             [field.key]: Math.min(field.limit, (parseFloat(prev[field.key]) || 0) + 1).toString()
@@ -1498,10 +1498,23 @@ const FluidCalculator = ({ isEditing, lang, unitMode, setUnitMode }) => {
 
               {/* H-B Constantes */}
               <div className="bg-zinc-50 dark:bg-slate-900/40 border border-zinc-100 dark:border-zinc-800/50 rounded-[2.5rem] p-6 space-y-4">
-                <h3 className="text-xs font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest flex items-center gap-2">
-                  <Icon name="trending-up" size={14} className="text-emerald-500" />
-                  {t.rheoIndexHeader}
-                </h3>
+                <div className="flex justify-between items-center">
+                  <h3 className="text-xs font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest flex items-center gap-2">
+                    <Icon name="trending-up" size={14} className="text-emerald-500" />
+                    {t.rheoIndexHeader}
+                  </h3>
+                  <span className={`px-2.5 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider border ${
+                    getRheologyResult().profileTypeKey === 'rheoProfileTypeHeavy'
+                      ? 'bg-red-500/10 text-red-500 border-red-500/20 dark:bg-red-500/20'
+                      : getRheologyResult().profileTypeKey === 'rheoProfileTypeHighYield'
+                      ? 'bg-amber-500/10 text-amber-500 border-amber-500/20 dark:bg-amber-500/20'
+                      : getRheologyResult().profileTypeKey === 'rheoProfileTypeLight'
+                      ? 'bg-sky-500/10 text-sky-500 border-sky-500/20 dark:bg-sky-500/20'
+                      : 'bg-zinc-500/10 text-zinc-500 border-zinc-500/20 dark:bg-zinc-500/20'
+                  }`}>
+                    {t[getRheologyResult().profileTypeKey]}
+                  </span>
+                </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="bg-white dark:bg-slate-950 p-4 rounded-3xl border border-zinc-100 dark:border-zinc-800/50 shadow-sm flex flex-col justify-between">
                     <div>

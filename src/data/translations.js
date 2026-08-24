@@ -408,6 +408,11 @@ export const translations = {
     rheoProfileConsistent: "Perfil de reología consistente",
     rheoProfileInconsistent: "Se detectaron desviaciones en las lecturas. Verifique el dial a las velocidades indicadas.",
     rheoReadingError: "La lectura de 600 RPM debe ser mayor o igual a la de 300 RPM para evitar cálculos matemáticos inválidos.",
+    rheoProfileType: "Perfil de Fluido",
+    rheoProfileTypeLight: "Base Agua Ligero",
+    rheoProfileTypeHeavy: "Densificado (Sólidos Pesados)",
+    rheoProfileTypeHighYield: "Alta Cedencia (Limpieza)",
+    rheoProfileTypeBasic: "Estándar / Básico",
 
     // Piletas System
     pitsSystemTitle: "Sistema de Piletas",
@@ -794,6 +799,11 @@ export const translations = {
     rheoProfileConsistent: "Rheology profile is consistent",
     rheoProfileInconsistent: "Deviations detected in readings. Please verify Fann dial at the highlighted speeds.",
     rheoReadingError: "The 600 RPM reading must be greater than or equal to the 300 RPM reading to prevent invalid calculations.",
+    rheoProfileType: "Fluid Rheology Profile",
+    rheoProfileTypeLight: "Light Water-Based",
+    rheoProfileTypeHeavy: "Weighted (High Solids)",
+    rheoProfileTypeHighYield: "High Yield (Hole Cleaning)",
+    rheoProfileTypeBasic: "Standard / Basic",
 
     // Piletas System
     pitsSystemTitle: "Mud Pit System",
