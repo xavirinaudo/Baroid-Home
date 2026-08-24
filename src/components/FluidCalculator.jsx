@@ -88,10 +88,10 @@ const FluidCalculator = ({ isEditing, lang, unitMode, setUnitMode }) => {
     retortWater: '',
     retortOil: '',
     saltPurity: '97',
-    sackWeightSalt: '80',
-    sackWeightBarite: '100',
+    sackWeightSalt: unitMode === 'metric' ? '25' : '80',
+    sackWeightBarite: unitMode === 'metric' ? '50' : '100',
     targetOilRatio: '80',
-    dieselDensity: '7.0',
+    dieselDensity: unitMode === 'metric' ? '0.84' : '7.0',
     mudWeight: '',
     maintainOwr: true
   });
@@ -146,15 +146,15 @@ const FluidCalculator = ({ isEditing, lang, unitMode, setUnitMode }) => {
       { id: 'rheology', label: 'Perfil Reológico', icon: 'trending-up', visible: true },
       { id: 'mixing', label: 'Mezcla (Balance Masa)', icon: 'blend', visible: true },
       { id: 'lgs_retort', label: 'Cálculo LGS y WPS', icon: 'percent', visible: true },
+      { id: 'wps_adjust', label: 'Ajuste de WPS', icon: 'zap', visible: true },
       { id: 'lgs', label: 'Dilución LGS', icon: 'sliders', visible: true },
       { id: 'owr', label: 'Relación Aceite/Agua', icon: 'droplets', visible: true },
       { id: 'eng', label: 'Hidrostática & Capacidad', icon: 'droplet', visible: true },
       { id: 'slug', label: 'Píldoras (Slugs)', icon: 'flask-conical', visible: true },
       { id: 'fit', label: 'Integridad (FIT)', icon: 'shield-check', visible: true },
-      { id: 'pfmf', label: 'Pf/Mf & Tratamiento', icon: 'beaker', visible: true },
-      { id: 'wps_adjust', label: 'Ajuste de WPS', icon: 'zap', visible: true }
+      { id: 'pfmf', label: 'Pf/Mf & Tratamiento', icon: 'beaker', visible: true }
     ];
-    const saved = localStorage.getItem('baroid_calc_tabs_v7');
+    const saved = localStorage.getItem('baroid_calc_tabs_v8');
     if (!saved) return DEFAULT_TABS;
     try {
       const parsed = JSON.parse(saved).filter(t => t.id !== 'formulation');
@@ -175,7 +175,7 @@ const FluidCalculator = ({ isEditing, lang, unitMode, setUnitMode }) => {
   }, [treatmentConfig]);
 
   useEffect(() => {
-    localStorage.setItem('baroid_calc_tabs_v7', JSON.stringify(tabsConfig));
+    localStorage.setItem('baroid_calc_tabs_v8', JSON.stringify(tabsConfig));
   }, [tabsConfig]);
 
   // Special Hybrid Units for Mixing and Barite
@@ -1041,19 +1041,22 @@ const FluidCalculator = ({ isEditing, lang, unitMode, setUnitMode }) => {
 
       const next = { ...prev };
 
-      // We only convert if there is actual input or to adjust default weights
       if (unitMode === 'metric') {
         if (!isNaN(vol)) next.systemVol = (vol / 6.28981).toFixed(1);
         if (!isNaN(mw)) next.mudWeight = (mw / 8.345).toFixed(2);
-        if (!isNaN(diesel)) next.dieselDensity = (diesel / 8.345).toFixed(2);
-        if (!isNaN(sackSalt)) next.sackWeightSalt = (sackSalt / 2.20462).toFixed(1);
-        if (!isNaN(sackBarite)) next.sackWeightBarite = (sackBarite / 2.20462).toFixed(1);
+        
+        // Smart defaults swap for round numbers
+        next.dieselDensity = (prev.dieselDensity === '7.0' || prev.dieselDensity === '7' || !prev.dieselDensity) ? '0.84' : (diesel / 8.345).toFixed(2);
+        next.sackWeightSalt = (prev.sackWeightSalt === '80' || !prev.sackWeightSalt) ? '25' : (sackSalt / 2.20462).toFixed(1);
+        next.sackWeightBarite = (prev.sackWeightBarite === '100' || !prev.sackWeightBarite) ? '50' : (sackBarite / 2.20462).toFixed(1);
       } else {
         if (!isNaN(vol)) next.systemVol = (vol * 6.28981).toFixed(1);
         if (!isNaN(mw)) next.mudWeight = (mw * 8.345).toFixed(2);
-        if (!isNaN(diesel)) next.dieselDensity = (diesel * 8.345).toFixed(2);
-        if (!isNaN(sackSalt)) next.sackWeightSalt = (sackSalt * 2.20462).toFixed(1);
-        if (!isNaN(sackBarite)) next.sackWeightBarite = (sackBarite * 2.20462).toFixed(1);
+        
+        // Smart defaults swap for round numbers
+        next.dieselDensity = (prev.dieselDensity === '0.84' || !prev.dieselDensity) ? '7.0' : (diesel * 8.345).toFixed(2);
+        next.sackWeightSalt = (prev.sackWeightSalt === '25' || !prev.sackWeightSalt) ? '80' : (sackSalt * 2.20462).toFixed(1);
+        next.sackWeightBarite = (prev.sackWeightBarite === '50' || !prev.sackWeightBarite) ? '100' : (sackBarite * 2.20462).toFixed(1);
       }
 
       return next;
@@ -2115,7 +2118,7 @@ const FluidCalculator = ({ isEditing, lang, unitMode, setUnitMode }) => {
               {/* Grupo 3: Sal y Parámetros Químicos */}
               <div className="space-y-4 pt-2">
                 <h5 className="text-[11px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest border-b border-zinc-100 dark:border-zinc-800 pb-1">{lang === 'es' ? '3. Aditivos y Ajustes' : '3. Additives & Settings'}</h5>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className={`grid grid-cols-1 ${unitMode === 'field' ? 'md:grid-cols-3' : 'md:grid-cols-2'} gap-4`}>
                   <div>
                     <label className="text-[11px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">{t.wpsAdjustSaltPurity} (%)</label>
                     <input type="number" value={wpsAdj.saltPurity} onChange={e => setWpsAdj({ ...wpsAdj, saltPurity: e.target.value })} className="w-full input-style text-lg font-bold" placeholder="97" />
@@ -2124,10 +2127,12 @@ const FluidCalculator = ({ isEditing, lang, unitMode, setUnitMode }) => {
                     <label className="text-[11px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">{t.wpsAdjustSaltSack} ({unitMode === 'field' ? 'lb' : 'kg'})</label>
                     <input type="number" value={wpsAdj.sackWeightSalt} onChange={e => setWpsAdj({ ...wpsAdj, sackWeightSalt: e.target.value })} className="w-full input-style text-lg font-bold" placeholder="80" />
                   </div>
-                  <div>
-                    <label className="text-[11px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">{t.wpsAdjustBariteSack} ({unitMode === 'field' ? 'lb' : 'kg'})</label>
-                    <input type="number" value={wpsAdj.sackWeightBarite} onChange={e => setWpsAdj({ ...wpsAdj, sackWeightBarite: e.target.value })} className="w-full input-style text-lg font-bold" placeholder="100" />
-                  </div>
+                  {unitMode === 'field' && (
+                    <div>
+                      <label className="text-[11px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">{t.wpsAdjustBariteSack} (lb)</label>
+                      <input type="number" value={wpsAdj.sackWeightBarite} onChange={e => setWpsAdj({ ...wpsAdj, sackWeightBarite: e.target.value })} className="w-full input-style text-lg font-bold" placeholder="100" />
+                    </div>
+                  )}
                 </div>
                 
                 <div className="flex flex-col gap-4 bg-zinc-50 dark:bg-slate-900/60 p-5 rounded-3xl border border-zinc-100 dark:border-zinc-800/60 mt-2">
@@ -2386,7 +2391,10 @@ const FluidCalculator = ({ isEditing, lang, unitMode, setUnitMode }) => {
                     if (res.treatmentType === 'increase') {
                       reportText = `TRATAMIENTO WPS (AUMENTO):\n- Vol. Sistema: ${wpsAdj.systemVol} ${unitMode === 'field' ? 'bbl' : 'm³'}\n- Salinidad: ${wpsAdj.currentWps} -> ${wpsAdj.desiredWps} ppm\n- Cloruro de Calcio comercial a agregar: ${res.saltToAdd.toFixed(1)} ${unitMode === 'field' ? 'lb' : 'kg'} (${res.sacksSalt.toFixed(1)} sacos de ${wpsAdj.sackWeightSalt} ${unitMode === 'field' ? 'lb' : 'kg'})`;
                     } else if (res.treatmentType === 'decrease') {
-                      reportText = `TRATAMIENTO WPS (DILUCIÓN):\n- Vol. Sistema: ${wpsAdj.systemVol} ${unitMode === 'field' ? 'bbl' : 'm³'}\n- Salinidad: ${wpsAdj.currentWps} -> ${wpsAdj.desiredWps} ppm\n- Agua a agregar: ${res.waterToAdd.toFixed(1)} ${unitMode === 'field' ? 'bbl' : 'm³'}\n- Gasoil a agregar: ${res.oilToAdd.toFixed(1)} ${unitMode === 'field' ? 'bbl' : 'm³'}\n- Barita a agregar: ${res.bariteToAdd.toFixed(1)} ${unitMode === 'field' ? 'lb' : 'kg'} (${res.sacksBarite.toFixed(1)} sacos de ${wpsAdj.sackWeightBarite} ${unitMode === 'field' ? 'lb' : 'kg'})`;
+                      const bariteStr = unitMode === 'field' 
+                        ? `${res.bariteToAdd.toFixed(1)} lb (${res.sacksBarite.toFixed(1)} sacos de ${wpsAdj.sackWeightBarite} lb)`
+                        : `${res.bariteToAdd.toFixed(0)} kg (${(res.bariteToAdd / 1000).toFixed(2)} Tons)`;
+                      reportText = `TRATAMIENTO WPS (DILUCIÓN):\n- Vol. Sistema: ${wpsAdj.systemVol} ${unitMode === 'field' ? 'bbl' : 'm³'}\n- Salinidad: ${wpsAdj.currentWps} -> ${wpsAdj.desiredWps} ppm\n- Agua a agregar: ${res.waterToAdd.toFixed(1)} ${unitMode === 'field' ? 'bbl' : 'm³'}\n- Gasoil a agregar: ${res.oilToAdd.toFixed(1)} ${unitMode === 'field' ? 'bbl' : 'm³'}\n- Barita a agregar: ${bariteStr}`;
                     } else {
                       reportText = `TRATAMIENTO WPS: No se requiere tratamiento. La salinidad está en el objetivo.`;
                     }
@@ -2474,10 +2482,16 @@ const FluidCalculator = ({ isEditing, lang, unitMode, setUnitMode }) => {
                             </span>
                           </div>
                           <div className="text-right">
-                            <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block mb-1">{t.wpsAdjustSacks}</span>
+                            <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block mb-1">
+                              {unitMode === 'field' ? t.wpsAdjustSacks : (lang === 'es' ? 'Toneladas' : 'Tons')}
+                            </span>
                             <span className="text-2xl font-black text-white italic">
-                              {getWpsAdjustResult().sacksBarite.toFixed(1)}
-                              <span className="text-xs font-bold opacity-45 ml-1">SXS</span>
+                              {unitMode === 'field' 
+                                ? getWpsAdjustResult().sacksBarite.toFixed(1)
+                                : (getWpsAdjustResult().bariteToAdd / 1000).toFixed(2)}
+                              <span className="text-xs font-bold opacity-45 ml-1">
+                                {unitMode === 'field' ? 'SXS' : 'TN'}
+                              </span>
                             </span>
                           </div>
                         </div>
