@@ -89,6 +89,15 @@ const FluidCalculator = ({ isEditing, lang, unitMode, setUnitMode }) => {
   const [rheo, setRheo] = useState({ vp: '20', yp: '15', tau0: '6' });
   const [rheoSelectedRpm, setRheoSelectedRpm] = useState(600);
   const [rheoActiveX, setRheoActiveX] = useState('rate'); // 'rate' or 'rpm'
+  const [rheoInputMode, setRheoInputMode] = useState('params'); // 'params' or 'readings'
+  const [rheoReadings, setRheoReadings] = useState({
+    theta600: '35',
+    theta300: '20',
+    theta200: '15',
+    theta100: '10',
+    theta6: '4',
+    theta3: '3'
+  });
 
   // Treatment Visibility State
   const [treatmentConfig, setTreatmentConfig] = useState(() => {
@@ -661,9 +670,24 @@ const FluidCalculator = ({ isEditing, lang, unitMode, setUnitMode }) => {
     let vp = parseFloat(rheo.vp);
     let yp = parseFloat(rheo.yp);
     let tau0 = parseFloat(rheo.tau0);
+    let isReadingInverted = false;
+
+    if (rheoInputMode === 'readings') {
+      const t600 = parseFloat(rheoReadings.theta600) || 0;
+      const t300 = parseFloat(rheoReadings.theta300) || 0;
+      if (t600 < t300) {
+        isReadingInverted = true;
+      }
+      vp = Math.max(1, t600 - t300);
+      yp = Math.max(0, t300 - vp);
+      
+      const t6 = parseFloat(rheoReadings.theta6) || 0;
+      const t3 = parseFloat(rheoReadings.theta3) || 0;
+      tau0 = Math.max(0, 2 * t3 - t6);
+    }
 
     if (isNaN(vp) || vp < 1) vp = 20;
-    if (isNaN(yp) || yp < 1) yp = 15;
+    if (isNaN(yp) || yp < 0) yp = 15;
     if (isNaN(tau0) || tau0 < 0) tau0 = 6;
 
     // Base Bingham values
@@ -679,8 +703,11 @@ const FluidCalculator = ({ isEditing, lang, unitMode, setUnitMode }) => {
     }
 
     // Herschel-Bulkley parameters n and K
-    const logRatio = Math.log10((theta600 - adjustedTau0) / (theta300 - adjustedTau0));
-    const n = 3.32 * logRatio;
+    let logRatio = 0;
+    if (theta600 > adjustedTau0 && theta300 > adjustedTau0) {
+      logRatio = Math.log10((theta600 - adjustedTau0) / (theta300 - adjustedTau0));
+    }
+    const n = Math.max(0.01, 3.32 * logRatio);
     const k = (theta300 - adjustedTau0) / Math.pow(511, n);
 
     const baseViscosimeterFactor = 1.7023;
@@ -690,13 +717,24 @@ const FluidCalculator = ({ isEditing, lang, unitMode, setUnitMode }) => {
       const thetaHB = adjustedTau0 + k * Math.pow(gamma, n);
       const thetaBingham = yp + vp * (rpm / 300);
       const viscAparente = (thetaHB * 300) / rpm;
+      
+      let actualReading = null;
+      if (rheoInputMode === 'readings') {
+        if (rpm === 600) actualReading = parseFloat(rheoReadings.theta600) || 0;
+        else if (rpm === 300) actualReading = parseFloat(rheoReadings.theta300) || 0;
+        else if (rpm === 200) actualReading = parseFloat(rheoReadings.theta200) || 0;
+        else if (rpm === 100) actualReading = parseFloat(rheoReadings.theta100) || 0;
+        else if (rpm === 6) actualReading = parseFloat(rheoReadings.theta6) || 0;
+        else if (rpm === 3) actualReading = parseFloat(rheoReadings.theta3) || 0;
+      }
 
       return {
         rpm,
         gamma,
         thetaHB,
         thetaBingham,
-        viscAparente
+        viscAparente,
+        actualReading
       };
     });
 
@@ -706,6 +744,7 @@ const FluidCalculator = ({ isEditing, lang, unitMode, setUnitMode }) => {
       tau0,
       adjustedTau0,
       hasAlert,
+      isReadingInverted,
       n,
       k,
       data
@@ -1297,66 +1336,157 @@ const FluidCalculator = ({ isEditing, lang, unitMode, setUnitMode }) => {
                 <span className="text-[10px] text-zinc-400 font-black uppercase tracking-widest">{t.rheoApiUnits}</span>
               </div>
 
-              {/* Presets */}
-              <div className="bg-zinc-50 dark:bg-slate-900/60 p-4 rounded-3xl border border-zinc-100 dark:border-zinc-800/50 space-y-3">
-                <span className="text-[10px] text-zinc-400 font-black uppercase tracking-widest block">{t.rheoPresets}</span>
-                <div className="grid grid-cols-2 gap-2">
-                  <button type="button" onClick={() => setRheo({ vp: '18', yp: '12', tau0: '5' })} className="text-[10px] bg-white dark:bg-slate-800 hover:border-halliburton-red border border-zinc-100 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 py-2 px-3 rounded-xl transition-all font-black uppercase tracking-wider">{t.rheoPresetLight}</button>
-                  <button type="button" onClick={() => setRheo({ vp: '35', yp: '25', tau0: '12' })} className="text-[10px] bg-white dark:bg-slate-800 hover:border-halliburton-red border border-zinc-100 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 py-2 px-3 rounded-xl transition-all font-black uppercase tracking-wider">{t.rheoPresetHeavy}</button>
-                  <button type="button" onClick={() => setRheo({ vp: '22', yp: '38', tau0: '18' })} className="text-[10px] bg-white dark:bg-slate-800 hover:border-halliburton-red border border-zinc-100 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 py-2 px-3 rounded-xl transition-all font-black uppercase tracking-wider">{t.rheoPresetYield}</button>
-                  <button type="button" onClick={() => setRheo({ vp: '25', yp: '18', tau0: '8' })} className="text-[10px] bg-halliburton-red/10 border border-halliburton-red/20 text-halliburton-red py-2 px-3 rounded-xl transition-all font-black uppercase tracking-wider">{t.rheoPresetBasic}</button>
-                </div>
+              {/* Conmutador de Modo de Entrada */}
+              <div className="bg-zinc-50 dark:bg-slate-900/60 p-1 rounded-2xl border border-zinc-100 dark:border-zinc-800/50 flex mb-2">
+                <button
+                  type="button"
+                  onClick={() => setRheoInputMode('params')}
+                  className={`flex-1 py-2 text-[9px] font-black uppercase tracking-wider rounded-xl transition-all ${
+                    rheoInputMode === 'params'
+                      ? 'bg-halliburton-red text-white shadow-md'
+                      : 'text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200'
+                  }`}
+                >
+                  {t.rheoInputModeParams}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setRheoInputMode('readings')}
+                  className={`flex-1 py-2 text-[9px] font-black uppercase tracking-wider rounded-xl transition-all ${
+                    rheoInputMode === 'readings'
+                      ? 'bg-halliburton-red text-white shadow-md'
+                      : 'text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200'
+                  }`}
+                >
+                  {t.rheoInputModeReadings}
+                </button>
               </div>
 
-              <div className="space-y-6 pt-2">
-                {/* VP */}
-                <div className="bg-zinc-50 dark:bg-slate-900/40 p-4 rounded-3xl border border-zinc-100 dark:border-zinc-800/50">
-                  <div className="flex justify-between items-center mb-2">
-                    <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest">
-                      {t.rheoPlasticVisc} <span className="text-halliburton-red">(VP)</span>
-                    </label>
-                    <span className="text-[10px] font-bold text-zinc-400">cP</span>
+              {rheoInputMode === 'params' ? (
+                <>
+                  {/* Presets */}
+                  <div className="bg-zinc-50 dark:bg-slate-900/60 p-4 rounded-3xl border border-zinc-100 dark:border-zinc-800/50 space-y-3">
+                    <span className="text-[10px] text-zinc-400 font-black uppercase tracking-widest block">{t.rheoPresets}</span>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button type="button" onClick={() => setRheo({ vp: '18', yp: '12', tau0: '5' })} className="text-[10px] bg-white dark:bg-slate-800 hover:border-halliburton-red border border-zinc-100 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 py-2 px-3 rounded-xl transition-all font-black uppercase tracking-wider">{t.rheoPresetLight}</button>
+                      <button type="button" onClick={() => setRheo({ vp: '35', yp: '25', tau0: '12' })} className="text-[10px] bg-white dark:bg-slate-800 hover:border-halliburton-red border border-zinc-100 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 py-2 px-3 rounded-xl transition-all font-black uppercase tracking-wider">{t.rheoPresetHeavy}</button>
+                      <button type="button" onClick={() => setRheo({ vp: '22', yp: '38', tau0: '18' })} className="text-[10px] bg-white dark:bg-slate-800 hover:border-halliburton-red border border-zinc-100 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 py-2 px-3 rounded-xl transition-all font-black uppercase tracking-wider">{t.rheoPresetYield}</button>
+                      <button type="button" onClick={() => setRheo({ vp: '25', yp: '18', tau0: '8' })} className="text-[10px] bg-halliburton-red/10 border border-halliburton-red/20 text-halliburton-red py-2 px-3 rounded-xl transition-all font-black uppercase tracking-wider">{t.rheoPresetBasic}</button>
+                    </div>
                   </div>
-                  <div className="flex gap-3 items-center">
-                    <button type="button" onClick={() => setRheo(prev => ({ ...prev, vp: Math.max(1, (parseFloat(prev.vp) || 0) - 1).toString() }))} className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 font-bold transition-all hover:bg-zinc-100 dark:hover:bg-slate-700 flex items-center justify-center">-</button>
-                    <input type="range" min="1" max="100" value={parseFloat(rheo.vp) || 20} onChange={e => setRheo(prev => ({ ...prev, vp: e.target.value }))} className="flex-1 h-1.5 bg-zinc-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-halliburton-red" />
-                    <button type="button" onClick={() => setRheo(prev => ({ ...prev, vp: Math.min(100, (parseFloat(prev.vp) || 0) + 1).toString() }))} className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 font-bold transition-all hover:bg-zinc-100 dark:hover:bg-slate-700 flex items-center justify-center">+</button>
-                    <input type="number" min="1" max="100" value={rheo.vp} onChange={e => setRheo(prev => ({ ...prev, vp: e.target.value }))} className="w-18 bg-white dark:bg-slate-800 border-2 border-zinc-200 dark:border-zinc-700 rounded-xl py-2 text-center font-bold text-zinc-800 dark:text-white focus:border-halliburton-red focus:outline-none" />
-                  </div>
-                </div>
 
-                {/* YP */}
-                <div className="bg-zinc-50 dark:bg-slate-900/40 p-4 rounded-3xl border border-zinc-100 dark:border-zinc-800/50">
-                  <div className="flex justify-between items-center mb-2">
-                    <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest">
-                      {t.rheoYieldPoint} <span className="text-halliburton-red">(YP)</span>
-                    </label>
-                    <span className="text-[10px] font-bold text-zinc-400">lb/100ft²</span>
-                  </div>
-                  <div className="flex gap-3 items-center">
-                    <button type="button" onClick={() => setRheo(prev => ({ ...prev, yp: Math.max(1, (parseFloat(prev.yp) || 0) - 1).toString() }))} className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 font-bold transition-all hover:bg-zinc-100 dark:hover:bg-slate-700 flex items-center justify-center">-</button>
-                    <input type="range" min="1" max="100" value={parseFloat(rheo.yp) || 15} onChange={e => setRheo(prev => ({ ...prev, yp: e.target.value }))} className="flex-1 h-1.5 bg-zinc-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-halliburton-red" />
-                    <button type="button" onClick={() => setRheo(prev => ({ ...prev, yp: Math.min(100, (parseFloat(prev.yp) || 0) + 1).toString() }))} className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 font-bold transition-all hover:bg-zinc-100 dark:hover:bg-slate-700 flex items-center justify-center">+</button>
-                    <input type="number" min="1" max="100" value={rheo.yp} onChange={e => setRheo(prev => ({ ...prev, yp: e.target.value }))} className="w-18 bg-white dark:bg-slate-800 border-2 border-zinc-200 dark:border-zinc-700 rounded-xl py-2 text-center font-bold text-zinc-800 dark:text-white focus:border-halliburton-red focus:outline-none" />
-                  </div>
-                </div>
+                  <div className="space-y-6 pt-2">
+                    {/* VP */}
+                    <div className="bg-zinc-50 dark:bg-slate-900/40 p-4 rounded-3xl border border-zinc-100 dark:border-zinc-800/50">
+                      <div className="flex justify-between items-center mb-2">
+                        <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest">
+                          {t.rheoPlasticVisc} <span className="text-halliburton-red">(VP)</span>
+                        </label>
+                        <span className="text-[10px] font-bold text-zinc-400">cP</span>
+                      </div>
+                      <div className="flex gap-3 items-center">
+                        <button type="button" onClick={() => setRheo(prev => ({ ...prev, vp: Math.max(1, (parseFloat(prev.vp) || 0) - 1).toString() }))} className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 font-bold transition-all hover:bg-zinc-100 dark:hover:bg-slate-700 flex items-center justify-center">-</button>
+                        <input type="range" min="1" max="100" value={parseFloat(rheo.vp) || 20} onChange={e => setRheo(prev => ({ ...prev, vp: e.target.value }))} className="flex-1 h-1.5 bg-zinc-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-halliburton-red" />
+                        <button type="button" onClick={() => setRheo(prev => ({ ...prev, vp: Math.min(100, (parseFloat(prev.vp) || 0) + 1).toString() }))} className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 font-bold transition-all hover:bg-zinc-100 dark:hover:bg-slate-700 flex items-center justify-center">+</button>
+                        <input type="number" min="1" max="100" value={rheo.vp} onChange={e => setRheo(prev => ({ ...prev, vp: e.target.value }))} className="w-18 bg-white dark:bg-slate-800 border-2 border-zinc-200 dark:border-zinc-700 rounded-xl py-2 text-center font-bold text-zinc-800 dark:text-white focus:border-halliburton-red focus:outline-none" />
+                      </div>
+                    </div>
 
-                {/* Tau0 */}
-                <div className="bg-zinc-50 dark:bg-slate-900/40 p-4 rounded-3xl border border-zinc-100 dark:border-zinc-800/50">
-                  <div className="flex justify-between items-center mb-2">
-                    <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest">
-                      {t.rheoTrueYield} <span className="text-halliburton-red">(τ₀)</span>
-                    </label>
-                    <span className="text-[10px] font-bold text-zinc-400">lb/100ft²</span>
+                    {/* YP */}
+                    <div className="bg-zinc-50 dark:bg-slate-900/40 p-4 rounded-3xl border border-zinc-100 dark:border-zinc-800/50">
+                      <div className="flex justify-between items-center mb-2">
+                        <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest">
+                          {t.rheoYieldPoint} <span className="text-halliburton-red">(YP)</span>
+                        </label>
+                        <span className="text-[10px] font-bold text-zinc-400">lb/100ft²</span>
+                      </div>
+                      <div className="flex gap-3 items-center">
+                        <button type="button" onClick={() => setRheo(prev => ({ ...prev, yp: Math.max(1, (parseFloat(prev.yp) || 0) - 1).toString() }))} className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 font-bold transition-all hover:bg-zinc-100 dark:hover:bg-slate-700 flex items-center justify-center">-</button>
+                        <input type="range" min="1" max="100" value={parseFloat(rheo.yp) || 15} onChange={e => setRheo(prev => ({ ...prev, yp: e.target.value }))} className="flex-1 h-1.5 bg-zinc-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-halliburton-red" />
+                        <button type="button" onClick={() => setRheo(prev => ({ ...prev, yp: Math.min(100, (parseFloat(prev.yp) || 0) + 1).toString() }))} className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 font-bold transition-all hover:bg-zinc-100 dark:hover:bg-slate-700 flex items-center justify-center">+</button>
+                        <input type="number" min="1" max="100" value={rheo.yp} onChange={e => setRheo(prev => ({ ...prev, yp: e.target.value }))} className="w-18 bg-white dark:bg-slate-800 border-2 border-zinc-200 dark:border-zinc-700 rounded-xl py-2 text-center font-bold text-zinc-800 dark:text-white focus:border-halliburton-red focus:outline-none" />
+                      </div>
+                    </div>
+
+                    {/* Tau0 */}
+                    <div className="bg-zinc-50 dark:bg-slate-900/40 p-4 rounded-3xl border border-zinc-100 dark:border-zinc-800/50">
+                      <div className="flex justify-between items-center mb-2">
+                        <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest">
+                          {t.rheoTrueYield} <span className="text-halliburton-red">(τ₀)</span>
+                        </label>
+                        <span className="text-[10px] font-bold text-zinc-400">lb/100ft²</span>
+                      </div>
+                      <div className="flex gap-3 items-center">
+                        <button type="button" onClick={() => setRheo(prev => ({ ...prev, tau0: Math.max(0, (parseFloat(prev.tau0) || 0) - 1).toString() }))} className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 font-bold transition-all hover:bg-zinc-100 dark:hover:bg-slate-700 flex items-center justify-center">-</button>
+                        <input type="range" min="0" max="80" value={parseFloat(rheo.tau0) || 6} onChange={e => setRheo(prev => ({ ...prev, tau0: e.target.value }))} className="flex-1 h-1.5 bg-zinc-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-halliburton-red" />
+                        <button type="button" onClick={() => setRheo(prev => ({ ...prev, tau0: Math.min(80, (parseFloat(prev.tau0) || 0) + 1).toString() }))} className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 font-bold transition-all hover:bg-zinc-100 dark:hover:bg-slate-700 flex items-center justify-center">+</button>
+                        <input type="number" min="0" max="80" value={rheo.tau0} onChange={e => setRheo(prev => ({ ...prev, tau0: e.target.value }))} className="w-18 bg-white dark:bg-slate-800 border-2 border-zinc-200 dark:border-zinc-700 rounded-xl py-2 text-center font-bold text-zinc-800 dark:text-white focus:border-halliburton-red focus:outline-none" />
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex gap-3 items-center">
-                    <button type="button" onClick={() => setRheo(prev => ({ ...prev, tau0: Math.max(0, (parseFloat(prev.tau0) || 0) - 1).toString() }))} className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 font-bold transition-all hover:bg-zinc-100 dark:hover:bg-slate-700 flex items-center justify-center">-</button>
-                    <input type="range" min="0" max="80" value={parseFloat(rheo.tau0) || 6} onChange={e => setRheo(prev => ({ ...prev, tau0: e.target.value }))} className="flex-1 h-1.5 bg-zinc-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-halliburton-red" />
-                    <button type="button" onClick={() => setRheo(prev => ({ ...prev, tau0: Math.min(80, (parseFloat(prev.tau0) || 0) + 1).toString() }))} className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 font-bold transition-all hover:bg-zinc-100 dark:hover:bg-slate-700 flex items-center justify-center">+</button>
-                    <input type="number" min="0" max="80" value={rheo.tau0} onChange={e => setRheo(prev => ({ ...prev, tau0: e.target.value }))} className="w-18 bg-white dark:bg-slate-800 border-2 border-zinc-200 dark:border-zinc-700 rounded-xl py-2 text-center font-bold text-zinc-800 dark:text-white focus:border-halliburton-red focus:outline-none" />
-                  </div>
+                </>
+              ) : (
+                <div className="grid grid-cols-2 gap-4 pt-2">
+                  {[
+                    { key: 'theta600', label: t.rheoFann600, limit: 150 },
+                    { key: 'theta300', label: t.rheoFann300, limit: 150 },
+                    { key: 'theta200', label: t.rheoFann200, limit: 150 },
+                    { key: 'theta100', label: t.rheoFann100, limit: 150 },
+                    { key: 'theta6', label: t.rheoFann6, limit: 100 },
+                    { key: 'theta3', label: t.rheoFann3, limit: 100 }
+                  ].map(field => (
+                    <div key={field.key} className="bg-zinc-50 dark:bg-slate-900/40 p-3 rounded-2xl border border-zinc-100 dark:border-zinc-800/50">
+                      <div className="flex justify-between items-center mb-1">
+                        <label className="text-[11px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-wider truncate" title={field.label}>
+                          {field.label}
+                        </label>
+                        <span className="text-[8px] font-bold text-zinc-400">° (dial)</span>
+                      </div>
+                      <div className="flex gap-2 items-center">
+                        <button
+                          type="button"
+                          onClick={() => setRheoReadings(prev => ({
+                            ...prev,
+                            [field.key]: Math.max(0, (parseFloat(prev[field.key]) || 0) - 1).toString()
+                          }))}
+                          className="w-8 h-8 rounded-lg bg-white dark:bg-slate-800 border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 font-bold transition-all hover:bg-zinc-100 dark:hover:bg-slate-700 flex items-center justify-center text-xs"
+                        >-</button>
+                        <input
+                          type="number"
+                          min="0"
+                          max={field.limit}
+                          value={rheoReadings[field.key]}
+                          onChange={e => setRheoReadings(prev => ({ ...prev, [field.key]: e.target.value }))}
+                          className="flex-1 min-w-0 bg-white dark:bg-slate-800 border-2 border-zinc-200 dark:border-zinc-700 rounded-lg py-1 text-center font-bold text-zinc-800 dark:text-white focus:border-halliburton-red focus:outline-none text-xs"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setRheoReadings(prev => ({
+                            ...prev,
+                            [field.key]: Math.min(field.limit, (parseFloat(prev[field.key]) || 0) + 1).toString()
+                          }))}
+                          className="w-8 h-8 rounded-lg bg-white dark:bg-slate-800 border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 font-bold transition-all hover:bg-zinc-100 dark:hover:bg-slate-700 flex items-center justify-center text-xs"
+                        >+</button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              </div>
+              )}
+
+              {/* Validaciones matemáticas alerta */}
+              {getRheologyResult().hasAlert && (
+                <div className="p-4 bg-orange-500/10 border border-orange-500/20 rounded-[2rem] text-[10px] font-bold text-orange-400 uppercase tracking-widest leading-relaxed flex gap-2">
+                  <Icon name="alert-triangle" size={14} className="shrink-0 mt-0.5" />
+                  <span>{t.rheoAlert.replace('{limit}', (getRheologyResult().vp + getRheologyResult().yp).toString()).replace('{val}', getRheologyResult().adjustedTau0.toFixed(1))}</span>
+                </div>
+              )}
+
+              {rheoInputMode === 'readings' && getRheologyResult().isReadingInverted && (
+                <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-[2rem] text-[10px] font-bold text-red-400 uppercase tracking-widest leading-relaxed flex gap-2">
+                  <Icon name="alert-circle" size={14} className="shrink-0 mt-0.5" />
+                  <span>{t.rheoReadingError}</span>
+                </div>
+              )}
 
               {/* Validaciones matemáticas alerta */}
               {getRheologyResult().hasAlert && (
@@ -1992,7 +2122,20 @@ const FluidCalculator = ({ isEditing, lang, unitMode, setUnitMode }) => {
                 // Calculate max Y for scaling
                 const maxValHB = rheoRes.adjustedTau0 + rheoRes.k * Math.pow(600 * 1.7023, rheoRes.n);
                 const maxValBingham = rheoRes.yp + rheoRes.vp * (600 / 300);
-                const maxY = Math.max(maxValHB, maxValBingham) * 1.15; // 15% padding
+                
+                // If in readings mode, include max user reading in maxY calculations
+                let maxUserReading = 0;
+                if (rheoInputMode === 'readings') {
+                  maxUserReading = Math.max(
+                    parseFloat(rheoReadings.theta600) || 0,
+                    parseFloat(rheoReadings.theta300) || 0,
+                    parseFloat(rheoReadings.theta200) || 0,
+                    parseFloat(rheoReadings.theta100) || 0,
+                    parseFloat(rheoReadings.theta6) || 0,
+                    parseFloat(rheoReadings.theta3) || 0
+                  );
+                }
+                const maxY = Math.max(maxValHB, maxValBingham, maxUserReading) * 1.15; // 15% padding
                 
                 // Generate path points for HB curve (RPM from 0 to 600)
                 const pointsHB = [];
@@ -2036,15 +2179,24 @@ const FluidCalculator = ({ isEditing, lang, unitMode, setUnitMode }) => {
                   { val: '600', px: 50 + (600 / 600) * 520, dy: 0 }
                 ];
 
-                // Discrete rotor points coordinates
+                // Coordinates for points
                 const rotorPoints = rheoRes.data.map(d => {
+                  const px = 50 + (d.rpm / 600) * 520;
+                  const pyHB = 310 - (d.thetaHB / maxY) * 290;
+                  const pyActual = d.actualReading !== null ? (310 - (d.actualReading / maxY) * 290) : pyHB;
                   return {
                     rpm: d.rpm,
-                    px: 50 + (d.rpm / 600) * 520,
-                    py: 310 - (d.thetaHB / maxY) * 290,
-                    val: d.thetaHB.toFixed(1)
+                    px,
+                    pyHB,
+                    pyActual,
+                    valHB: d.thetaHB.toFixed(1),
+                    valActual: d.actualReading !== null ? d.actualReading.toFixed(1) : null
                   };
                 });
+
+                // Count inconsistencies
+                const inconsistentPoints = rotorPoints.filter(p => p.valActual !== null && Math.abs(p.valActual - p.valHB) > 1.5);
+                const hasInconsistentProfile = inconsistentPoints.length > 0;
 
                 return (
                   <div className="space-y-6">
@@ -2088,7 +2240,22 @@ const FluidCalculator = ({ isEditing, lang, unitMode, setUnitMode }) => {
                         ))}
                         <text x="310" y="344" fill="#ffffff" fillOpacity="0.4" fontSize="9" fontWeight="bold" textAnchor="middle" className="uppercase tracking-widest">{lang === 'es' ? 'Velocidad de Rotación [RPM]' : 'Rotor Speed [RPM]'}</text>
 
-                        {/* Curves */}
+                        {/* Gap lines showing error/shift between Fann Readings and H-B Fit */}
+                        {rheoInputMode === 'readings' && rotorPoints.map(p => (
+                          Math.abs(p.pyHB - p.pyActual) > 1 && (
+                            <line
+                              key={`gap-${p.rpm}`}
+                              x1={p.px}
+                              y1={p.pyHB}
+                              x2={p.px}
+                              y2={p.pyActual}
+                              stroke="#f97316"
+                              strokeWidth="1.5"
+                              strokeDasharray="3 3"
+                            />
+                          )
+                        ))}
+
                         {/* Area under HB */}
                         <path d={areaHB} fill="url(#rheoGradient)" />
 
@@ -2098,18 +2265,33 @@ const FluidCalculator = ({ isEditing, lang, unitMode, setUnitMode }) => {
                         {/* HB Curve */}
                         <path d={pathHB} fill="none" stroke="#CC0000" strokeWidth="2.5" />
 
-                        {/* Rotor Points */}
+                        {/* Theoretical HB Dots */}
                         {rotorPoints.map(p => (
-                          <g key={p.rpm} className="group/dot cursor-pointer" onClick={() => setRheoSelectedRpm(p.rpm)}>
-                            <circle cx={p.px} cy={p.py} r="5.5" fill="#ef4444" stroke="#ffffff" strokeWidth="1.5" className="transition-all duration-300 hover:r-7" />
-                            <circle cx={p.px} cy={p.py} r="10" fill="transparent" />
-                            <title>{p.rpm} RPM: {p.val} lb/100ft²</title>
+                          <g key={`hb-dot-${p.rpm}`} className="group/dot-hb">
+                            <circle cx={p.px} cy={p.pyHB} r="4" fill="#CC0000" stroke="#ffffff" strokeWidth="1" />
+                            <title>Teórica {p.rpm} RPM: {p.valHB} lb/100ft²</title>
+                          </g>
+                        ))}
+
+                        {/* Actual user readings (Fann) */}
+                        {rheoInputMode === 'readings' && rotorPoints.map(p => (
+                          <g key={`act-dot-${p.rpm}`} className="group/dot-act cursor-pointer" onClick={() => setRheoSelectedRpm(p.rpm)}>
+                            <circle
+                              cx={p.px}
+                              cy={p.pyActual}
+                              r="6.5"
+                              fill="#ffffff"
+                              stroke={Math.abs(p.valActual - p.valHB) > 1.5 ? "#f97316" : "#3b82f6"}
+                              strokeWidth="2.5"
+                              className="transition-all duration-300 hover:r-8"
+                            />
+                            <title>Real {p.rpm} RPM: {p.valActual} lb/100ft²</title>
                           </g>
                         ))}
                       </svg>
 
                       {/* Legend overlay */}
-                      <div className="flex flex-wrap gap-4 justify-center text-[9px] font-black uppercase tracking-wider text-zinc-500 mt-2">
+                      <div className="flex flex-wrap gap-4 justify-center text-[9px] font-black uppercase tracking-wider text-zinc-500 mt-3">
                         <span className="flex items-center gap-1.5 text-halliburton-red">
                           <span className="w-3 h-1 bg-halliburton-red rounded-full"></span>
                           Herschel-Bulkley
@@ -2118,29 +2300,76 @@ const FluidCalculator = ({ isEditing, lang, unitMode, setUnitMode }) => {
                           <span className="w-3 h-0.5 border-t border-dashed border-amber-500"></span>
                           Bingham Plastic
                         </span>
-                        <span className="flex items-center gap-1.5 text-red-400">
-                          <span className="w-2.5 h-2.5 bg-red-500 rounded-full"></span>
-                          {lang === 'es' ? 'Lecturas Dial' : 'Dial Readings'}
-                        </span>
+                        {rheoInputMode === 'readings' ? (
+                          <>
+                            <span className="flex items-center gap-1.5 text-blue-400">
+                              <span className="w-2.5 h-2.5 bg-white border-[2.5px] border-blue-500 rounded-full"></span>
+                              {lang === 'es' ? 'Lecturas Fann (Real)' : 'Fann Readings (Actual)'}
+                            </span>
+                            <span className="flex items-center gap-1.5 text-orange-400">
+                              <span className="w-3 h-0.5 border-t border-dotted border-orange-500"></span>
+                              {lang === 'es' ? 'Desviación / Error' : 'Deviation / Error'}
+                            </span>
+                          </>
+                        ) : (
+                          <span className="flex items-center gap-1.5 text-red-400">
+                            <span className="w-2 h-2 bg-red-500 rounded-full"></span>
+                            {lang === 'es' ? 'Puntos del Modelo' : 'Model Points'}
+                          </span>
+                        )}
                       </div>
                     </div>
 
+                    {/* Status Alert for Readings Mode */}
+                    {rheoInputMode === 'readings' && (
+                      <div className={`p-4 rounded-[2rem] border text-[10px] font-bold uppercase tracking-widest flex items-center gap-3 transition-colors ${
+                        hasInconsistentProfile
+                          ? 'bg-orange-500/10 border-orange-500/20 text-orange-400'
+                          : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
+                      }`}>
+                        <Icon name={hasInconsistentProfile ? 'alert-triangle' : 'check-circle-2'} size={18} className="shrink-0" />
+                        <div>
+                          <p>{hasInconsistentProfile ? t.rheoProfileInconsistent : t.rheoProfileConsistent}</p>
+                          {hasInconsistentProfile && (
+                            <p className="text-[8px] opacity-75 font-normal tracking-wide mt-1 normal-case">{t.rheoStatusWarningDesc}</p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
                     {/* Table container */}
                     <div className="space-y-3 pt-2 w-full">
-                      <h3 className="text-xs font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest">{lang === 'es' ? 'Lecturas Dial Estimadas' : 'Estimated Dial Readings'}</h3>
+                      <h3 className="text-xs font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest">
+                        {rheoInputMode === 'readings' ? (lang === 'es' ? 'Comparación de Lecturas' : 'Readings Comparison') : (lang === 'es' ? 'Lecturas Dial Estimadas' : 'Estimated Dial Readings')}
+                      </h3>
                       <div className="overflow-x-auto rounded-[2rem] border border-white/5 bg-zinc-950 p-4">
                         <table className="w-full text-left border-collapse text-[11px] uppercase tracking-wider font-bold">
                           <thead>
                             <tr className="border-b border-white/5 text-zinc-500">
                               <th className="pb-3 text-left">{lang === 'es' ? 'Rotor (RPM)' : 'Rotor Speed (RPM)'}</th>
-                              <th className="pb-3 text-right">{lang === 'es' ? 'Lectura Dial (θ-HB)' : 'Dial Reading (θ-HB)'}</th>
-                              <th className="pb-3 text-right">Bingham (θ-B)</th>
-                              <th className="pb-3 text-right">{lang === 'es' ? 'Visc. Aparente (cP)' : 'Apparent Visc. (cP)'}</th>
+                              {rheoInputMode === 'readings' && (
+                                <th className="pb-3 text-right">{t.rheoTableColActual}</th>
+                              )}
+                              <th className="pb-3 text-right">{t.rheoTableColCalc}</th>
+                              {rheoInputMode === 'readings' ? (
+                                <>
+                                  <th className="pb-3 text-right">{t.rheoTableColDiff}</th>
+                                  <th className="pb-3 text-right">{t.rheoTableColStatus}</th>
+                                </>
+                              ) : (
+                                <>
+                                  <th className="pb-3 text-right">Bingham (θ-B)</th>
+                                  <th className="pb-3 text-right">{lang === 'es' ? 'Visc. Aparente (cP)' : 'Apparent Visc. (cP)'}</th>
+                                </>
+                              )}
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-white/5 text-zinc-300 font-mono">
                             {rheoRes.data.map(item => {
                               const isSelected = item.rpm === rheoSelectedRpm;
+                              const diff = item.actualReading !== null ? (item.actualReading - item.thetaHB) : 0;
+                              const isDiffWarning = Math.abs(diff) > 1.5;
+                              
                               return (
                                 <tr
                                   key={item.rpm}
@@ -2151,9 +2380,35 @@ const FluidCalculator = ({ isEditing, lang, unitMode, setUnitMode }) => {
                                     {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-halliburton-red"></span>}
                                     {item.rpm} RPM
                                   </td>
+                                  
+                                  {rheoInputMode === 'readings' && (
+                                    <td className="py-2.5 text-right font-black text-zinc-100">{item.actualReading !== null ? item.actualReading.toFixed(1) : '-'}</td>
+                                  )}
+                                  
                                   <td className="py-2.5 text-right font-black text-halliburton-red">{item.thetaHB.toFixed(2)}</td>
-                                  <td className="py-2.5 text-right text-zinc-500">{item.thetaBingham.toFixed(2)}</td>
-                                  <td className="py-2.5 text-right text-emerald-400">{item.viscAparente.toFixed(1)}</td>
+                                  
+                                  {rheoInputMode === 'readings' ? (
+                                    <>
+                                      <td className={`py-2.5 text-right font-bold ${Math.abs(diff) < 0.01 ? 'text-zinc-500' : diff > 0 ? 'text-red-400' : 'text-blue-400'}`}>
+                                        {Math.abs(diff) < 0.01 ? '0.00' : `${diff > 0 ? '+' : ''}${diff.toFixed(2)}`}
+                                      </td>
+                                      <td className="py-2.5 text-right">
+                                        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-black ${
+                                          isDiffWarning
+                                            ? 'bg-orange-500/10 text-orange-400 border border-orange-500/20'
+                                            : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                                        }`}>
+                                          <Icon name={isDiffWarning ? 'alert-triangle' : 'check'} size={10} />
+                                          {isDiffWarning ? t.rheoStatusWarning : t.rheoStatusOk}
+                                        </span>
+                                      </td>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <td className="py-2.5 text-right text-zinc-500">{item.thetaBingham.toFixed(2)}</td>
+                                      <td className="py-2.5 text-right text-emerald-400">{item.viscAparente.toFixed(1)}</td>
+                                    </>
+                                  )}
                                 </tr>
                               );
                             })}
@@ -2166,12 +2421,22 @@ const FluidCalculator = ({ isEditing, lang, unitMode, setUnitMode }) => {
                           type="button"
                           onClick={() => {
                             let csv = "data:text/csv;charset=utf-8,\uFEFF";
-                            csv += `REOGRAMA VIRTUAL HERSCHEL-BULKLEY\r\n`;
-                            csv += `Parametros Fijos: VP=${rheoRes.vp} cP, YP=${rheoRes.yp} lb/100ft2, Tau0=${rheoRes.tau0} lb/100ft2\r\n\r\n`;
-                            csv += `RPM,Tasa de Corte (s-1),Lectura de Dial (theta-HB),Lectura Bingham (theta-B),Viscosidad Aparente (cP)\r\n`;
-                            rheoRes.data.forEach(d => {
-                              csv += `${d.rpm},${d.gamma.toFixed(3)},${d.thetaHB.toFixed(3)},${d.thetaBingham.toFixed(3)},${d.viscAparente.toFixed(2)}\r\n`;
-                            });
+                            csv += `REOGRAMA COMPLETO HERSCHEL-BULKLEY\r\n`;
+                            csv += `Modo de Entrada: ${rheoInputMode === 'readings' ? 'Lecturas Fann Reales' : 'Parametros de Fluido'}\r\n`;
+                            csv += `VP=${rheoRes.vp} cP, YP=${rheoRes.yp} lb/100ft2, Tau0=${rheoRes.tau0} lb/100ft2\r\n\r\n`;
+                            if (rheoInputMode === 'readings') {
+                              csv += `RPM,Tasa de Corte (s-1),Lectura Real,Calculada H-B,Diferencia,Estado\r\n`;
+                              rheoRes.data.forEach(d => {
+                                const diff = d.actualReading - d.thetaHB;
+                                const status = Math.abs(diff) > 1.5 ? "REVISAR" : "OK";
+                                csv += `${d.rpm},${d.gamma.toFixed(3)},${d.actualReading.toFixed(1)},${d.thetaHB.toFixed(3)},${diff.toFixed(3)},${status}\r\n`;
+                              });
+                            } else {
+                              csv += `RPM,Tasa de Corte (s-1),Lectura de Dial (theta-HB),Lectura Bingham (theta-B),Viscosidad Aparente (cP)\r\n`;
+                              rheoRes.data.forEach(d => {
+                                csv += `${d.rpm},${d.gamma.toFixed(3)},${d.thetaHB.toFixed(3)},${d.thetaBingham.toFixed(3)},${d.viscAparente.toFixed(2)}\r\n`;
+                              });
+                            }
                             const uri = encodeURI(csv);
                             const a = document.createElement("a");
                             a.setAttribute("href", uri);
