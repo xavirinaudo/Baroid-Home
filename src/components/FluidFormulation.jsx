@@ -2,6 +2,80 @@ import React, { useState, useEffect } from 'react';
 import Icon from './Icon';
 import { translations, translateText } from '../data/translations';
 
+// Reference data from "9- CaCl2 table 2.pdf" for Calcium Chloride brine properties
+const CaCl2_Table = [
+  { pct: 0,  wps: 0,      sg: 1.000, ppg: 8.34,  wf: 1.000, saltLbs: 0.0 },
+  { pct: 5,  wps: 50000,  sg: 1.040, ppg: 8.67,  wf: 0.985, saltLbs: 18.0 },
+  { pct: 10, wps: 100000, sg: 1.084, ppg: 9.03,  wf: 0.975, saltLbs: 38.5 },
+  { pct: 15, wps: 150000, sg: 1.131, ppg: 9.42,  wf: 0.966, saltLbs: 61.21 },
+  { pct: 16, wps: 160000, sg: 1.141, ppg: 9.50,  wf: 0.953, saltLbs: 65.84 },
+  { pct: 17, wps: 170000, sg: 1.150, ppg: 9.58,  wf: 0.949, saltLbs: 70.54 },
+  { pct: 18, wps: 180000, sg: 1.160, ppg: 9.66,  wf: 0.945, saltLbs: 75.30 },
+  { pct: 19, wps: 190000, sg: 1.170, ppg: 9.74,  wf: 0.941, saltLbs: 80.18 },
+  { pct: 20, wps: 200000, sg: 1.180, ppg: 9.83,  wf: 0.936, saltLbs: 85.10 },
+  { pct: 21, wps: 210000, sg: 1.190, ppg: 9.91,  wf: 0.932, saltLbs: 90.16 },
+  { pct: 22, wps: 220000, sg: 1.200, ppg: 9.99,  wf: 0.928, saltLbs: 95.22 },
+  { pct: 23, wps: 230000, sg: 1.210, ppg: 10.08, wf: 0.923, saltLbs: 100.42 },
+  { pct: 24, wps: 240000, sg: 1.220, ppg: 10.16, wf: 0.918, saltLbs: 105.62 },
+  { pct: 25, wps: 250000, sg: 1.231, ppg: 10.25, wf: 0.910, saltLbs: 111.01 },
+  { pct: 26, wps: 260000, sg: 1.241, ppg: 10.34, wf: 0.908, saltLbs: 116.39 },
+  { pct: 27, wps: 270000, sg: 1.252, ppg: 10.43, wf: 0.903, saltLbs: 121.94 },
+  { pct: 28, wps: 280000, sg: 1.262, ppg: 10.51, wf: 0.898, saltLbs: 127.48 },
+  { pct: 29, wps: 290000, sg: 1.273, ppg: 10.60, wf: 0.892, saltLbs: 133.21 },
+  { pct: 30, wps: 300000, sg: 1.284, ppg: 10.69, wf: 0.887, saltLbs: 138.94 },
+  { pct: 31, wps: 310000, sg: 1.295, ppg: 10.79, wf: 0.881, saltLbs: 144.83 },
+  { pct: 32, wps: 320000, sg: 1.306, ppg: 10.88, wf: 0.875, saltLbs: 150.72 },
+  { pct: 33, wps: 330000, sg: 1.317, ppg: 10.97, wf: 0.869, saltLbs: 156.81 },
+  { pct: 34, wps: 340000, sg: 1.328, ppg: 11.07, wf: 0.863, saltLbs: 162.90 },
+  { pct: 35, wps: 350000, sg: 1.340, ppg: 11.16, wf: 0.856, saltLbs: 169.18 },
+  { pct: 36, wps: 360000, sg: 1.351, ppg: 11.26, wf: 0.850, saltLbs: 175.47 },
+  { pct: 37, wps: 370000, sg: 1.363, ppg: 11.35, wf: 0.843, saltLbs: 181.94 },
+  { pct: 38, wps: 380000, sg: 1.375, ppg: 11.45, wf: 0.836, saltLbs: 188.41 },
+  { pct: 39, wps: 390000, sg: 1.386, ppg: 11.55, wf: 0.829, saltLbs: 195.07 },
+  { pct: 40, wps: 400000, sg: 1.398, ppg: 11.65, wf: 0.822, saltLbs: 201.74 }
+];
+
+// Calculate density (SG), Water Factor (WF) and Salt Conc (ppb) based on WPS (ppm) and Purity (%)
+const calculateBrineProperties = (wps, purity) => {
+  const targetWps = Math.max(0, Math.min(400000, wps));
+  
+  let lower = CaCl2_Table[0];
+  let upper = CaCl2_Table[CaCl2_Table.length - 1];
+  
+  for (let i = 0; i < CaCl2_Table.length - 1; i++) {
+    if (targetWps >= CaCl2_Table[i].wps && targetWps <= CaCl2_Table[i+1].wps) {
+      lower = CaCl2_Table[i];
+      upper = CaCl2_Table[i+1];
+      break;
+    }
+  }
+  
+  let interpolFactor = 0;
+  if (upper.wps !== lower.wps) {
+    interpolFactor = (targetWps - lower.wps) / (upper.wps - lower.wps);
+  }
+  
+  const sgBase = lower.sg + (upper.sg - lower.sg) * interpolFactor;
+  const wfBase = lower.wf + (upper.wf - lower.wf) * interpolFactor;
+  const saltLbsBase = lower.saltLbs + (upper.saltLbs - lower.saltLbs) * interpolFactor;
+  
+  const saltPurity = Math.max(1, Math.min(100, purity));
+  
+  // Adjusted salt concentration based on salt purity (lbs of commercial salt per bbl of brine)
+  const saltConc = saltLbsBase * (95 / saltPurity);
+  
+  // Adjusted freshwater factor (bbl of water per bbl of brine)
+  // Deduct water introduced by the commercial salt (assuming impurities are water/moisture)
+  let wf = wfBase + (saltLbsBase * 0.05) / 350.5 - (saltConc * (1 - saltPurity / 100)) / 350.5;
+  wf = Math.max(0, wf);
+  
+  return {
+    sgBrine: sgBase,
+    wf: wf,
+    saltConc: saltConc
+  };
+};
+
 const FluidFormulation = ({ isEditing, lang, unitMode, setUnitMode }) => {
   const t = translations[lang] || translations['es'];
 
@@ -13,11 +87,12 @@ const FluidFormulation = ({ isEditing, lang, unitMode, setUnitMode }) => {
     owrOil: '80',
     owrWater: '20',
     wps: '250000',
-    wf: '0.8256',
-    saltConc: '99.4',
-    sgBrine: '1.18900',
+    wf: '0.9100',
+    saltConc: '111.0',
+    sgBrine: '1.23100',
     sgOil: '0.84',
     sgWeight: '4.20',
+    saltPurity: '95', // New property for salt purity percentage
     wbmD1: '12.5',
     wbmD2: '8.33',
     wbmV1: '400',
@@ -41,7 +116,7 @@ const FluidFormulation = ({ isEditing, lang, unitMode, setUnitMode }) => {
   const [localInputs, setLocalInputs] = useState({
     volFinal: '1000',
     densFinal: '12.0',
-    saltConc: '99.4',
+    saltConc: '111.0',
     wbmD1: '12.5',
     wbmD2: '8.33',
     wbmV1: '400',
@@ -86,7 +161,8 @@ const FluidFormulation = ({ isEditing, lang, unitMode, setUnitMode }) => {
   };
 
   useEffect(() => {
-    setLocalInputs({
+    setLocalInputs(prev => ({
+      ...prev,
       volFinal: formatInputVal('volFinal', formSystem.volFinal),
       densFinal: formatInputVal('densFinal', formSystem.densFinal),
       saltConc: formatInputVal('saltConc', formSystem.saltConc),
@@ -94,8 +170,46 @@ const FluidFormulation = ({ isEditing, lang, unitMode, setUnitMode }) => {
       wbmD2: formatInputVal('wbmD2', formSystem.wbmD2),
       wbmV1: formatInputVal('wbmV1', formSystem.wbmV1),
       wbmV2: formatInputVal('wbmV2', formSystem.wbmV2),
+    }));
+  }, [unitMode, formSystem.volFinal, formSystem.densFinal, formSystem.saltConc, formSystem.wbmD1, formSystem.wbmD2, formSystem.wbmV1, formSystem.wbmV2]);
+
+  // Automatically recalculate brine properties when WPS or Salt Purity changes
+  useEffect(() => {
+    if (formType !== 'obm') return;
+    const wpsVal = parseFloat(formSystem.wps) || 0;
+    const purityVal = parseFloat(formSystem.saltPurity) || 95;
+    
+    const brineProps = calculateBrineProperties(wpsVal, purityVal);
+    
+    setFormSystem(prev => {
+      const newSgBrine = brineProps.sgBrine.toFixed(5);
+      const newWf = brineProps.wf.toFixed(4);
+      const newSaltConc = brineProps.saltConc.toFixed(1);
+      
+      if (
+        prev.sgBrine === newSgBrine &&
+        prev.wf === newWf &&
+        prev.saltConc === newSaltConc
+      ) {
+        return prev;
+      }
+      return {
+        ...prev,
+        sgBrine: newSgBrine,
+        wf: newWf,
+        saltConc: newSaltConc
+      };
     });
-  }, [unitMode]);
+
+    setLocalInputs(prev => {
+      const formattedSaltConc = formatInputVal('saltConc', brineProps.saltConc.toString());
+      if (prev.saltConc === formattedSaltConc) return prev;
+      return {
+        ...prev,
+        saltConc: formattedSaltConc
+      };
+    });
+  }, [formSystem.wps, formSystem.saltPurity, formType, unitMode]);
 
   const handleLocalInputChange = (key, val) => {
     setLocalInputs(prev => ({ ...prev, [key]: val }));
@@ -747,6 +861,8 @@ const FluidFormulation = ({ isEditing, lang, unitMode, setUnitMode }) => {
                 {/* Section 2: Brine Properties */}
                 <div className="space-y-4 bg-zinc-50/40 dark:bg-slate-900/10 p-5 rounded-3xl border border-zinc-100 dark:border-zinc-800/40">
                   <h5 className="text-[11px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest border-b border-zinc-100 dark:border-zinc-800 pb-1">{t.formSaltTable}</h5>
+                  
+                  {/* Modifiable parameters */}
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="text-[11px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-1.5 block">{t.formWps} (ppm)</label>
@@ -756,43 +872,61 @@ const FluidFormulation = ({ isEditing, lang, unitMode, setUnitMode }) => {
                         onChange={e => setFormSystem({ ...formSystem, wps: e.target.value })}
                         className="w-full input-style text-lg font-bold bg-yellow-500/5 focus:bg-white"
                         placeholder="250000"
+                        min="0"
+                        max="400000"
                       />
                     </div>
                     <div>
-                      <label className="text-[11px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-1.5 block">{t.formBrineDens} (SG)</label>
+                      <label className="text-[11px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-1.5 block">{t.formSaltPurity}</label>
                       <input
                         type="number"
-                        value={formSystem.sgBrine}
-                        onChange={e => setFormSystem({ ...formSystem, sgBrine: e.target.value })}
+                        value={formSystem.saltPurity}
+                        onChange={e => setFormSystem({ ...formSystem, saltPurity: e.target.value })}
                         className="w-full input-style text-lg font-bold bg-yellow-500/5 focus:bg-white"
-                        placeholder="1.18900"
-                        step="0.00001"
+                        placeholder="95"
+                        min="1"
+                        max="100"
                       />
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  
+                  {/* Informative text about Salt Purity */}
+                  <div className="text-[9px] text-zinc-400 dark:text-zinc-500 font-bold uppercase tracking-wider leading-relaxed">
+                    {t.formSaltPurityDesc}
+                  </div>
+
+                  {/* Calculated/ReadOnly parameters */}
+                  <div className="grid grid-cols-3 gap-3 pt-2 border-t border-zinc-100/50 dark:border-zinc-800/50">
                     <div>
-                      <label className="text-[11px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-1.5 block">{t.formWaterFactor} (WF)</label>
+                      <label className="text-[9px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-wider mb-1 block">{t.formBrineDens} (SG)</label>
                       <input
                         type="number"
-                        value={formSystem.wf}
-                        onChange={e => setFormSystem({ ...formSystem, wf: e.target.value })}
-                        className="w-full input-style text-lg font-bold bg-yellow-500/5 focus:bg-white"
-                        placeholder="0.8256"
-                        step="0.0001"
+                        value={formSystem.sgBrine}
+                        readOnly={true}
+                        className="w-full input-style text-xs font-bold bg-zinc-100/70 dark:bg-slate-800/80 text-zinc-500 dark:text-zinc-400 cursor-not-allowed border-zinc-200/50 dark:border-zinc-700/50"
+                        placeholder="1.23100"
                       />
                     </div>
                     <div>
-                      <label className="text-[11px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-1.5 block">
+                      <label className="text-[9px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-wider mb-1 block">{t.formWaterFactor} (WF)</label>
+                      <input
+                        type="number"
+                        value={formSystem.wf}
+                        readOnly={true}
+                        className="w-full input-style text-xs font-bold bg-zinc-100/70 dark:bg-slate-800/80 text-zinc-500 dark:text-zinc-400 cursor-not-allowed border-zinc-200/50 dark:border-zinc-700/50"
+                        placeholder="0.9100"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[9px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-wider mb-1 block">
                         {t.formSaltConc} ({unitMode === 'field' ? 'ppb' : 'kg/m³'})
                       </label>
                       <input
                         type="number"
                         value={localInputs.saltConc}
-                        onChange={e => handleLocalInputChange('saltConc', e.target.value)}
-                        className="w-full input-style text-lg font-bold bg-yellow-500/5 focus:bg-white"
-                        placeholder={unitMode === 'field' ? "99.4" : "283.6"}
-                        step="0.1"
+                        readOnly={true}
+                        className="w-full input-style text-xs font-bold bg-zinc-100/70 dark:bg-slate-800/80 text-zinc-500 dark:text-zinc-400 cursor-not-allowed border-zinc-200/50 dark:border-zinc-700/50"
+                        placeholder="111.0"
                       />
                     </div>
                   </div>

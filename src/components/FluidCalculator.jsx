@@ -18,6 +18,7 @@ const FluidCalculator = ({ isEditing, lang, unitMode, setUnitMode }) => {
       case 'slug': return t.tabSlug;
       case 'fit': return t.tabFit;
       case 'pfmf': return t.tabPfMf;
+      case 'wps_adjust': return t.tabWpsAdjust;
 
       default: return '';
     }
@@ -79,6 +80,22 @@ const FluidCalculator = ({ isEditing, lang, unitMode, setUnitMode }) => {
     hasBarite: true
   });
 
+  // WPS Salinity Adjustment State
+  const [wpsAdj, setWpsAdj] = useState({
+    systemVol: '',
+    currentWps: '',
+    desiredWps: '',
+    retortWater: '',
+    retortOil: '',
+    saltPurity: '97',
+    sackWeightSalt: '80',
+    sackWeightBarite: '100',
+    targetOilRatio: '80',
+    dieselDensity: '7.0',
+    mudWeight: '',
+    maintainOwr: true
+  });
+
 
 
   // Mixing Densification State
@@ -134,8 +151,9 @@ const FluidCalculator = ({ isEditing, lang, unitMode, setUnitMode }) => {
       { id: 'eng', label: 'Hidrostática & Capacidad', icon: 'droplet', visible: true },
       { id: 'slug', label: 'Píldoras (Slugs)', icon: 'flask-conical', visible: true },
       { id: 'fit', label: 'Integridad (FIT)', icon: 'shield-check', visible: true },
-      { id: 'pfmf', label: 'Pf/Mf & Tratamiento', icon: 'beaker', visible: true }
-          ];
+      { id: 'pfmf', label: 'Pf/Mf & Tratamiento', icon: 'beaker', visible: true },
+      { id: 'wps_adjust', label: 'Ajuste de WPS', icon: 'zap', visible: true }
+    ];
     const saved = localStorage.getItem('baroid_calc_tabs_v7');
     if (!saved) return DEFAULT_TABS;
     try {
