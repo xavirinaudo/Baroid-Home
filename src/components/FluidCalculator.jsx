@@ -1240,6 +1240,244 @@ const FluidCalculator = ({ isEditing, lang, unitMode, setUnitMode }) => {
     setMix([...mix, { vol: '', dens: '' }]);
   };
 
+  // GA4 section_navigated tracking for calculator subtabs
+  useEffect(() => {
+    let subTabName = activeSubTab;
+    switch (activeSubTab) {
+      case 'conv': subTabName = 'unit_converter'; break;
+      case 'barite': subTabName = 'barite_density_adjust'; break;
+      case 'rheology': subTabName = 'rheology_profile'; break;
+      case 'mixing': subTabName = 'mass_balance_mixing'; break;
+      case 'lgs_retort': subTabName = 'lgs_wps_retort'; break;
+      case 'wps_adjust': subTabName = 'wps_adjust'; break;
+      case 'lgs': subTabName = 'lgs_dilution'; break;
+      case 'owr': subTabName = 'owr_ratio'; break;
+      case 'eng': subTabName = 'hydrostatic_capacity'; break;
+      case 'slug': subTabName = 'pill_volume'; break;
+      case 'fit': subTabName = 'well_integrity_fit'; break;
+      case 'pfmf': subTabName = 'pf_mf_titration'; break;
+      default: break;
+    }
+
+    if (typeof gtag === 'function') {
+      gtag('event', 'section_navigated', {
+        section_name: subTabName
+      });
+    }
+  }, [activeSubTab]);
+
+  // GA4 calculator_used tracking with 2-second debounce
+  const isFirstRender = React.useRef(true);
+  const lastTrackedState = React.useRef({
+    conv: JSON.stringify(conv),
+    barite: JSON.stringify(barite),
+    rheo: JSON.stringify({ rheo, rheoReadings, rheoInputMode }),
+    mix: JSON.stringify({ mix, mixTargetDens, mixBariteSg }),
+    lgsRetort: JSON.stringify(lgsRetort),
+    wpsAdj: JSON.stringify(wpsAdj),
+    lgs: JSON.stringify(lgs),
+    owr: JSON.stringify(owr),
+    eng: JSON.stringify(eng),
+    slug: JSON.stringify(slug),
+    fit: JSON.stringify(fit),
+    titration: JSON.stringify(titration)
+  });
+
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      let name = '';
+      let status = 'invalid_inputs';
+      let inputsChanged = false;
+
+      switch (activeSubTab) {
+        case 'conv': {
+          name = 'unit_converter';
+          const convStr = JSON.stringify(conv);
+          if (lastTrackedState.current.conv !== convStr) {
+            lastTrackedState.current.conv = convStr;
+            inputsChanged = true;
+            const allEmpty = Object.values(conv).every(cat => Object.values(cat).every(val => val === ''));
+            status = allEmpty ? 'invalid_inputs' : 'success';
+          }
+          break;
+        }
+
+        case 'barite': {
+          name = 'barite_density_adjust';
+          const bariteStr = JSON.stringify(barite);
+          if (lastTrackedState.current.barite !== bariteStr) {
+            lastTrackedState.current.barite = bariteStr;
+            inputsChanged = true;
+            const tons = parseFloat(getBariteTons());
+            status = (!isNaN(tons) && tons > 0) ? 'success' : 'invalid_inputs';
+          }
+          break;
+        }
+
+        case 'rheology': {
+          name = 'rheology_profile';
+          const rheoStr = JSON.stringify({ rheo, rheoReadings, rheoInputMode });
+          if (lastTrackedState.current.rheo !== rheoStr) {
+            lastTrackedState.current.rheo = rheoStr;
+            inputsChanged = true;
+            let invalid = false;
+            if (rheoInputMode === 'readings') {
+              const t600 = parseFloat(rheoReadings.theta600);
+              const t300 = parseFloat(rheoReadings.theta300);
+              invalid = isNaN(t600) || isNaN(t300) || t600 < t300;
+            } else {
+              const vp = parseFloat(rheo.vp);
+              const yp = parseFloat(rheo.yp);
+              const tau0 = parseFloat(rheo.tau0);
+              invalid = isNaN(vp) || isNaN(yp) || isNaN(tau0) || vp < 1 || yp < 0 || tau0 < 0;
+            }
+            status = invalid ? 'invalid_inputs' : 'success';
+          }
+          break;
+        }
+
+        case 'mixing': {
+          name = 'mass_balance_mixing';
+          const mixStr = JSON.stringify({ mix, mixTargetDens, mixBariteSg });
+          if (lastTrackedState.current.mix !== mixStr) {
+            lastTrackedState.current.mix = mixStr;
+            inputsChanged = true;
+            const hasVolInput = mix.some(f => f.vol !== '' || f.dens !== '');
+            const res = getMixingResult();
+            const hasTargetDens = mixTargetDens !== '';
+            const tons = parseFloat(getMixDensificationTons());
+            if (hasTargetDens) {
+              status = (tons > 0) ? 'success' : 'invalid_inputs';
+            } else if (hasVolInput) {
+              status = (res && parseFloat(res.vol) > 0) ? 'success' : 'invalid_inputs';
+            } else {
+              status = 'invalid_inputs';
+            }
+          }
+          break;
+        }
+
+        case 'lgs_retort': {
+          name = 'lgs_wps_retort';
+          const lgsRetortStr = JSON.stringify(lgsRetort);
+          if (lastTrackedState.current.lgsRetort !== lgsRetortStr) {
+            lastTrackedState.current.lgsRetort = lgsRetortStr;
+            inputsChanged = true;
+            const res = getLgsRetortResult();
+            status = (res && !res.invalid) ? 'success' : 'invalid_inputs';
+          }
+          break;
+        }
+
+        case 'wps_adjust': {
+          name = 'wps_adjust';
+          const wpsAdjStr = JSON.stringify(wpsAdj);
+          if (lastTrackedState.current.wpsAdj !== wpsAdjStr) {
+            lastTrackedState.current.wpsAdj = wpsAdjStr;
+            inputsChanged = true;
+            const res = getWpsAdjustResult();
+            status = (res && !res.invalid) ? 'success' : 'invalid_inputs';
+          }
+          break;
+        }
+
+        case 'lgs': {
+          name = 'lgs_dilution';
+          const lgsStr = JSON.stringify(lgs);
+          if (lastTrackedState.current.lgs !== lgsStr) {
+            lastTrackedState.current.lgs = lgsStr;
+            inputsChanged = true;
+            const res = getLGSResult();
+            const hasInputs = lgs.v1 !== '' || lgs.c1 !== '' || lgs.c2 !== '' || lgs.cf !== '';
+            status = (hasInputs && res && !res.invalid) ? 'success' : 'invalid_inputs';
+          }
+          break;
+        }
+
+        case 'owr': {
+          name = 'owr_ratio';
+          const owrStr = JSON.stringify(owr);
+          if (lastTrackedState.current.owr !== owrStr) {
+            lastTrackedState.current.owr = owrStr;
+            inputsChanged = true;
+            const res = getOWRResult();
+            status = (res && !res.invalid && parseFloat(res.finalVol) > 0) ? 'success' : 'invalid_inputs';
+          }
+          break;
+        }
+
+        case 'eng': {
+          name = 'hydrostatic_capacity';
+          const engStr = JSON.stringify(eng);
+          if (lastTrackedState.current.eng !== engStr) {
+            lastTrackedState.current.eng = engStr;
+            inputsChanged = true;
+            const hydro = parseFloat(getHydrostatic());
+            status = (!isNaN(hydro) && hydro > 0) ? 'success' : 'invalid_inputs';
+          }
+          break;
+        }
+
+        case 'slug': {
+          name = 'pill_volume';
+          const slugStr = JSON.stringify(slug);
+          if (lastTrackedState.current.slug !== slugStr) {
+            lastTrackedState.current.slug = slugStr;
+            inputsChanged = true;
+            const res = getSlugResult();
+            status = (res && parseFloat(res.volFinal) > 0) ? 'success' : 'invalid_inputs';
+          }
+          break;
+        }
+
+        case 'fit': {
+          name = 'well_integrity_fit';
+          const fitStr = JSON.stringify(fit);
+          if (lastTrackedState.current.fit !== fitStr) {
+            lastTrackedState.current.fit = fitStr;
+            inputsChanged = true;
+            const res = getFITResult();
+            status = (res && parseFloat(res.total) > 0) ? 'success' : 'invalid_inputs';
+          }
+          break;
+        }
+
+        case 'pfmf': {
+          name = 'pf_mf_titration';
+          const titrationStr = JSON.stringify(titration);
+          if (lastTrackedState.current.titration !== titrationStr) {
+            lastTrackedState.current.titration = titrationStr;
+            inputsChanged = true;
+            const res = getPfMfResult();
+            status = (res && !res.invalid) ? 'success' : 'invalid_inputs';
+          }
+          break;
+        }
+
+        default:
+          break;
+      }
+
+      if (inputsChanged && name) {
+        if (typeof gtag === 'function') {
+          gtag('event', 'calculator_used', {
+            calculator_name: name,
+            status: status
+          });
+        }
+      }
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, [
+    activeSubTab, eng, barite, mix, slug, owr, fit, titration, lgs, lgsRetort, wpsAdj, rheo, rheoReadings, rheoInputMode, mixTargetDens, mixBariteSg
+  ]);
+
   return (
     <div className="animate-fade-in space-y-8">
       {/* Header Calculator */}

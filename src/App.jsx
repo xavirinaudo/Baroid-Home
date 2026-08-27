@@ -283,6 +283,56 @@ const App = () => {
         localStorage.setItem('baroid_hub_data_v6', JSON.stringify(sectors));
     }, [sectors]);
 
+    // GA4 section_navigated tracking for main tabs
+    useEffect(() => {
+        let sectionName = activeSector;
+        // Map sectors to user-friendly technical names
+        if (activeSector === 'favorites') {
+            sectionName = 'favorites';
+        } else if (activeSector === 'calculator') {
+            sectionName = 'fluid_calculators';
+        } else if (activeSector === 'formulation') {
+            sectionName = 'fluid_formulation';
+        } else if (activeSector === 'inventory') {
+            sectionName = 'inventory_reconciliation';
+        } else if (activeSector === 'piletas') {
+            sectionName = 'mud_pit_system';
+        } else {
+            // Map sector IDs to clean names
+            switch (activeSector) {
+                case 'sec_safety':
+                    sectionName = 'hse_risk_management';
+                    break;
+                case 'sec_lab':
+                    sectionName = 'lab_calibrations';
+                    break;
+                case 'sec_qa':
+                    sectionName = 'quality_process_management';
+                    break;
+                case 'sec_software':
+                    sectionName = 'software_standards_download';
+                    break;
+                case 'sec_hr':
+                    sectionName = 'human_resources';
+                    break;
+                case 'sec_corp':
+                    sectionName = 'corporate_links';
+                    break;
+                default:
+                    // Fallback to normalized sector name or ID
+                    const foundSec = sectors.find(s => s.id === activeSector);
+                    sectionName = foundSec ? foundSec.name.toLowerCase().replace(/[^a-z0-9]+/g, '_') : activeSector;
+                    break;
+            }
+        }
+
+        if (typeof gtag === 'function') {
+            gtag('event', 'section_navigated', {
+                section_name: sectionName
+            });
+        }
+    }, [activeSector, sectors]);
+
     useEffect(() => {
         const handleBeforeUnload = (e) => {
             e.preventDefault();
@@ -369,6 +419,42 @@ const App = () => {
     };
 
     const trackLinkClick = (lid) => {
+        // Find the link metadata to track via GA4
+        let foundLink = null;
+        let foundSector = null;
+        for (const s of sectors) {
+            for (const sub of s.subsectors || []) {
+                const l = (sub.links || []).find(x => x.id === lid);
+                if (l) {
+                    foundLink = l;
+                    foundSector = s;
+                    break;
+                }
+            }
+            if (foundLink) break;
+        }
+
+        if (foundLink) {
+            let category = 'external_tools';
+            if (foundSector) {
+                const secId = foundSector.id;
+                if (secId === 'sec_safety') category = 'hse';
+                else if (secId === 'sec_lab') category = 'laboratory';
+                else if (secId === 'sec_qa') category = 'quality_assurance';
+                else if (secId === 'sec_software') category = 'software_downloads';
+                else if (secId === 'sec_hr') category = 'human_resources';
+                else if (secId === 'sec_corp') category = 'corporate';
+            }
+
+            if (typeof gtag === 'function') {
+                gtag('event', 'useful_link_clicked', {
+                    link_text: foundLink.name,
+                    link_url: foundLink.url,
+                    link_category: category
+                });
+            }
+        }
+
         setSectors(prev => prev.map(s => ({
             ...s,
             subsectors: s.subsectors.map(sub => ({

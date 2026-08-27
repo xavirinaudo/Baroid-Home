@@ -760,6 +760,58 @@ const FluidFormulation = ({ isEditing, lang, unitMode, setUnitMode }) => {
       }
     }
   };
+  // GA4 calculator_used tracking with 2-second debounce for formulations
+  const isFirstRenderForm = React.useRef(true);
+  const lastTrackedFormulation = React.useRef({
+    type: formType,
+    system: JSON.stringify(formSystem),
+    obm: JSON.stringify(obmAdditives),
+    wbm: JSON.stringify(wbmAdditives)
+  });
+
+  useEffect(() => {
+    if (isFirstRenderForm.current) {
+      isFirstRenderForm.current = false;
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      const systemStr = JSON.stringify(formSystem);
+      const obmStr = JSON.stringify(obmAdditives);
+      const wbmStr = JSON.stringify(wbmAdditives);
+
+      let changed = false;
+      if (
+        lastTrackedFormulation.current.type !== formType ||
+        lastTrackedFormulation.current.system !== systemStr ||
+        lastTrackedFormulation.current.obm !== obmStr ||
+        lastTrackedFormulation.current.wbm !== wbmStr
+      ) {
+        changed = true;
+        lastTrackedFormulation.current = {
+          type: formType,
+          system: systemStr,
+          obm: obmStr,
+          wbm: wbmStr
+        };
+      }
+
+      if (changed) {
+        const name = formType === 'obm' ? 'fluid_formulation_obm' : 'fluid_formulation_wbm';
+        const res = getFormulationResult();
+        const status = (res && !res.invalid) ? 'success' : 'invalid_inputs';
+
+        if (typeof gtag === 'function') {
+          gtag('event', 'calculator_used', {
+            calculator_name: name,
+            status: status
+          });
+        }
+      }
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, [formType, formSystem, obmAdditives, wbmAdditives]);
 
     return (
     <div className="space-y-6">
