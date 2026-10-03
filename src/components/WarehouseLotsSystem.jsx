@@ -33,47 +33,7 @@ const DEFAULT_FALLBACK_STATE = {
     { name: "EZ MUL® LA", type: "liquido", defaultPackage: "IBC Tote 1000 L", unitWeight: 1000, unit: "LT", color: "#BE185D" },
     { name: "BARACARB®-DF FINE", type: "solido", defaultPackage: "Bolsa 25 kg", unitWeight: 25, unit: "KG", color: "#475569" }
   ],
-  pallets: [
-    { id: "PAL-SOL-A1", zone: "solidos", col: "A", row: 1, product: "LIME FG", lot: "1070", quantity: 1000, unit: "KG", packageDetails: "50 bolsas x 20 kg", unitsCount: 50, capacityNominal: 1000, status: "full" },
-    { id: "PAL-SOL-C1", zone: "solidos", col: "C", row: 1, product: "LIME FG", lot: "1074", quantity: 1000, unit: "KG", packageDetails: "50 bolsas x 20 kg", unitsCount: 50, capacityNominal: 1000, status: "full" },
-    { id: "PAL-SOL-A2", zone: "solidos", col: "A", row: 2, product: "LIME FG", lot: "1114", quantity: 1000, unit: "KG", packageDetails: "50 bolsas x 20 kg", unitsCount: 50, capacityNominal: 1000, status: "full" },
-    { id: "PAL-SOL-A3", zone: "solidos", col: "A", row: 3, product: "LIME FG", lot: "1118", quantity: 1000, unit: "KG", packageDetails: "40 bolsas x 25 kg", unitsCount: 40, capacityNominal: 1000, status: "full" },
-    { id: "PAL-SOL-E1", zone: "solidos", col: "E", row: 1, product: "GELTONE® II", lot: "2517K1", quantity: 567, unit: "KG", packageDetails: "25 bolsas x 22.68 kg", unitsCount: 25, capacityNominal: 567, status: "full" },
-    { id: "PAL-SOL-G1", zone: "solidos", col: "G", row: 1, product: "BARABLOK™ 400 NA", lot: "2072605", quantity: 1125, unit: "KG", packageDetails: "45 bolsas x 25 kg", unitsCount: 45, capacityNominal: 1125, status: "full" },
-    { id: "PAL-SOL-H1", zone: "solidos", col: "H", row: 1, product: "BARABLOK™ 400 NA", lot: "2072605", quantity: 1125, unit: "KG", packageDetails: "45 bolsas x 25 kg", unitsCount: 45, capacityNominal: 1125, status: "full" },
-    { id: "PAL-SOL-H2", zone: "solidos", col: "H", row: 2, product: "BARABLOK™ 400 NA", lot: "2072605", quantity: 1125, unit: "KG", packageDetails: "45 bolsas x 25 kg", unitsCount: 45, capacityNominal: 1125, status: "full" },
-    { id: "PAL-SOL-H3", zone: "solidos", col: "H", row: 3, product: "BARABLOK™ 400 NA", lot: "2082605", quantity: 550, unit: "KG", packageDetails: "22 bolsas x 25 kg (parcial)", unitsCount: 22, capacityNominal: 1125, status: "partial" },
-    { id: "PAL-SOL-J1", zone: "solidos", col: "J", row: 1, product: "Cloruro de Calcio (CaCl₂)", lot: "MP20260155", quantity: 1250, unit: "KG", packageDetails: "50 bolsas x 25 kg", unitsCount: 50, capacityNominal: 1250, status: "full" },
-    { id: "PAL-SOL-L1", zone: "solidos", col: "L", row: 1, product: "Cloruro de Calcio (CaCl₂)", lot: "MP20260155", quantity: 1250, unit: "KG", packageDetails: "50 bolsas x 25 kg", unitsCount: 50, capacityNominal: 1250, status: "full" },
-    { id: "PAL-SOL-M1", zone: "solidos", col: "M", row: 1, product: "Cloruro de Calcio (CaCl₂)", lot: "MP20260155", quantity: 1250, unit: "KG", packageDetails: "50 bolsas x 25 kg", unitsCount: 50, capacityNominal: 1250, status: "full" },
-    { id: "PAL-SOL-J2", zone: "solidos", col: "J", row: 2, product: "Cloruro de Calcio (CaCl₂)", lot: "MP20260155", quantity: 1250, unit: "KG", packageDetails: "50 bolsas x 25 kg", unitsCount: 50, capacityNominal: 1250, status: "full" },
-    { id: "PAL-SOL-L2", zone: "solidos", col: "L", row: 2, product: "Cloruro de Calcio (CaCl₂)", lot: "MP20260155", quantity: 1250, unit: "KG", packageDetails: "50 bolsas x 25 kg", unitsCount: 50, capacityNominal: 1250, status: "full" },
-    { id: "PAL-SOL-M2", zone: "solidos", col: "M", row: 2, product: "Cloruro de Calcio (CaCl₂)", lot: "MP20260155", quantity: 1250, unit: "KG", packageDetails: "50 bolsas x 25 kg", unitsCount: 50, capacityNominal: 1250, status: "full" },
-    { id: "PAL-SOL-L3", zone: "solidos", col: "L", row: 3, product: "Cloruro de Calcio (CaCl₂)", lot: "MP20260155", quantity: 1250, unit: "KG", packageDetails: "50 bolsas x 25 kg", unitsCount: 50, capacityNominal: 1250, status: "full" },
-    { id: "PAL-SOL-M3", zone: "solidos", col: "M", row: 3, product: "Cloruro de Calcio (CaCl₂)", lot: "MP20260155", quantity: 1250, unit: "KG", packageDetails: "50 bolsas x 25 kg", unitsCount: 50, capacityNominal: 1250, status: "full" },
-    { id: "PAL-SOL-L4", zone: "solidos", col: "L", row: 4, product: "Cloruro de Calcio (CaCl₂)", lot: "MP20260155", quantity: 1250, unit: "KG", packageDetails: "50 bolsas x 25 kg", unitsCount: 50, capacityNominal: 1250, status: "full" },
-    { id: "PAL-SOL-M4", zone: "solidos", col: "M", row: 4, product: "Cloruro de Calcio (CaCl₂)", lot: "MP20260155", quantity: 1250, unit: "KG", packageDetails: "50 bolsas x 25 kg", unitsCount: 50, capacityNominal: 1250, status: "full" },
-    { id: "PAL-SOL-L5", zone: "solidos", col: "L", row: 5, product: "Cloruro de Calcio (CaCl₂)", lot: "CCP2604-09", quantity: 1250, unit: "KG", packageDetails: "50 bolsas x 25 kg", unitsCount: 50, capacityNominal: 1250, status: "full" },
-    { id: "PAL-SOL-M5", zone: "solidos", col: "M", row: 5, product: "Cloruro de Calcio (CaCl₂)", lot: "CCP2604-09", quantity: 1250, unit: "KG", packageDetails: "50 bolsas x 25 kg", unitsCount: 50, capacityNominal: 1250, status: "full" },
-    { id: "PAL-SOL-L6", zone: "solidos", col: "L", row: 6, product: "Cloruro de Calcio (CaCl₂)", lot: "CCP2604-09", quantity: 100, unit: "KG", packageDetails: "4 bolsas x 25 kg (parcial)", unitsCount: 4, capacityNominal: 1250, status: "partial" },
-    { id: "PAL-LIQ-C1", zone: "liquidos", col: "C", row: 1, product: "RM-63™", lot: "251231T075", quantity: 624, unit: "LT", packageDetails: "3 tambores x 208 L", unitsCount: 3, capacityNominal: 832, status: "partial" },
-    { id: "PAL-LIQ-C2", zone: "liquidos", col: "C", row: 2, product: "RM-63™", lot: "250808T032", quantity: 416, unit: "LT", packageDetails: "2 tambores x 208 L", unitsCount: 2, capacityNominal: 832, status: "partial" },
-    { id: "PAL-LIQ-B3", zone: "liquidos", col: "B", row: 3, product: "RM-63™", lot: "251231T075", quantity: 832, unit: "LT", packageDetails: "4 tambores x 208 L", unitsCount: 4, capacityNominal: 832, status: "full" },
-    { id: "PAL-LIQ-C3", zone: "liquidos", col: "C", row: 3, product: "RM-63™", lot: "250808T032", quantity: 832, unit: "LT", packageDetails: "4 tambores x 208 L", unitsCount: 4, capacityNominal: 832, status: "full" },
-    { id: "PAL-LIQ-B4", zone: "liquidos", col: "B", row: 4, product: "RM-63™", lot: "251231T075", quantity: 832, unit: "LT", packageDetails: "4 tambores x 208 L", unitsCount: 4, capacityNominal: 832, status: "full" },
-    { id: "PAL-LIQ-C4", zone: "liquidos", col: "C", row: 4, product: "RM-63™", lot: "250726T026", quantity: 832, unit: "LT", packageDetails: "4 tambores x 208 L", unitsCount: 4, capacityNominal: 832, status: "full" },
-    { id: "PAL-LIQ-M4", zone: "liquidos", col: "M", row: 4, product: "EZ MUL® LA", lot: "2026040019", quantity: 1000, unit: "LT", packageDetails: "1 IBC Tote 1000 L", unitsCount: 1, capacityNominal: 1000, status: "full" },
-    { id: "PAL-LIQ-B5", zone: "liquidos", col: "B", row: 5, product: "RM-63™", lot: "251231T075", quantity: 832, unit: "LT", packageDetails: "4 tambores x 208 L", unitsCount: 4, capacityNominal: 832, status: "full" },
-    { id: "PAL-LIQ-C5", zone: "liquidos", col: "C", row: 5, product: "RM-63™", lot: "250808T032", quantity: 832, unit: "LT", packageDetails: "4 tambores x 208 L", unitsCount: 4, capacityNominal: 832, status: "full" },
-    { id: "PAL-LIQ-J5", zone: "liquidos", col: "J", row: 5, product: "INVERMUL® LA", lot: "2026030006", quantity: 500, unit: "LT", packageDetails: "0.5 IBC Tote (500 L)", unitsCount: 0.5, capacityNominal: 1000, status: "partial" },
-    { id: "PAL-LIQ-M5", zone: "liquidos", col: "M", row: 5, product: "EZ MUL® LA", lot: "2026050021", quantity: 1000, unit: "LT", packageDetails: "1 IBC Tote 1000 L", unitsCount: 1, capacityNominal: 1000, status: "full" },
-    { id: "PAL-LIQ-B6", zone: "liquidos", col: "B", row: 6, product: "RM-63™", lot: "251231T075", quantity: 832, unit: "LT", packageDetails: "4 tambores x 208 L", unitsCount: 4, capacityNominal: 832, status: "full" },
-    { id: "PAL-LIQ-C6", zone: "liquidos", col: "C", row: 6, product: "RM-63™", lot: "250817T034", quantity: 832, unit: "LT", packageDetails: "4 tambores x 208 L", unitsCount: 4, capacityNominal: 832, status: "full" },
-    { id: "PAL-LIQ-H6", zone: "liquidos", col: "H", row: 6, product: "DRILTREAT®", lot: "10042601", quantity: 1000, unit: "LT", packageDetails: "1 IBC Tote 1000 L", unitsCount: 1, capacityNominal: 1000, status: "full" },
-    { id: "PAL-LIQ-J6", zone: "liquidos", col: "J", row: 6, product: "INVERMUL® LA", lot: "2026030006", quantity: 1000, unit: "LT", packageDetails: "1 IBC Tote 1000 L", unitsCount: 1, capacityNominal: 1000, status: "full" },
-    { id: "PAL-LIQ-L6", zone: "liquidos", col: "L", row: 6, product: "EZ MUL® LA", lot: "2026050021", quantity: 100, unit: "LT", packageDetails: "Remanente IBC 100 L", unitsCount: 0.1, capacityNominal: 1000, status: "partial" },
-    { id: "PAL-LIQ-M6", zone: "liquidos", col: "M", row: 6, product: "EZ MUL® LA", lot: "2026050021", quantity: 1000, unit: "LT", packageDetails: "1 IBC Tote 1000 L", unitsCount: 1, capacityNominal: 1000, status: "full" }
-  ]
+  pallets: []
 };
 
 const ALL_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
@@ -173,6 +133,88 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es' }) => {
       showToast("Último movimiento deshecho.", "warning");
     } catch (e) {
       console.error("Undo error:", e);
+    }
+  };
+
+  const fileInputRef = useRef(null);
+
+  // Importar Inventario desde Archivo JSON
+  const handleImportInventoryJson = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const imported = JSON.parse(event.target.result);
+        if (!imported || !Array.isArray(imported.pallets)) {
+          showToast("❌ El archivo no contiene un formato válido (falta lista de pallets).", "error");
+          return;
+        }
+
+        // Normalización preventiva de nombres de productos oficiales Baroid
+        const normalizedPallets = imported.pallets.map(p => {
+          let prodName = p.product || "";
+          if (prodName.includes("Calcio") || prodName.includes("CaCl")) prodName = "Cloruro de Calcio (CaCl₂)";
+          else if (prodName.includes("BARABLOK")) prodName = "BARABLOK™ 400 NA";
+          else if (prodName.includes("BARACARB")) prodName = "BARACARB®-DF FINE";
+          else if (prodName.includes("INVERMUL")) prodName = "INVERMUL® LA";
+          else if (prodName.includes("EZ MUL")) prodName = "EZ MUL® LA";
+          else if (prodName.includes("DRILTREAT")) prodName = "DRILTREAT®";
+          else if (prodName.includes("GELTONE")) prodName = "GELTONE® II";
+          else if (prodName.includes("RM-63")) prodName = "RM-63™";
+          else if (prodName.includes("LIME")) prodName = "LIME FG";
+
+          return {
+            ...p,
+            product: prodName,
+            sectorId: p.sectorId || "principal"
+          };
+        });
+
+        const nextData = {
+          ...data,
+          ...imported,
+          pallets: normalizedPallets,
+          sectors: imported.sectors || data.sectors,
+          productCatalog: imported.productCatalog || data.productCatalog,
+          warehouseDimensions: imported.warehouseDimensions || data.warehouseDimensions
+        };
+
+        persistData(nextData);
+        showToast(`✅ Inventario cargado con éxito: ${normalizedPallets.length} pallets y lotes importados.`, "success");
+      } catch (err) {
+        console.error("Error importando JSON:", err);
+        showToast("❌ Error al procesar el archivo JSON.", "error");
+      }
+    };
+    reader.readAsText(file, "UTF-8");
+    e.target.value = '';
+  };
+
+  // Exportar Copia de Seguridad JSON
+  const handleExportInventoryJson = () => {
+    const dataStr = JSON.stringify(data, null, 2);
+    const blob = new Blob([dataStr], { type: "application/json;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `LMP_Inventario_Almacen_${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    showToast("📥 Copia de seguridad JSON descargada.", "success");
+  };
+
+  // Vaciar Almacén (Empezar de Cero)
+  const handleClearWarehouse = () => {
+    if (confirm("¿Estás seguro de que deseas vaciar todos los lotes del almacén para comenzar desde cero? Podrás deshacer esta acción con Ctrl+Z.")) {
+      const nextData = {
+        ...data,
+        pallets: []
+      };
+      persistData(nextData);
+      showToast("🗑️ Almacén vaciado. Listo para nuevo inventario.", "info");
     }
   };
 
@@ -588,6 +630,45 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es' }) => {
             </div>
           )}
 
+          {/* Cargar Inventario JSON */}
+          <input
+            type="file"
+            ref={fileInputRef}
+            accept=".json"
+            onChange={handleImportInventoryJson}
+            className="hidden"
+          />
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            className="flex items-center gap-1.5 px-3 py-2 bg-zinc-100 hover:bg-zinc-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-zinc-700 dark:text-zinc-200 rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-sm"
+            title="Cargar inventario desde archivo JSON en este equipo"
+          >
+            <Icon name="upload" size={14} className="text-halliburton-red" />
+            <span>Cargar JSON</span>
+          </button>
+
+          {/* Respaldar JSON */}
+          <button
+            onClick={handleExportInventoryJson}
+            className="flex items-center gap-1.5 px-3 py-2 bg-zinc-100 hover:bg-zinc-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-zinc-700 dark:text-zinc-200 rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-sm"
+            title="Descargar copia de seguridad completa del inventario (JSON)"
+          >
+            <Icon name="download" size={14} />
+            <span className="hidden sm:inline">Respaldar</span>
+          </button>
+
+          {/* Vaciar Almacén */}
+          {data.pallets.filter(p => (p.sectorId || 'principal') === activeSectorId && p.quantity > 0).length > 0 && (
+            <button
+              onClick={handleClearWarehouse}
+              className="flex items-center gap-1 px-2.5 py-2 hover:bg-red-50 dark:hover:bg-red-950/30 text-zinc-400 hover:text-halliburton-red rounded-xl text-xs font-bold transition-all"
+              title="Vaciar todos los lotes para comenzar de cero"
+            >
+              <Icon name="trash-2" size={13} />
+              <span className="hidden xl:inline text-[11px]">Vaciar</span>
+            </button>
+          )}
+
           {/* Botón Deshacer (Ctrl+Z) */}
           <button
             onClick={undoLastAction}
@@ -700,8 +781,36 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es' }) => {
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-4 items-start">
         
         {/* Columna Izquierda: Grillas de Almacén */}
-        <div className="xl:col-span-9 2xl:col-span-10 space-y-4">
+        <div className="xl:col-span-8 2xl:col-span-9 space-y-4 min-w-0">
           
+          {/* Banner de Bienvenida / Almacén Limpio */}
+          {occupiedCount === 0 && (
+            <div className="p-4 bg-zinc-50 dark:bg-slate-800/40 border border-dashed border-zinc-300 dark:border-zinc-700 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4 animate-fade-in">
+              <div className="flex items-center gap-3 text-center sm:text-left">
+                <div className="w-10 h-10 rounded-xl bg-zinc-200 dark:bg-slate-700 flex items-center justify-center shrink-0 text-zinc-500 dark:text-zinc-300">
+                  <Icon name="package" size={20} />
+                </div>
+                <div>
+                  <h4 className="text-xs font-black uppercase tracking-tight text-zinc-800 dark:text-zinc-200">
+                    Almacén Limpio (Sin Lotes Asignados)
+                  </h4>
+                  <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
+                    El mapa está listo para operar. Puedes cargar tu inventario desde archivo JSON o ingresar pallets haciendo un clic en cualquier posición vacía.
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex items-center gap-2 px-4 py-2 bg-halliburton-red hover:bg-red-700 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-md active:scale-95"
+                >
+                  <Icon name="upload" size={14} />
+                  <span>Cargar Inventario (JSON)</span>
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* ZONA SÓLIDOS */}
           {(currentSector.id === "principal" || currentSector.type === "solidos" || currentSector.type === "mixto") && (
             <div className="p-4 lg:p-5 rounded-3xl border border-zinc-200 dark:border-zinc-800/80 bg-white dark:bg-slate-900/60 shadow-sm flex flex-col">
@@ -905,7 +1014,7 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es' }) => {
         </div>
 
         {/* Columna Derecha: Acordeón de Stock por Producto y Lote */}
-        <div className="xl:col-span-3 2xl:col-span-2">
+        <div className="xl:col-span-4 2xl:col-span-3 min-w-[280px]">
           <div className="p-3.5 rounded-2xl border border-zinc-200 dark:border-zinc-800/80 bg-white dark:bg-slate-900/60 shadow-sm sticky top-4">
             <div className="flex items-center justify-between mb-2.5 pb-2 border-b border-zinc-100 dark:border-zinc-800">
               <div>
@@ -929,14 +1038,14 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es' }) => {
                 <div key={prod.name} className="border border-zinc-100 dark:border-zinc-800 rounded-xl overflow-hidden bg-zinc-50/50 dark:bg-slate-800/20">
                   <div
                     onClick={() => setActiveFilter(prev => prev?.value === prod.name ? null : { type: 'product', value: prod.name })}
-                    className={`p-2 px-2.5 flex justify-between items-center cursor-pointer border-l-4 border-halliburton-red transition-colors ${
+                    className={`p-2 px-2.5 flex justify-between items-center cursor-pointer border-l-4 border-halliburton-red transition-colors gap-2 ${
                       activeFilter?.value === prod.name ? 'bg-red-50 dark:bg-red-950/20' : 'hover:bg-zinc-100/50 dark:hover:bg-slate-800/40'
                     }`}
                   >
-                    <span className="text-[10px] font-black uppercase tracking-tight text-zinc-800 dark:text-zinc-200 truncate max-w-[120px]">
+                    <span className="text-[11px] font-black uppercase tracking-tight text-zinc-800 dark:text-zinc-200 truncate flex-1" title={prod.name}>
                       {getShortProductName(prod.name)}
                     </span>
-                    <span className="text-[10px] font-mono font-black text-zinc-700 dark:text-zinc-300">
+                    <span className="text-[10.5px] font-mono font-black text-zinc-700 dark:text-zinc-300 shrink-0 whitespace-nowrap">
                       {prod.totalQty.toLocaleString("es-AR")} {prod.unit}
                     </span>
                   </div>
@@ -946,14 +1055,14 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es' }) => {
                       <div
                         key={lotNum}
                         onClick={() => setActiveFilter(prev => prev?.value === lotNum ? null : { type: 'lot', value: lotNum })}
-                        className={`flex justify-between items-center px-2 py-1 rounded-lg text-[9.5px] cursor-pointer transition-colors ${
+                        className={`flex justify-between items-center gap-2 px-2.5 py-1.5 rounded-lg text-[10px] cursor-pointer transition-colors ${
                           activeFilter?.value === lotNum
                             ? 'bg-halliburton-red text-white font-bold'
                             : 'bg-white dark:bg-slate-800/40 text-zinc-600 dark:text-zinc-400 hover:bg-red-50/50'
                         }`}
                       >
-                        <span className="font-bold">L: {lotNum}</span>
-                        <span className="font-mono font-black">{prod.lots[lotNum].toLocaleString("es-AR")} {prod.unit}</span>
+                        <span className="font-bold truncate" title={`Lote: ${lotNum}`}>L: {lotNum}</span>
+                        <span className="font-mono font-black shrink-0 whitespace-nowrap">{prod.lots[lotNum].toLocaleString("es-AR")} {prod.unit}</span>
                       </div>
                     ))}
                   </div>

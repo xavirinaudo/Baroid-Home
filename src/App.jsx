@@ -360,7 +360,7 @@ const App = () => {
         const backup = {};
         for (let i = 0; i < localStorage.length; i++) {
             const key = localStorage.key(i);
-            if (key.startsWith('baroid_')) {
+            if (key.startsWith('baroid_') || key.startsWith('lmp_')) {
                 try {
                     backup[key] = JSON.parse(localStorage.getItem(key));
                 } catch (e) {

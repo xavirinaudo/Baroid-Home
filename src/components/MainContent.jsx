@@ -54,7 +54,7 @@ const MainContent = ({
     const [unitMode, setUnitMode] = useState('field');
     const t = translations[lang] || translations['es'];
     return (
-        <main className="flex-1 min-h-screen p-4 md:p-8 lg:p-12 overflow-x-hidden relative text-left">
+        <main className={`flex-1 min-h-screen overflow-x-hidden relative text-left ${activeSector === 'warehouse' ? 'p-2 sm:p-3 md:p-4' : 'p-3 md:p-6 lg:p-8'}`}>
             {/* Mobile Header Bar */}
             <div className="flex lg:hidden items-center justify-between gap-4 mb-6 bg-white dark:bg-slate-900 p-4 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-md">
                 <div className="flex items-center gap-3">
@@ -133,7 +133,7 @@ const MainContent = ({
                 </button>
             </div>
 
-            <div className={activeSector === 'warehouse' ? "w-full max-w-[1800px] mx-auto" : (cardSize === 'small' ? "max-w-[1400px] mx-auto" : "max-w-6xl mx-auto")}>
+            <div className={activeSector === 'warehouse' ? "w-full max-w-none mx-auto" : (cardSize === 'small' ? "max-w-[1400px] mx-auto" : "max-w-6xl mx-auto")}>
                 {showUpdateBanner && (
                     <div className="mb-8 p-6 bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-950/20 dark:to-orange-950/20 border-2 border-red-500/30 rounded-[2rem] shadow-xl shadow-red-950/5 flex flex-col md:flex-row items-center justify-between gap-6 animate-pulse-slow">
                         <div className="flex items-center gap-4 text-center md:text-left">

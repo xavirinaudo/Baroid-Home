@@ -1,0 +1,2106 @@
+﻿{
+    "plant":  "Planta LMP Baroid / YPF",
+    "version":  "2.3",
+    "lastUpdated":  "2026-10-02T21:04:34.190Z",
+    "warehouseDimensions":  {
+                                "solidos":  {
+                                                "rows":  6,
+                                                "columns":  [
+                                                                "A",
+                                                                "B",
+                                                                "C",
+                                                                "E",
+                                                                "G",
+                                                                "H",
+                                                                "J",
+                                                                "K",
+                                                                "L",
+                                                                "M"
+                                                            ]
+                                            },
+                                "liquidos":  {
+                                                 "rows":  6,
+                                                 "columns":  [
+                                                                 "B",
+                                                                 "C",
+                                                                 "E",
+                                                                 "H",
+                                                                 "J",
+                                                                 "K",
+                                                                 "L",
+                                                                 "M"
+                                                             ]
+                                             }
+                            },
+    "productCatalog":  [
+                           {
+                               "name":  "LIME FG",
+                               "type":  "solido",
+                               "defaultPackage":  "Bolsa 20 kg",
+                               "unitWeight":  20,
+                               "unit":  "KG",
+                               "color":  "#1E40AF",
+                               "bgColor":  "#EFF6FF",
+                               "borderColor":  "#3B82F6"
+                           },
+                           {
+                               "name":  "GELTONE® II",
+                               "type":  "solido",
+                               "defaultPackage":  "Bolsa 22.68 kg",
+                               "unitWeight":  22.68,
+                               "unit":  "KG",
+                               "color":  "#166534",
+                               "bgColor":  "#F0FDF4",
+                               "borderColor":  "#22C55E"
+                           },
+                           {
+                               "name":  "BARABLOK™ 400 NA",
+                               "type":  "solido",
+                               "defaultPackage":  "Bolsa 25 kg",
+                               "unitWeight":  25,
+                               "unit":  "KG",
+                               "color":  "#374151",
+                               "bgColor":  "#FFFBEB",
+                               "borderColor":  "#F59E0B"
+                           },
+                           {
+                               "name":  "Cloruro de Calcio (CaCl₂)",
+                               "type":  "solido",
+                               "defaultPackage":  "Bolsa 25 kg",
+                               "unitWeight":  25,
+                               "unit":  "KG",
+                               "color":  "#C2410C",
+                               "bgColor":  "#FFF7ED",
+                               "borderColor":  "#FB923C"
+                           },
+                           {
+                               "name":  "RM-63™",
+                               "type":  "liquido",
+                               "defaultPackage":  "Tambor 208 L",
+                               "unitWeight":  208,
+                               "unit":  "LT",
+                               "color":  "#0E7490",
+                               "bgColor":  "#ECFEFF",
+                               "borderColor":  "#06B6D4"
+                           },
+                           {
+                               "name":  "DRILTREAT®",
+                               "type":  "liquido",
+                               "defaultPackage":  "IBC Tote 1000 L",
+                               "unitWeight":  1000,
+                               "unit":  "LT",
+                               "color":  "#4338CA",
+                               "bgColor":  "#EEF2FF",
+                               "borderColor":  "#6366F1"
+                           },
+                           {
+                               "name":  "INVERMUL® LA",
+                               "type":  "liquido",
+                               "defaultPackage":  "IBC Tote 1000 L",
+                               "unitWeight":  1000,
+                               "unit":  "LT",
+                               "color":  "#6D28D9",
+                               "bgColor":  "#F5F3FF",
+                               "borderColor":  "#8B5CF6"
+                           },
+                           {
+                               "name":  "EZ MUL® LA",
+                               "type":  "liquido",
+                               "defaultPackage":  "IBC Tote 1000 L",
+                               "unitWeight":  1000,
+                               "unit":  "LT",
+                               "color":  "#BE185D",
+                               "bgColor":  "#FDF2F8",
+                               "borderColor":  "#EC4899"
+                           },
+                           {
+                               "name":  "BARACARB®-DF FINE",
+                               "type":  "solido",
+                               "defaultPackage":  "Bolsa 25 kg",
+                               "unitWeight":  25,
+                               "unit":  "KG",
+                               "color":  "#475569",
+                               "bgColor":  "#F8FAFC",
+                               "borderColor":  "#94A3B8"
+                           }
+                       ],
+    "pallets":  [
+                    {
+                        "id":  "PAL-SOL-A1",
+                        "zone":  "solidos",
+                        "col":  "A",
+                        "row":  1,
+                        "product":  "LIME FG",
+                        "lot":  "1070",
+                        "quantity":  1000,
+                        "unit":  "KG",
+                        "packageDetails":  "50 bolsas x 20 kg",
+                        "unitsCount":  50,
+                        "capacityNominal":  1000,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-SOL-C4",
+                        "zone":  "solidos",
+                        "col":  "C",
+                        "row":  4,
+                        "product":  "Cloruro de Calcio (CaCl₂)",
+                        "lot":  "CCP2604-09",
+                        "quantity":  1250,
+                        "unit":  "KG",
+                        "packageDetails":  "50 x 25 KG",
+                        "unitsCount":  50,
+                        "capacityNominal":  1250,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-SOL-A2",
+                        "zone":  "solidos",
+                        "col":  "A",
+                        "row":  2,
+                        "product":  "LIME FG",
+                        "lot":  "1114",
+                        "quantity":  1000,
+                        "unit":  "KG",
+                        "packageDetails":  "50 bolsas x 20 kg",
+                        "unitsCount":  50,
+                        "capacityNominal":  1000,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-SOL-A3",
+                        "zone":  "solidos",
+                        "col":  "A",
+                        "row":  3,
+                        "product":  "LIME FG",
+                        "lot":  "1118",
+                        "quantity":  1000,
+                        "unit":  "KG",
+                        "packageDetails":  "40 bolsas x 25 kg",
+                        "unitsCount":  40,
+                        "capacityNominal":  1000,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-SOL-E4",
+                        "zone":  "solidos",
+                        "col":  "E",
+                        "row":  4,
+                        "product":  "GELTONE® II",
+                        "lot":  "2517K1",
+                        "quantity":  793.8,
+                        "unit":  "KG",
+                        "packageDetails":  "25 bolsas x 22.68 kg",
+                        "unitsCount":  35,
+                        "capacityNominal":  567,
+                        "status":  "partial"
+                    },
+                    {
+                        "id":  "PAL-SOL-G1",
+                        "zone":  "solidos",
+                        "col":  "G",
+                        "row":  1,
+                        "product":  "BARABLOK™ 400 NA",
+                        "lot":  "2072605",
+                        "quantity":  1125,
+                        "unit":  "KG",
+                        "packageDetails":  "45 bolsas x 25 kg",
+                        "unitsCount":  45,
+                        "capacityNominal":  1125,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-SOL-H1",
+                        "zone":  "solidos",
+                        "col":  "H",
+                        "row":  1,
+                        "product":  "BARABLOK™ 400 NA",
+                        "lot":  "2072605",
+                        "quantity":  1125,
+                        "unit":  "KG",
+                        "packageDetails":  "45 bolsas x 25 kg",
+                        "unitsCount":  45,
+                        "capacityNominal":  1125,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-SOL-H2",
+                        "zone":  "solidos",
+                        "col":  "H",
+                        "row":  2,
+                        "product":  "BARABLOK™ 400 NA",
+                        "lot":  "2072605",
+                        "quantity":  1125,
+                        "unit":  "KG",
+                        "packageDetails":  "45 bolsas x 25 kg",
+                        "unitsCount":  45,
+                        "capacityNominal":  1125,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-SOL-H4",
+                        "zone":  "solidos",
+                        "col":  "H",
+                        "row":  4,
+                        "product":  "BARABLOK™ 400 NA",
+                        "lot":  "2082605",
+                        "quantity":  550,
+                        "unit":  "KG",
+                        "packageDetails":  "50 x 25 KG",
+                        "unitsCount":  22,
+                        "capacityNominal":  1250,
+                        "status":  "partial"
+                    },
+                    {
+                        "id":  "PAL-SOL-J1",
+                        "zone":  "solidos",
+                        "col":  "J",
+                        "row":  1,
+                        "product":  "Cloruro de Calcio (CaCl₂)",
+                        "lot":  "MP20260155",
+                        "quantity":  1250,
+                        "unit":  "KG",
+                        "packageDetails":  "50 bolsas x 25 kg",
+                        "unitsCount":  50,
+                        "capacityNominal":  1250,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-SOL-L1",
+                        "zone":  "solidos",
+                        "col":  "L",
+                        "row":  1,
+                        "product":  "Cloruro de Calcio (CaCl₂)",
+                        "lot":  "MP20260155",
+                        "quantity":  1250,
+                        "unit":  "KG",
+                        "packageDetails":  "50 bolsas x 25 kg",
+                        "unitsCount":  50,
+                        "capacityNominal":  1250,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-SOL-M1",
+                        "zone":  "solidos",
+                        "col":  "M",
+                        "row":  1,
+                        "product":  "Cloruro de Calcio (CaCl₂)",
+                        "lot":  "MP20260155",
+                        "quantity":  1250,
+                        "unit":  "KG",
+                        "packageDetails":  "50 bolsas x 25 kg",
+                        "unitsCount":  50,
+                        "capacityNominal":  1250,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-SOL-J2",
+                        "zone":  "solidos",
+                        "col":  "J",
+                        "row":  2,
+                        "product":  "Cloruro de Calcio (CaCl₂)",
+                        "lot":  "MP20260155",
+                        "quantity":  1250,
+                        "unit":  "KG",
+                        "packageDetails":  "50 bolsas x 25 kg",
+                        "unitsCount":  50,
+                        "capacityNominal":  1250,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-SOL-L2",
+                        "zone":  "solidos",
+                        "col":  "L",
+                        "row":  2,
+                        "product":  "Cloruro de Calcio (CaCl₂)",
+                        "lot":  "MP20260155",
+                        "quantity":  1250,
+                        "unit":  "KG",
+                        "packageDetails":  "50 bolsas x 25 kg",
+                        "unitsCount":  50,
+                        "capacityNominal":  1250,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-SOL-M2",
+                        "zone":  "solidos",
+                        "col":  "M",
+                        "row":  2,
+                        "product":  "Cloruro de Calcio (CaCl₂)",
+                        "lot":  "MP20260155",
+                        "quantity":  1250,
+                        "unit":  "KG",
+                        "packageDetails":  "50 bolsas x 25 kg",
+                        "unitsCount":  50,
+                        "capacityNominal":  1250,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-SOL-L3",
+                        "zone":  "solidos",
+                        "col":  "L",
+                        "row":  3,
+                        "product":  "Cloruro de Calcio (CaCl₂)",
+                        "lot":  "MP20260155",
+                        "quantity":  1250,
+                        "unit":  "KG",
+                        "packageDetails":  "50 bolsas x 25 kg",
+                        "unitsCount":  50,
+                        "capacityNominal":  1250,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-SOL-M3",
+                        "zone":  "solidos",
+                        "col":  "M",
+                        "row":  3,
+                        "product":  "Cloruro de Calcio (CaCl₂)",
+                        "lot":  "MP20260155",
+                        "quantity":  1250,
+                        "unit":  "KG",
+                        "packageDetails":  "50 bolsas x 25 kg",
+                        "unitsCount":  50,
+                        "capacityNominal":  1250,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-SOL-L4",
+                        "zone":  "solidos",
+                        "col":  "L",
+                        "row":  4,
+                        "product":  "Cloruro de Calcio (CaCl₂)",
+                        "lot":  "MP20260155",
+                        "quantity":  1250,
+                        "unit":  "KG",
+                        "packageDetails":  "50 bolsas x 25 kg",
+                        "unitsCount":  50,
+                        "capacityNominal":  1250,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-SOL-M4",
+                        "zone":  "solidos",
+                        "col":  "M",
+                        "row":  4,
+                        "product":  "Cloruro de Calcio (CaCl₂)",
+                        "lot":  "MP20260155",
+                        "quantity":  1250,
+                        "unit":  "KG",
+                        "packageDetails":  "50 bolsas x 25 kg",
+                        "unitsCount":  50,
+                        "capacityNominal":  1250,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-SOL-L5",
+                        "zone":  "solidos",
+                        "col":  "L",
+                        "row":  5,
+                        "product":  "Cloruro de Calcio (CaCl₂)",
+                        "lot":  "CCP2604-09",
+                        "quantity":  1350,
+                        "unit":  "KG",
+                        "packageDetails":  "50 bolsas x 25 kg",
+                        "unitsCount":  54,
+                        "capacityNominal":  1250,
+                        "status":  "partial"
+                    },
+                    {
+                        "id":  "PAL-SOL-M5",
+                        "zone":  "solidos",
+                        "col":  "M",
+                        "row":  5,
+                        "product":  "Cloruro de Calcio (CaCl₂)",
+                        "lot":  "CCP2605-06",
+                        "quantity":  1250,
+                        "unit":  "KG",
+                        "packageDetails":  "50 x 25 KG",
+                        "unitsCount":  50,
+                        "capacityNominal":  1250,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-SOL-L6",
+                        "zone":  "solidos",
+                        "col":  "L",
+                        "row":  6,
+                        "product":  "Cloruro de Calcio (CaCl₂)",
+                        "lot":  "CCP2604-09",
+                        "quantity":  1250,
+                        "unit":  "KG",
+                        "packageDetails":  "50 x 25 KG",
+                        "unitsCount":  50,
+                        "capacityNominal":  1250,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-LIQ-B1",
+                        "zone":  "liquidos",
+                        "col":  "B",
+                        "row":  1,
+                        "product":  "RM-63™",
+                        "lot":  "251231T075",
+                        "quantity":  208,
+                        "unit":  "LT",
+                        "packageDetails":  "3 tambores x 208 L",
+                        "unitsCount":  1,
+                        "capacityNominal":  832,
+                        "status":  "partial"
+                    },
+                    {
+                        "id":  "PAL-LIQ-B2",
+                        "zone":  "liquidos",
+                        "col":  "B",
+                        "row":  2,
+                        "product":  "RM-63™",
+                        "lot":  "250808T032",
+                        "quantity":  208,
+                        "unit":  "LT",
+                        "packageDetails":  "2 tambores x 208 L",
+                        "unitsCount":  1,
+                        "capacityNominal":  832,
+                        "status":  "partial"
+                    },
+                    {
+                        "id":  "PAL-LIQ-C3",
+                        "zone":  "liquidos",
+                        "col":  "C",
+                        "row":  3,
+                        "product":  "RM-63™",
+                        "lot":  "251231T075",
+                        "quantity":  832,
+                        "unit":  "LT",
+                        "packageDetails":  "4 tambores x 208 L",
+                        "unitsCount":  4,
+                        "capacityNominal":  832,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-LIQ-B3",
+                        "zone":  "liquidos",
+                        "col":  "B",
+                        "row":  3,
+                        "product":  "RM-63™",
+                        "lot":  "250808T032",
+                        "quantity":  832,
+                        "unit":  "LT",
+                        "packageDetails":  "4 tambores x 208 L",
+                        "unitsCount":  4,
+                        "capacityNominal":  832,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-LIQ-C4",
+                        "zone":  "liquidos",
+                        "col":  "C",
+                        "row":  4,
+                        "product":  "RM-63™",
+                        "lot":  "251231T075",
+                        "quantity":  832,
+                        "unit":  "LT",
+                        "packageDetails":  "4 tambores x 208 L",
+                        "unitsCount":  4,
+                        "capacityNominal":  832,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-LIQ-B4",
+                        "zone":  "liquidos",
+                        "col":  "B",
+                        "row":  4,
+                        "product":  "RM-63™",
+                        "lot":  "250726T026",
+                        "quantity":  832,
+                        "unit":  "LT",
+                        "packageDetails":  "4 tambores x 208 L",
+                        "unitsCount":  4,
+                        "capacityNominal":  832,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-LIQ-M4",
+                        "zone":  "liquidos",
+                        "col":  "M",
+                        "row":  4,
+                        "product":  "EZ MUL® LA",
+                        "lot":  "2026040019",
+                        "quantity":  1000,
+                        "unit":  "LT",
+                        "packageDetails":  "1 IBC Tote 1000 L",
+                        "unitsCount":  1,
+                        "capacityNominal":  1000,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-LIQ-C5",
+                        "zone":  "liquidos",
+                        "col":  "C",
+                        "row":  5,
+                        "product":  "RM-63™",
+                        "lot":  "251231T075",
+                        "quantity":  832,
+                        "unit":  "LT",
+                        "packageDetails":  "4 tambores x 208 L",
+                        "unitsCount":  4,
+                        "capacityNominal":  832,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-LIQ-B5",
+                        "zone":  "liquidos",
+                        "col":  "B",
+                        "row":  5,
+                        "product":  "RM-63™",
+                        "lot":  "250808T032",
+                        "quantity":  832,
+                        "unit":  "LT",
+                        "packageDetails":  "4 tambores x 208 L",
+                        "unitsCount":  4,
+                        "capacityNominal":  832,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-LIQ-M5",
+                        "zone":  "liquidos",
+                        "col":  "M",
+                        "row":  5,
+                        "product":  "EZ MUL® LA",
+                        "lot":  "2026050021",
+                        "quantity":  1000,
+                        "unit":  "LT",
+                        "packageDetails":  "1 IBC Tote 1000 L",
+                        "unitsCount":  1,
+                        "capacityNominal":  1000,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-LIQ-C6",
+                        "zone":  "liquidos",
+                        "col":  "C",
+                        "row":  6,
+                        "product":  "RM-63™",
+                        "lot":  "251231T075",
+                        "quantity":  832,
+                        "unit":  "LT",
+                        "packageDetails":  "4 tambores x 208 L",
+                        "unitsCount":  4,
+                        "capacityNominal":  832,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-LIQ-B6",
+                        "zone":  "liquidos",
+                        "col":  "B",
+                        "row":  6,
+                        "product":  "RM-63™",
+                        "lot":  "250817T034",
+                        "quantity":  832,
+                        "unit":  "LT",
+                        "packageDetails":  "4 tambores x 208 L",
+                        "unitsCount":  4,
+                        "capacityNominal":  832,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-LIQ-E3",
+                        "zone":  "liquidos",
+                        "col":  "E",
+                        "row":  3,
+                        "product":  "DRILTREAT®",
+                        "lot":  "10082601",
+                        "quantity":  1000,
+                        "unit":  "LT",
+                        "packageDetails":  "1 x 1000 LT",
+                        "unitsCount":  1,
+                        "capacityNominal":  1000,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-LIQ-M6",
+                        "zone":  "liquidos",
+                        "col":  "M",
+                        "row":  6,
+                        "product":  "EZ MUL® LA",
+                        "lot":  "2026050021",
+                        "quantity":  1000,
+                        "unit":  "LT",
+                        "packageDetails":  "1 IBC Tote 1000 L",
+                        "unitsCount":  1,
+                        "capacityNominal":  1000,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-SOL-K1",
+                        "zone":  "solidos",
+                        "col":  "K",
+                        "row":  1,
+                        "product":  "Cloruro de Calcio (CaCl₂)",
+                        "lot":  "CCP2604-09",
+                        "quantity":  1250,
+                        "unit":  "KG",
+                        "packageDetails":  "50 x 25 KG",
+                        "unitsCount":  50,
+                        "capacityNominal":  1250,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-SOL-K2",
+                        "zone":  "solidos",
+                        "col":  "K",
+                        "row":  2,
+                        "product":  "Cloruro de Calcio (CaCl₂)",
+                        "lot":  "CCP2604-09",
+                        "quantity":  1250,
+                        "unit":  "KG",
+                        "packageDetails":  "50 x 25 KG",
+                        "unitsCount":  50,
+                        "capacityNominal":  1250,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-SOL-K3",
+                        "zone":  "solidos",
+                        "col":  "K",
+                        "row":  3,
+                        "product":  "Cloruro de Calcio (CaCl₂)",
+                        "lot":  "CCP2604-09",
+                        "quantity":  1250,
+                        "unit":  "KG",
+                        "packageDetails":  "50 x 25 KG",
+                        "unitsCount":  50,
+                        "capacityNominal":  1250,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-SOL-K4",
+                        "zone":  "solidos",
+                        "col":  "K",
+                        "row":  4,
+                        "product":  "Cloruro de Calcio (CaCl₂)",
+                        "lot":  "CCP2604-09",
+                        "quantity":  1250,
+                        "unit":  "KG",
+                        "packageDetails":  "50 x 25 KG",
+                        "unitsCount":  50,
+                        "capacityNominal":  1250,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-SOL-K5",
+                        "zone":  "solidos",
+                        "col":  "K",
+                        "row":  5,
+                        "product":  "Cloruro de Calcio (CaCl₂)",
+                        "lot":  "CCP2605-06",
+                        "quantity":  1250,
+                        "unit":  "KG",
+                        "packageDetails":  "50 x 25 KG",
+                        "unitsCount":  50,
+                        "capacityNominal":  1250,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-SOL-J3",
+                        "zone":  "solidos",
+                        "col":  "J",
+                        "row":  3,
+                        "product":  "Cloruro de Calcio (CaCl₂)",
+                        "lot":  "CCP2604-09",
+                        "quantity":  1250,
+                        "unit":  "KG",
+                        "packageDetails":  "50 x 25 KG",
+                        "unitsCount":  50,
+                        "capacityNominal":  1250,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-SOL-J4",
+                        "zone":  "solidos",
+                        "col":  "J",
+                        "row":  4,
+                        "product":  "Cloruro de Calcio (CaCl₂)",
+                        "lot":  "CCP2604-09",
+                        "quantity":  1250,
+                        "unit":  "KG",
+                        "packageDetails":  "50 x 25 KG",
+                        "unitsCount":  50,
+                        "capacityNominal":  1250,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-SOL-J5",
+                        "zone":  "solidos",
+                        "col":  "J",
+                        "row":  5,
+                        "product":  "Cloruro de Calcio (CaCl₂)",
+                        "lot":  "CCP2604-09",
+                        "quantity":  750,
+                        "unit":  "KG",
+                        "packageDetails":  "50 x 25 KG",
+                        "unitsCount":  30,
+                        "capacityNominal":  1250,
+                        "status":  "partial"
+                    },
+                    {
+                        "id":  "PAL-SOL-C1",
+                        "zone":  "solidos",
+                        "col":  "C",
+                        "row":  1,
+                        "product":  "Cloruro de Calcio (CaCl₂)",
+                        "lot":  "CCP2604-09",
+                        "quantity":  1250,
+                        "unit":  "KG",
+                        "packageDetails":  "50 x 25 KG",
+                        "unitsCount":  50,
+                        "capacityNominal":  1250,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-SOL-C2",
+                        "zone":  "solidos",
+                        "col":  "C",
+                        "row":  2,
+                        "product":  "Cloruro de Calcio (CaCl₂)",
+                        "lot":  "CCP2604-09",
+                        "quantity":  1250,
+                        "unit":  "KG",
+                        "packageDetails":  "50 x 25 KG",
+                        "unitsCount":  50,
+                        "capacityNominal":  1250,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-LIQ-M3",
+                        "zone":  "liquidos",
+                        "col":  "M",
+                        "row":  3,
+                        "product":  "EZ MUL® LA",
+                        "lot":  "2026040019",
+                        "quantity":  1000,
+                        "unit":  "LT",
+                        "packageDetails":  "1 x 1000 LT",
+                        "unitsCount":  1,
+                        "capacityNominal":  1000,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-LIQ-L6",
+                        "zone":  "liquidos",
+                        "col":  "L",
+                        "row":  6,
+                        "product":  "EZ MUL® LA",
+                        "lot":  "44",
+                        "quantity":  1000,
+                        "unit":  "LT",
+                        "packageDetails":  "1 x 1000 LT",
+                        "unitsCount":  1,
+                        "capacityNominal":  1000,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-LIQ-L5",
+                        "zone":  "liquidos",
+                        "col":  "L",
+                        "row":  5,
+                        "product":  "EZ MUL® LA",
+                        "lot":  "44",
+                        "quantity":  1000,
+                        "unit":  "LT",
+                        "packageDetails":  "1 x 1000 LT",
+                        "unitsCount":  1,
+                        "capacityNominal":  1000,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-LIQ-L4",
+                        "zone":  "liquidos",
+                        "col":  "L",
+                        "row":  4,
+                        "product":  "EZ MUL® LA",
+                        "lot":  "44",
+                        "quantity":  1000,
+                        "unit":  "LT",
+                        "packageDetails":  "1 x 1000 LT",
+                        "unitsCount":  1,
+                        "capacityNominal":  1000,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-LIQ-L3",
+                        "zone":  "liquidos",
+                        "col":  "L",
+                        "row":  3,
+                        "product":  "INVERMUL® LA",
+                        "lot":  "2026080015",
+                        "quantity":  1000,
+                        "unit":  "LT",
+                        "packageDetails":  "1 x 1000 LT",
+                        "unitsCount":  1,
+                        "capacityNominal":  1000,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-LIQ-M2",
+                        "zone":  "liquidos",
+                        "col":  "M",
+                        "row":  2,
+                        "product":  "EZ MUL® LA",
+                        "lot":  "2026080056",
+                        "quantity":  0,
+                        "unit":  "LT",
+                        "packageDetails":  "1 x 1000 LT",
+                        "unitsCount":  0,
+                        "capacityNominal":  1000,
+                        "status":  "empty"
+                    },
+                    {
+                        "id":  "PAL-LIQ-J6",
+                        "zone":  "liquidos",
+                        "col":  "J",
+                        "row":  6,
+                        "product":  "INVERMUL® LA",
+                        "lot":  "2026080017",
+                        "quantity":  1000,
+                        "unit":  "LT",
+                        "packageDetails":  "1 x 1000 LT",
+                        "unitsCount":  1,
+                        "capacityNominal":  1000,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-LIQ-J5",
+                        "zone":  "liquidos",
+                        "col":  "J",
+                        "row":  5,
+                        "product":  "INVERMUL® LA",
+                        "lot":  "2026080017",
+                        "quantity":  1000,
+                        "unit":  "LT",
+                        "packageDetails":  "1 x 1000 LT",
+                        "unitsCount":  1,
+                        "capacityNominal":  1000,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-LIQ-J4",
+                        "zone":  "liquidos",
+                        "col":  "J",
+                        "row":  4,
+                        "product":  "INVERMUL® LA",
+                        "lot":  "2026080017",
+                        "quantity":  1000,
+                        "unit":  "LT",
+                        "packageDetails":  "1 x 1000 LT",
+                        "unitsCount":  1,
+                        "capacityNominal":  1000,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-LIQ-J3",
+                        "zone":  "liquidos",
+                        "col":  "J",
+                        "row":  3,
+                        "product":  "INVERMUL® LA",
+                        "lot":  "2026080017",
+                        "quantity":  1000,
+                        "unit":  "LT",
+                        "packageDetails":  "1 x 1000 LT",
+                        "unitsCount":  1,
+                        "capacityNominal":  1000,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-LIQ-H6",
+                        "zone":  "liquidos",
+                        "col":  "H",
+                        "row":  6,
+                        "product":  "INVERMUL® LA",
+                        "lot":  "2026080017",
+                        "quantity":  1000,
+                        "unit":  "LT",
+                        "packageDetails":  "1 x 1000 LT",
+                        "unitsCount":  1,
+                        "capacityNominal":  1000,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-LIQ-H5",
+                        "zone":  "liquidos",
+                        "col":  "H",
+                        "row":  5,
+                        "product":  "INVERMUL® LA",
+                        "lot":  "2026080017",
+                        "quantity":  1000,
+                        "unit":  "LT",
+                        "packageDetails":  "1 x 1000 LT",
+                        "unitsCount":  1,
+                        "capacityNominal":  1000,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-LIQ-H3",
+                        "zone":  "liquidos",
+                        "col":  "H",
+                        "row":  3,
+                        "product":  "INVERMUL® LA",
+                        "lot":  "2026080017",
+                        "quantity":  1000,
+                        "unit":  "LT",
+                        "packageDetails":  "1 x 1000 LT",
+                        "unitsCount":  1,
+                        "capacityNominal":  1000,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-LIQ-H4",
+                        "zone":  "liquidos",
+                        "col":  "H",
+                        "row":  4,
+                        "product":  "INVERMUL® LA",
+                        "lot":  "2026080015",
+                        "quantity":  1000,
+                        "unit":  "LT",
+                        "packageDetails":  "1 x 1000 LT",
+                        "unitsCount":  1,
+                        "capacityNominal":  1000,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-LIQ-H2",
+                        "zone":  "liquidos",
+                        "col":  "H",
+                        "row":  2,
+                        "product":  "INVERMUL® LA",
+                        "lot":  "2026080015",
+                        "quantity":  1000,
+                        "unit":  "LT",
+                        "packageDetails":  "1 x 1000 LT",
+                        "unitsCount":  1,
+                        "capacityNominal":  1000,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-LIQ-E4",
+                        "zone":  "liquidos",
+                        "col":  "E",
+                        "row":  4,
+                        "product":  "DRILTREAT®",
+                        "lot":  "10082601",
+                        "quantity":  1000,
+                        "unit":  "LT",
+                        "packageDetails":  "1 x 1000 LT",
+                        "unitsCount":  1,
+                        "capacityNominal":  1000,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-LIQ-E5",
+                        "zone":  "liquidos",
+                        "col":  "E",
+                        "row":  5,
+                        "product":  "DRILTREAT®",
+                        "lot":  "10082601",
+                        "quantity":  1000,
+                        "unit":  "LT",
+                        "packageDetails":  "1 x 1000 LT",
+                        "unitsCount":  1,
+                        "capacityNominal":  1000,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-LIQ-E6",
+                        "zone":  "liquidos",
+                        "col":  "E",
+                        "row":  6,
+                        "product":  "DRILTREAT®",
+                        "lot":  "10082601",
+                        "quantity":  1000,
+                        "unit":  "LT",
+                        "packageDetails":  "1 x 1000 LT",
+                        "unitsCount":  1,
+                        "capacityNominal":  1000,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-LIQ-J2",
+                        "zone":  "liquidos",
+                        "col":  "J",
+                        "row":  2,
+                        "product":  "INVERMUL® LA",
+                        "lot":  "2026080015",
+                        "quantity":  1000,
+                        "unit":  "LT",
+                        "packageDetails":  "1 x 1000 LT",
+                        "unitsCount":  1,
+                        "capacityNominal":  1000,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-LIQ-L2",
+                        "zone":  "liquidos",
+                        "col":  "L",
+                        "row":  2,
+                        "product":  "INVERMUL® LA",
+                        "lot":  "2026080015",
+                        "quantity":  1000,
+                        "unit":  "LT",
+                        "packageDetails":  "1 x 1000 LT",
+                        "unitsCount":  1,
+                        "capacityNominal":  1000,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-SOL-G2",
+                        "zone":  "solidos",
+                        "col":  "G",
+                        "row":  2,
+                        "product":  "BARABLOK™ 400 NA",
+                        "lot":  "2072605",
+                        "quantity":  1125,
+                        "unit":  "KG",
+                        "packageDetails":  "45 bolsas x 25 kg",
+                        "unitsCount":  45,
+                        "capacityNominal":  1125,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-SOL-G3",
+                        "zone":  "solidos",
+                        "col":  "G",
+                        "row":  3,
+                        "product":  "BARABLOK™ 400 NA",
+                        "lot":  "2072605",
+                        "quantity":  1125,
+                        "unit":  "KG",
+                        "packageDetails":  "45 bolsas x 25 kg",
+                        "unitsCount":  45,
+                        "capacityNominal":  1125,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-SOL-G5",
+                        "zone":  "solidos",
+                        "col":  "G",
+                        "row":  5,
+                        "product":  "BARABLOK™ 400 NA",
+                        "lot":  "2072605",
+                        "quantity":  375,
+                        "unit":  "KG",
+                        "packageDetails":  "45 bolsas x 25 kg",
+                        "unitsCount":  15,
+                        "capacityNominal":  1125,
+                        "status":  "partial"
+                    },
+                    {
+                        "id":  "PAL-SOL-E1",
+                        "zone":  "solidos",
+                        "col":  "E",
+                        "row":  1,
+                        "product":  "GELTONE® II",
+                        "lot":  "2518K1",
+                        "quantity":  1134,
+                        "unit":  "KG",
+                        "packageDetails":  "50 x 22.68 KG",
+                        "unitsCount":  50,
+                        "capacityNominal":  1134,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-SOL-C3",
+                        "zone":  "solidos",
+                        "col":  "C",
+                        "row":  3,
+                        "product":  "Cloruro de Calcio (CaCl₂)",
+                        "lot":  "CCP2604-09",
+                        "quantity":  1250,
+                        "unit":  "KG",
+                        "packageDetails":  "50 x 25 KG",
+                        "unitsCount":  50,
+                        "capacityNominal":  1250,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-SOL-B1",
+                        "zone":  "solidos",
+                        "col":  "B",
+                        "row":  1,
+                        "product":  "LIME FG",
+                        "lot":  "1074",
+                        "quantity":  1000,
+                        "unit":  "KG",
+                        "packageDetails":  "50 x 20 KG",
+                        "unitsCount":  50,
+                        "capacityNominal":  1000,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-SOL-B2",
+                        "zone":  "solidos",
+                        "col":  "B",
+                        "row":  2,
+                        "product":  "LIME FG",
+                        "lot":  "1124",
+                        "quantity":  1000,
+                        "unit":  "KG",
+                        "packageDetails":  "50 x 20 KG",
+                        "unitsCount":  50,
+                        "capacityNominal":  1000,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-SOL-B3",
+                        "zone":  "solidos",
+                        "col":  "B",
+                        "row":  3,
+                        "product":  "LIME FG",
+                        "lot":  "1124",
+                        "quantity":  1000,
+                        "unit":  "KG",
+                        "packageDetails":  "50 x 20 KG",
+                        "unitsCount":  50,
+                        "capacityNominal":  1000,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-SOL-B4",
+                        "zone":  "solidos",
+                        "col":  "B",
+                        "row":  4,
+                        "product":  "LIME FG",
+                        "lot":  "1124",
+                        "quantity":  1000,
+                        "unit":  "KG",
+                        "packageDetails":  "50 x 20 KG",
+                        "unitsCount":  50,
+                        "capacityNominal":  1000,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-SOL-A4",
+                        "zone":  "solidos",
+                        "col":  "A",
+                        "row":  4,
+                        "product":  "LIME FG",
+                        "lot":  "1124",
+                        "quantity":  1000,
+                        "unit":  "KG",
+                        "packageDetails":  "50 x 20 KG",
+                        "unitsCount":  50,
+                        "capacityNominal":  1000,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-SOL-M6",
+                        "zone":  "solidos",
+                        "col":  "M",
+                        "row":  6,
+                        "product":  "Cloruro de Calcio (CaCl₂)",
+                        "lot":  "CCP2604-09",
+                        "quantity":  1250,
+                        "unit":  "KG",
+                        "packageDetails":  "50 x 25 KG",
+                        "unitsCount":  50,
+                        "capacityNominal":  1250,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-SOL-K6",
+                        "zone":  "solidos",
+                        "col":  "K",
+                        "row":  6,
+                        "product":  "Cloruro de Calcio (CaCl₂)",
+                        "lot":  "CCP2604-09",
+                        "quantity":  1250,
+                        "unit":  "KG",
+                        "packageDetails":  "50 x 25 KG",
+                        "unitsCount":  50,
+                        "capacityNominal":  1250,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-SOL-C5",
+                        "zone":  "solidos",
+                        "col":  "C",
+                        "row":  5,
+                        "product":  "Cloruro de Calcio (CaCl₂)",
+                        "lot":  "CCP2604-09",
+                        "quantity":  1250,
+                        "unit":  "KG",
+                        "packageDetails":  "50 x 25 KG",
+                        "unitsCount":  50,
+                        "capacityNominal":  1250,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-SOL-H3",
+                        "zone":  "solidos",
+                        "col":  "H",
+                        "row":  3,
+                        "product":  "BARABLOK™ 400 NA",
+                        "lot":  "2072605",
+                        "quantity":  1125,
+                        "unit":  "KG",
+                        "packageDetails":  "45 bolsas x 25 kg",
+                        "unitsCount":  45,
+                        "capacityNominal":  1125,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-SOL-G4",
+                        "zone":  "solidos",
+                        "col":  "G",
+                        "row":  4,
+                        "product":  "BARABLOK™ 400 NA",
+                        "lot":  "2072605",
+                        "quantity":  1125,
+                        "unit":  "KG",
+                        "packageDetails":  "45 bolsas x 25 kg",
+                        "unitsCount":  45,
+                        "capacityNominal":  1125,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-SOL-E2",
+                        "zone":  "solidos",
+                        "col":  "E",
+                        "row":  2,
+                        "product":  "GELTONE® II",
+                        "lot":  "2623F3",
+                        "quantity":  1134,
+                        "unit":  "KG",
+                        "packageDetails":  "50 x 22.68 KG",
+                        "unitsCount":  50,
+                        "capacityNominal":  1134,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-SOL-E3",
+                        "zone":  "solidos",
+                        "col":  "E",
+                        "row":  3,
+                        "product":  "GELTONE® II",
+                        "lot":  "2623F3",
+                        "quantity":  1134,
+                        "unit":  "KG",
+                        "packageDetails":  "50 x 22.68 KG",
+                        "unitsCount":  50,
+                        "capacityNominal":  1134,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-SOL-B5",
+                        "zone":  "solidos",
+                        "col":  "B",
+                        "row":  5,
+                        "product":  "LIME FG",
+                        "lot":  "1124",
+                        "quantity":  1000,
+                        "unit":  "KG",
+                        "packageDetails":  "50 x 20 KG",
+                        "unitsCount":  50,
+                        "capacityNominal":  1000,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-SOL-B6",
+                        "zone":  "solidos",
+                        "col":  "B",
+                        "row":  6,
+                        "product":  "LIME FG",
+                        "lot":  "1124",
+                        "quantity":  1000,
+                        "unit":  "KG",
+                        "packageDetails":  "50 x 20 KG",
+                        "unitsCount":  50,
+                        "capacityNominal":  1000,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-SOL-A6",
+                        "zone":  "solidos",
+                        "col":  "A",
+                        "row":  6,
+                        "product":  "LIME FG",
+                        "lot":  "1124",
+                        "quantity":  1000,
+                        "unit":  "KG",
+                        "packageDetails":  "50 x 20 KG",
+                        "unitsCount":  50,
+                        "capacityNominal":  1000,
+                        "status":  "full"
+                    },
+                    {
+                        "id":  "PAL-SOL-A5",
+                        "zone":  "solidos",
+                        "col":  "A",
+                        "row":  5,
+                        "product":  "LIME FG",
+                        "lot":  "1124",
+                        "quantity":  1000,
+                        "unit":  "KG",
+                        "packageDetails":  "50 x 20 KG",
+                        "unitsCount":  50,
+                        "capacityNominal":  1000,
+                        "status":  "full"
+                    }
+                ],
+    "auditLog":  [
+                     {
+                         "timestamp":  "2026-10-01T11:40:00Z",
+                         "action":  "INICIALIZACION",
+                         "details":  "Carga inicial sincronizada desde Excel Diagrama de lotes (1).xlsx"
+                     },
+                     {
+                         "timestamp":  "2026-10-01T18:31:46.377Z",
+                         "action":  "MOVER",
+                         "details":  "Pallet trasladado de H3 a J3 (BARABLOK™ 400 NA Lote 2082605)."
+                     },
+                     {
+                         "timestamp":  "2026-10-01T18:31:48.280Z",
+                         "action":  "MOVER",
+                         "details":  "Pallet trasladado de J3 a H3 (BARABLOK™ 400 NA Lote 2082605)."
+                     },
+                     {
+                         "timestamp":  "2026-10-01T19:49:16.672Z",
+                         "action":  "RECEPCION",
+                         "details":  "Ingreso de 1250 KG (Cloruro de Calcio (CaCl₂) Lote CCP2604-09) en Pos. A4. Remito: N/A"
+                     },
+                     {
+                         "timestamp":  "2026-10-01T19:49:19.874Z",
+                         "action":  "MOVER",
+                         "details":  "Pallet trasladado de A4 a K1 (Cloruro de Calcio (CaCl₂) Lote CCP2604-09)."
+                     },
+                     {
+                         "timestamp":  "2026-10-01T19:49:34.907Z",
+                         "action":  "MOVER",
+                         "details":  "Pallet trasladado de K1 a K2 (Cloruro de Calcio (CaCl₂) Lote CCP2604-09)."
+                     },
+                     {
+                         "timestamp":  "2026-10-01T19:49:36.043Z",
+                         "action":  "MOVER",
+                         "details":  "Pallet trasladado de K2 a K1 (Cloruro de Calcio (CaCl₂) Lote CCP2604-09)."
+                     },
+                     {
+                         "timestamp":  "2026-10-01T19:49:44.041Z",
+                         "action":  "RECEPCION",
+                         "details":  "Ingreso de 1250 KG (Cloruro de Calcio (CaCl₂) Lote CCP2604-09) en Pos. A4. Remito: N/A"
+                     },
+                     {
+                         "timestamp":  "2026-10-01T19:49:45.893Z",
+                         "action":  "MOVER",
+                         "details":  "Pallet trasladado de A4 a K2 (Cloruro de Calcio (CaCl₂) Lote CCP2604-09)."
+                     },
+                     {
+                         "timestamp":  "2026-10-01T19:49:56.353Z",
+                         "action":  "RECEPCION",
+                         "details":  "Ingreso de 1250 KG (Cloruro de Calcio (CaCl₂) Lote CCP2604-09) en Pos. A4. Remito: N/A"
+                     },
+                     {
+                         "timestamp":  "2026-10-01T19:50:02.449Z",
+                         "action":  "RECEPCION",
+                         "details":  "Ingreso de 1250 KG (Cloruro de Calcio (CaCl₂) Lote CCP2604-09) en Pos. A5. Remito: N/A"
+                     },
+                     {
+                         "timestamp":  "2026-10-01T19:50:08.169Z",
+                         "action":  "RECEPCION",
+                         "details":  "Ingreso de 1250 KG (Cloruro de Calcio (CaCl₂) Lote CCP2604-09) en Pos. A6. Remito: N/A"
+                     },
+                     {
+                         "timestamp":  "2026-10-01T19:50:09.476Z",
+                         "action":  "MOVER",
+                         "details":  "Pallet trasladado de A4 a K3 (Cloruro de Calcio (CaCl₂) Lote CCP2604-09)."
+                     },
+                     {
+                         "timestamp":  "2026-10-01T19:50:11.076Z",
+                         "action":  "MOVER",
+                         "details":  "Pallet trasladado de A5 a K4 (Cloruro de Calcio (CaCl₂) Lote CCP2604-09)."
+                     },
+                     {
+                         "timestamp":  "2026-10-01T19:50:13.180Z",
+                         "action":  "MOVER",
+                         "details":  "Pallet trasladado de A6 a K5 (Cloruro de Calcio (CaCl₂) Lote CCP2604-09)."
+                     },
+                     {
+                         "timestamp":  "2026-10-01T19:50:25.058Z",
+                         "action":  "RECEPCION",
+                         "details":  "Ingreso de 1250 KG (Cloruro de Calcio (CaCl₂) Lote CCP2604-09) en Pos. A4. Remito: N/A"
+                     },
+                     {
+                         "timestamp":  "2026-10-01T19:50:26.557Z",
+                         "action":  "MOVER",
+                         "details":  "Pallet trasladado de A4 a J3 (Cloruro de Calcio (CaCl₂) Lote CCP2604-09)."
+                     },
+                     {
+                         "timestamp":  "2026-10-01T19:51:06.675Z",
+                         "action":  "RECEPCION",
+                         "details":  "Ingreso de 1250 KG (Cloruro de Calcio (CaCl₂) Lote CCP2604-09) en Pos. A4. Remito: N/A"
+                     },
+                     {
+                         "timestamp":  "2026-10-01T19:51:08.117Z",
+                         "action":  "MOVER",
+                         "details":  "Pallet trasladado de A4 a J4 (Cloruro de Calcio (CaCl₂) Lote CCP2604-09)."
+                     },
+                     {
+                         "timestamp":  "2026-10-01T19:51:12.197Z",
+                         "action":  "RECEPCION",
+                         "details":  "Ingreso de 1250 KG (Cloruro de Calcio (CaCl₂) Lote CCP2604-09) en Pos. A4. Remito: N/A"
+                     },
+                     {
+                         "timestamp":  "2026-10-01T19:51:14.309Z",
+                         "action":  "MOVER",
+                         "details":  "Pallet trasladado de A4 a J5 (Cloruro de Calcio (CaCl₂) Lote CCP2604-09)."
+                     },
+                     {
+                         "timestamp":  "2026-10-01T19:52:19.493Z",
+                         "action":  "CONTEO",
+                         "details":  "Stock actualizado en Pos. E1 (GELTONE® II Lote 2517K1): Quedan 793.8 KG."
+                     },
+                     {
+                         "timestamp":  "2026-10-01T19:52:31.229Z",
+                         "action":  "RECEPCION",
+                         "details":  "Ingreso de 1250 KG (Cloruro de Calcio (CaCl₂) Lote CCP2604-09) en Pos. A4. Remito: N/A"
+                     },
+                     {
+                         "timestamp":  "2026-10-01T19:52:32.623Z",
+                         "action":  "MOVER",
+                         "details":  "Pallet trasladado de A4 a B1 (Cloruro de Calcio (CaCl₂) Lote CCP2604-09)."
+                     },
+                     {
+                         "timestamp":  "2026-10-01T19:52:35.949Z",
+                         "action":  "RECEPCION",
+                         "details":  "Ingreso de 1250 KG (Cloruro de Calcio (CaCl₂) Lote CCP2604-09) en Pos. A4. Remito: N/A"
+                     },
+                     {
+                         "timestamp":  "2026-10-01T19:52:37.152Z",
+                         "action":  "MOVER",
+                         "details":  "Pallet trasladado de A4 a B2 (Cloruro de Calcio (CaCl₂) Lote CCP2604-09)."
+                     },
+                     {
+                         "timestamp":  "2026-10-01T19:53:28.303Z",
+                         "action":  "RECEPCION",
+                         "details":  "Ingreso de 1000 LT (EZ MUL® LA Lote 2026040019) en Pos. B1. Remito: N/A"
+                     },
+                     {
+                         "timestamp":  "2026-10-01T19:53:31.632Z",
+                         "action":  "MOVER",
+                         "details":  "Pallet trasladado de B1 a M3 (EZ MUL® LA Lote 2026040019)."
+                     },
+                     {
+                         "timestamp":  "2026-10-01T19:53:43.087Z",
+                         "action":  "CONSUMO",
+                         "details":  "Pallet consumido y retirado del almacén en Pos. L6 (EZ MUL® LA Lote 2026050021 - 100 LT)."
+                     },
+                     {
+                         "timestamp":  "2026-10-01T19:53:50.079Z",
+                         "action":  "RECEPCION",
+                         "details":  "Ingreso de 1000 LT (EZ MUL® LA Lote 44) en Pos. B1. Remito: N/A"
+                     },
+                     {
+                         "timestamp":  "2026-10-01T19:53:56.831Z",
+                         "action":  "RECEPCION",
+                         "details":  "Ingreso de 1000 LT (EZ MUL® LA Lote 44) en Pos. B2. Remito: N/A"
+                     },
+                     {
+                         "timestamp":  "2026-10-01T19:53:58.961Z",
+                         "action":  "MOVER",
+                         "details":  "Pallet trasladado de B2 a L6 (EZ MUL® LA Lote 44)."
+                     },
+                     {
+                         "timestamp":  "2026-10-01T19:54:00.490Z",
+                         "action":  "MOVER",
+                         "details":  "Intercambio de posiciones: B1 (EZ MUL® LA) ⇄ L6 (EZ MUL® LA)."
+                     },
+                     {
+                         "timestamp":  "2026-10-01T19:54:03.345Z",
+                         "action":  "MOVER",
+                         "details":  "Pallet trasladado de B1 a L5 (EZ MUL® LA Lote 44)."
+                     },
+                     {
+                         "timestamp":  "2026-10-01T19:54:08.783Z",
+                         "action":  "RECEPCION",
+                         "details":  "Ingreso de 1000 LT (EZ MUL® LA Lote 44) en Pos. B1. Remito: N/A"
+                     },
+                     {
+                         "timestamp":  "2026-10-01T19:54:10.538Z",
+                         "action":  "MOVER",
+                         "details":  "Pallet trasladado de B1 a L4 (EZ MUL® LA Lote 44)."
+                     },
+                     {
+                         "timestamp":  "2026-10-01T19:56:40.140Z",
+                         "action":  "RECEPCION",
+                         "details":  "Ingreso de 1000 LT (EZ MUL® LA Lote 2026080058) en Pos. B1. Remito: N/A"
+                     },
+                     {
+                         "timestamp":  "2026-10-01T19:56:42.221Z",
+                         "action":  "MOVER",
+                         "details":  "Pallet trasladado de B1 a L3 (EZ MUL® LA Lote 2026080058)."
+                     },
+                     {
+                         "timestamp":  "2026-10-01T19:57:34.748Z",
+                         "action":  "RECEPCION",
+                         "details":  "Ingreso de 1000 LT (EZ MUL® LA Lote 2026080056) en Pos. B1. Remito: N/A"
+                     },
+                     {
+                         "timestamp":  "2026-10-01T19:57:36.606Z",
+                         "action":  "MOVER",
+                         "details":  "Pallet trasladado de B1 a M2 (EZ MUL® LA Lote 2026080056)."
+                     },
+                     {
+                         "timestamp":  "2026-10-01T19:57:52.893Z",
+                         "action":  "CONSUMO",
+                         "details":  "Pallet vaciado/consumido en Pos. J5 (INVERMUL® LA Lote 2026030006)."
+                     },
+                     {
+                         "timestamp":  "2026-10-01T19:57:54.118Z",
+                         "action":  "CONSUMO",
+                         "details":  "Pallet consumido y retirado del almacén en Pos. J6 (INVERMUL® LA Lote 2026030006 - 1000 LT)."
+                     },
+                     {
+                         "timestamp":  "2026-10-01T19:58:11.677Z",
+                         "action":  "RECEPCION",
+                         "details":  "Ingreso de 1000 LT (INVERMUL® LA Lote 2026080017) en Pos. B1. Remito: N/A"
+                     },
+                     {
+                         "timestamp":  "2026-10-01T19:58:13.448Z",
+                         "action":  "MOVER",
+                         "details":  "Pallet trasladado de B1 a J6 (INVERMUL® LA Lote 2026080017)."
+                     },
+                     {
+                         "timestamp":  "2026-10-01T19:58:20.309Z",
+                         "action":  "RECEPCION",
+                         "details":  "Ingreso de 1000 LT (INVERMUL® LA Lote 2026080017) en Pos. B1. Remito: N/A"
+                     },
+                     {
+                         "timestamp":  "2026-10-01T19:58:21.655Z",
+                         "action":  "MOVER",
+                         "details":  "Pallet trasladado de B1 a J5 (INVERMUL® LA Lote 2026080017)."
+                     },
+                     {
+                         "timestamp":  "2026-10-01T19:58:25.542Z",
+                         "action":  "RECEPCION",
+                         "details":  "Ingreso de 1000 LT (INVERMUL® LA Lote 2026080017) en Pos. B1. Remito: N/A"
+                     },
+                     {
+                         "timestamp":  "2026-10-01T19:58:26.760Z",
+                         "action":  "MOVER",
+                         "details":  "Pallet trasladado de B1 a J4 (INVERMUL® LA Lote 2026080017)."
+                     },
+                     {
+                         "timestamp":  "2026-10-01T19:58:31.894Z",
+                         "action":  "RECEPCION",
+                         "details":  "Ingreso de 1000 LT (INVERMUL® LA Lote 2026080017) en Pos. B1. Remito: N/A"
+                     },
+                     {
+                         "timestamp":  "2026-10-01T19:58:33.601Z",
+                         "action":  "MOVER",
+                         "details":  "Pallet trasladado de B1 a J3 (INVERMUL® LA Lote 2026080017)."
+                     },
+                     {
+                         "timestamp":  "2026-10-01T19:58:44.174Z",
+                         "action":  "RECEPCION",
+                         "details":  "Ingreso de 1000 LT (INVERMUL® LA Lote 2026080017) en Pos. B1. Remito: N/A"
+                     },
+                     {
+                         "timestamp":  "2026-10-01T19:58:45.880Z",
+                         "action":  "MOVER",
+                         "details":  "Pallet trasladado de B1 a H5 (INVERMUL® LA Lote 2026080017)."
+                     },
+                     {
+                         "timestamp":  "2026-10-01T19:58:50.704Z",
+                         "action":  "MOVER",
+                         "details":  "Pallet trasladado de H6 a E6 (DRILTREAT® Lote 10042601)."
+                     },
+                     {
+                         "timestamp":  "2026-10-01T19:58:51.864Z",
+                         "action":  "MOVER",
+                         "details":  "Pallet trasladado de H5 a H6 (INVERMUL® LA Lote 2026080017)."
+                     },
+                     {
+                         "timestamp":  "2026-10-01T19:58:55.423Z",
+                         "action":  "RECEPCION",
+                         "details":  "Ingreso de 1000 LT (INVERMUL® LA Lote 2026080017) en Pos. B1. Remito: N/A"
+                     },
+                     {
+                         "timestamp":  "2026-10-01T19:58:57.233Z",
+                         "action":  "MOVER",
+                         "details":  "Pallet trasladado de B1 a H5 (INVERMUL® LA Lote 2026080017)."
+                     },
+                     {
+                         "timestamp":  "2026-10-01T19:59:06.999Z",
+                         "action":  "RECEPCION",
+                         "details":  "Ingreso de 1000 LT (INVERMUL® LA Lote 2026080017) en Pos. B1. Remito: N/A"
+                     },
+                     {
+                         "timestamp":  "2026-10-01T19:59:08.577Z",
+                         "action":  "MOVER",
+                         "details":  "Pallet trasladado de B1 a H4 (INVERMUL® LA Lote 2026080017)."
+                     },
+                     {
+                         "timestamp":  "2026-10-01T20:01:23.571Z",
+                         "action":  "RECEPCION",
+                         "details":  "Ingreso de 1000 LT (INVERMUL® LA Lote 2026080015) en Pos. B1. Remito: N/A"
+                     },
+                     {
+                         "timestamp":  "2026-10-01T20:01:26.524Z",
+                         "action":  "MOVER",
+                         "details":  "Pallet trasladado de B1 a H2 (INVERMUL® LA Lote 2026080015)."
+                     },
+                     {
+                         "timestamp":  "2026-10-01T20:01:27.381Z",
+                         "action":  "MOVER",
+                         "details":  "Pallet trasladado de H4 a H3 (INVERMUL® LA Lote 2026080017)."
+                     },
+                     {
+                         "timestamp":  "2026-10-01T20:01:28.476Z",
+                         "action":  "MOVER",
+                         "details":  "Pallet trasladado de H2 a H4 (INVERMUL® LA Lote 2026080015)."
+                     },
+                     {
+                         "timestamp":  "2026-10-01T20:01:48.771Z",
+                         "action":  "RECEPCION",
+                         "details":  "Ingreso de 1000 LT (INVERMUL® LA Lote 2026030006) en Pos. B1. Remito: N/A"
+                     },
+                     {
+                         "timestamp":  "2026-10-01T20:01:51.109Z",
+                         "action":  "MOVER",
+                         "details":  "Pallet trasladado de B1 a H2 (INVERMUL® LA Lote 2026030006)."
+                     },
+                     {
+                         "timestamp":  "2026-10-01T20:02:12.228Z",
+                         "action":  "CONTEO",
+                         "details":  "Stock actualizado en Pos. C2 (RM-63™ Lote 250808T032): Quedan 208 LT."
+                     },
+                     {
+                         "timestamp":  "2026-10-01T20:02:16.411Z",
+                         "action":  "CONTEO",
+                         "details":  "Stock actualizado en Pos. C1 (RM-63™ Lote 251231T075): Quedan 208 LT."
+                     },
+                     {
+                         "timestamp":  "2026-10-01T20:15:27.121Z",
+                         "action":  "MOVER",
+                         "details":  "Pallet trasladado de E6 a E3 (DRILTREAT® Lote 10042601)."
+                     },
+                     {
+                         "timestamp":  "2026-10-01T20:15:34.560Z",
+                         "action":  "CONTEO",
+                         "details":  "Stock actualizado en Pos. E3 (DRILTREAT® Lote 10042601): Quedan 300 LT."
+                     },
+                     {
+                         "timestamp":  "2026-10-01T20:15:56.544Z",
+                         "action":  "RECEPCION",
+                         "details":  "Ingreso de 1000 LT (DRILTREAT® Lote 10082601) en Pos. B1. Remito: N/A"
+                     },
+                     {
+                         "timestamp":  "2026-10-01T20:15:59.281Z",
+                         "action":  "MOVER",
+                         "details":  "Pallet trasladado de B1 a E4 (DRILTREAT® Lote 10082601)."
+                     },
+                     {
+                         "timestamp":  "2026-10-01T20:16:07.504Z",
+                         "action":  "RECEPCION",
+                         "details":  "Ingreso de 1000 LT (DRILTREAT® Lote 10082601) en Pos. B1. Remito: N/A"
+                     },
+                     {
+                         "timestamp":  "2026-10-01T20:16:08.907Z",
+                         "action":  "MOVER",
+                         "details":  "Pallet trasladado de B1 a E5 (DRILTREAT® Lote 10082601)."
+                     },
+                     {
+                         "timestamp":  "2026-10-01T20:16:13.193Z",
+                         "action":  "RECEPCION",
+                         "details":  "Ingreso de 1000 LT (DRILTREAT® Lote 10082601) en Pos. B1. Remito: N/A"
+                     },
+                     {
+                         "timestamp":  "2026-10-01T20:16:14.762Z",
+                         "action":  "MOVER",
+                         "details":  "Pallet trasladado de B1 a E6 (DRILTREAT® Lote 10082601)."
+                     },
+                     {
+                         "timestamp":  "2026-10-02T17:52:52.572Z",
+                         "action":  "CONSUMO",
+                         "details":  "Pallet consumido y retirado del almacén en Pos. M2 (EZ MUL® LA Lote 2026080056 - 1000 LT)."
+                     },
+                     {
+                         "timestamp":  "2026-10-02T17:53:10.107Z",
+                         "action":  "CONSUMO",
+                         "details":  "Pallet consumido y retirado del almacén en Pos. L3 (EZ MUL® LA Lote 2026080058 - 1000 LT)."
+                     },
+                     {
+                         "timestamp":  "2026-10-02T17:53:31.196Z",
+                         "action":  "RECEPCION",
+                         "details":  "Ingreso de 1000 LT (INVERMUL® LA Lote 2026080015) en Pos. J2. Remito: N/A"
+                     },
+                     {
+                         "timestamp":  "2026-10-02T17:53:44.869Z",
+                         "action":  "RECEPCION_COPIA",
+                         "details":  "Pallet duplicado y pegado en Pos. L3 (INVERMUL® LA Lote 2026080015 - 1000 LT)."
+                     },
+                     {
+                         "timestamp":  "2026-10-02T17:53:46.692Z",
+                         "action":  "RECEPCION_COPIA",
+                         "details":  "Pallet duplicado y pegado en Pos. L2 (INVERMUL® LA Lote 2026080015 - 1000 LT)."
+                     },
+                     {
+                         "timestamp":  "2026-10-02T17:53:59.604Z",
+                         "action":  "CONSUMO",
+                         "details":  "Pallet consumido y retirado del almacén en Pos. H2 (INVERMUL® LA Lote 2026030006 - 1000 LT)."
+                     },
+                     {
+                         "timestamp":  "2026-10-02T17:54:01.760Z",
+                         "action":  "RECEPCION_COPIA",
+                         "details":  "Pallet duplicado y pegado en Pos. H2 (INVERMUL® LA Lote 2026080015 - 1000 LT)."
+                     },
+                     {
+                         "timestamp":  "2026-10-02T17:54:16.468Z",
+                         "action":  "CONSUMO",
+                         "details":  "Pallet consumido y retirado del almacén en Pos. E3 (DRILTREAT® Lote 10042601 - 300 LT)."
+                     },
+                     {
+                         "timestamp":  "2026-10-02T17:54:37.207Z",
+                         "action":  "MOVER",
+                         "details":  "Pallet trasladado de C1 a B5 (RM-63™ Lote 251231T075)."
+                     },
+                     {
+                         "timestamp":  "2026-10-02T17:54:45.967Z",
+                         "action":  "MOVER",
+                         "details":  "Pallet trasladado de B5 a C2 (RM-63™ Lote 251231T075)."
+                     },
+                     {
+                         "timestamp":  "2026-10-02T17:54:47.678Z",
+                         "action":  "MOVER",
+                         "details":  "Pallet trasladado de C2 a C3 (RM-63™ Lote 250808T032)."
+                     },
+                     {
+                         "timestamp":  "2026-10-02T17:54:49.855Z",
+                         "action":  "MOVER",
+                         "details":  "Pallet trasladado de C3 a C4 (RM-63™ Lote 250808T032)."
+                     },
+                     {
+                         "timestamp":  "2026-10-02T17:54:51.600Z",
+                         "action":  "MOVER",
+                         "details":  "Pallet trasladado de C4 a C5 (RM-63™ Lote 250726T026)."
+                     },
+                     {
+                         "timestamp":  "2026-10-02T17:54:53.679Z",
+                         "action":  "MOVER",
+                         "details":  "Pallet trasladado de C5 a C6 (RM-63™ Lote 250808T032)."
+                     },
+                     {
+                         "timestamp":  "2026-10-02T17:54:55.152Z",
+                         "action":  "MOVER",
+                         "details":  "Pallet trasladado de C6 a E6 (RM-63™ Lote 250817T034)."
+                     },
+                     {
+                         "timestamp":  "2026-10-02T17:54:57.408Z",
+                         "action":  "MOVER",
+                         "details":  "Pallet trasladado de B6 a C6 (RM-63™ Lote 251231T075)."
+                     },
+                     {
+                         "timestamp":  "2026-10-02T17:54:58.504Z",
+                         "action":  "MOVER",
+                         "details":  "Pallet trasladado de B5 a C5 (RM-63™ Lote 251231T075)."
+                     },
+                     {
+                         "timestamp":  "2026-10-02T17:54:59.431Z",
+                         "action":  "MOVER",
+                         "details":  "Pallet trasladado de B4 a C4 (RM-63™ Lote 251231T075)."
+                     },
+                     {
+                         "timestamp":  "2026-10-02T17:55:00.800Z",
+                         "action":  "MOVER",
+                         "details":  "Pallet trasladado de B3 a C3 (RM-63™ Lote 251231T075)."
+                     },
+                     {
+                         "timestamp":  "2026-10-02T17:55:06.127Z",
+                         "action":  "MOVER",
+                         "details":  "Pallet trasladado de E6 a B6 (RM-63™ Lote 250817T034)."
+                     },
+                     {
+                         "timestamp":  "2026-10-02T17:55:07.768Z",
+                         "action":  "MOVER",
+                         "details":  "Pallet trasladado de C6 a B5 (RM-63™ Lote 250808T032)."
+                     },
+                     {
+                         "timestamp":  "2026-10-02T17:55:09.855Z",
+                         "action":  "MOVER",
+                         "details":  "Pallet trasladado de C5 a B4 (RM-63™ Lote 250726T026)."
+                     },
+                     {
+                         "timestamp":  "2026-10-02T17:55:11.072Z",
+                         "action":  "MOVER",
+                         "details":  "Pallet trasladado de C4 a B3 (RM-63™ Lote 250808T032)."
+                     },
+                     {
+                         "timestamp":  "2026-10-02T17:55:12.256Z",
+                         "action":  "MOVER",
+                         "details":  "Pallet trasladado de C3 a B2 (RM-63™ Lote 250808T032)."
+                     },
+                     {
+                         "timestamp":  "2026-10-02T17:55:13.672Z",
+                         "action":  "MOVER",
+                         "details":  "Pallet trasladado de C2 a B1 (RM-63™ Lote 251231T075)."
+                     },
+                     {
+                         "timestamp":  "2026-10-02T17:55:24.926Z",
+                         "action":  "CONSUMO",
+                         "details":  "Pallet consumido y retirado del almacén en Pos. M5 (Cloruro de Calcio (CaCl₂) Lote CCP2604-09 - 1250 KG)."
+                     },
+                     {
+                         "timestamp":  "2026-10-02T17:55:31.247Z",
+                         "action":  "CONSUMO",
+                         "details":  "Pallet consumido y retirado del almacén en Pos. K5 (Cloruro de Calcio (CaCl₂) Lote CCP2604-09 - 1250 KG)."
+                     },
+                     {
+                         "timestamp":  "2026-10-02T17:55:49.095Z",
+                         "action":  "RECEPCION",
+                         "details":  "Ingreso de 1250 KG (Cloruro de Calcio (CaCl₂) Lote CCP2605-06) en Pos. M5. Remito: N/A"
+                     },
+                     {
+                         "timestamp":  "2026-10-02T17:55:57.152Z",
+                         "action":  "RECEPCION_COPIA",
+                         "details":  "Pallet duplicado y pegado en Pos. K5 (Cloruro de Calcio (CaCl₂) Lote CCP2605-06 - 1250 KG)."
+                     },
+                     {
+                         "timestamp":  "2026-10-02T17:56:14.952Z",
+                         "action":  "CONTEO",
+                         "details":  "Stock actualizado en Pos. J5 (Cloruro de Calcio (CaCl₂) Lote CCP2604-09): Quedan 750 KG."
+                     },
+                     {
+                         "timestamp":  "2026-10-02T17:56:50.793Z",
+                         "action":  "CONSUMO",
+                         "details":  "Pallet consumido y retirado del almacén en Pos. H3 (BARABLOK™ 400 NA Lote 2082605 - 550 KG)."
+                     },
+                     {
+                         "timestamp":  "2026-10-02T17:57:08.193Z",
+                         "action":  "RECEPCION",
+                         "details":  "Ingreso de 550 KG (BARABLOK™ 400 NA Lote 2072605) en Pos. H3. Remito: N/A"
+                     },
+                     {
+                         "timestamp":  "2026-10-02T17:57:30.442Z",
+                         "action":  "RECEPCION_COPIA",
+                         "details":  "Pallet duplicado y pegado en Pos. G2 (BARABLOK™ 400 NA Lote 2072605 - 1125 KG)."
+                     },
+                     {
+                         "timestamp":  "2026-10-02T17:57:30.938Z",
+                         "action":  "RECEPCION_COPIA",
+                         "details":  "Pallet duplicado y pegado en Pos. G3 (BARABLOK™ 400 NA Lote 2072605 - 1125 KG)."
+                     },
+                     {
+                         "timestamp":  "2026-10-02T17:57:34.585Z",
+                         "action":  "RECEPCION_COPIA",
+                         "details":  "Pallet duplicado y pegado en Pos. G4 (BARABLOK™ 400 NA Lote 2072605 - 1125 KG)."
+                     },
+                     {
+                         "timestamp":  "2026-10-02T17:57:51.898Z",
+                         "action":  "CONTEO",
+                         "details":  "Stock actualizado en Pos. G4 (BARABLOK™ 400 NA Lote 2072605): Quedan 375 KG."
+                     },
+                     {
+                         "timestamp":  "2026-10-02T17:58:38.748Z",
+                         "action":  "RECEPCION",
+                         "details":  "Ingreso de 1134 KG (GELTONE® II Lote 2518K1) en Pos. E2. Remito: N/A"
+                     },
+                     {
+                         "timestamp":  "2026-10-02T17:58:49.014Z",
+                         "action":  "MOVER",
+                         "details":  "Pallet trasladado de C1 a C4 (LIME FG Lote 1074)."
+                     },
+                     {
+                         "timestamp":  "2026-10-02T17:58:49.739Z",
+                         "action":  "CONSUMO",
+                         "details":  "Pallet consumido y retirado del almacén en Pos. C4 (LIME FG Lote 1074 - 1000 KG)."
+                     },
+                     {
+                         "timestamp":  "2026-10-02T17:58:57.975Z",
+                         "action":  "MOVER",
+                         "details":  "Pallet trasladado de B1 a C1 (Cloruro de Calcio (CaCl₂) Lote CCP2604-09)."
+                     },
+                     {
+                         "timestamp":  "2026-10-02T17:59:00.357Z",
+                         "action":  "MOVER",
+                         "details":  "Pallet trasladado de B2 a C2 (Cloruro de Calcio (CaCl₂) Lote CCP2604-09)."
+                     },
+                     {
+                         "timestamp":  "2026-10-02T17:59:02.276Z",
+                         "action":  "RECEPCION_COPIA",
+                         "details":  "Pallet duplicado y pegado en Pos. C3 (Cloruro de Calcio (CaCl₂) Lote CCP2604-09 - 1250 KG)."
+                     },
+                     {
+                         "timestamp":  "2026-10-02T17:59:04.100Z",
+                         "action":  "RECEPCION_COPIA",
+                         "details":  "Pallet duplicado y pegado en Pos. C4 (Cloruro de Calcio (CaCl₂) Lote CCP2604-09 - 1250 KG)."
+                     },
+                     {
+                         "timestamp":  "2026-10-02T17:59:21.197Z",
+                         "action":  "RECEPCION",
+                         "details":  "Ingreso de 1000 KG (LIME FG Lote 1074) en Pos. B1. Remito: N/A"
+                     },
+                     {
+                         "timestamp":  "2026-10-02T17:59:31.661Z",
+                         "action":  "RECEPCION",
+                         "details":  "Ingreso de 1000 KG (LIME FG Lote 1124) en Pos. B2. Remito: N/A"
+                     },
+                     {
+                         "timestamp":  "2026-10-02T17:59:34.829Z",
+                         "action":  "RECEPCION_COPIA",
+                         "details":  "Pallet duplicado y pegado en Pos. B3 (LIME FG Lote 1124 - 1000 KG)."
+                     },
+                     {
+                         "timestamp":  "2026-10-02T17:59:35.493Z",
+                         "action":  "RECEPCION_COPIA",
+                         "details":  "Pallet duplicado y pegado en Pos. B4 (LIME FG Lote 1124 - 1000 KG)."
+                     },
+                     {
+                         "timestamp":  "2026-10-02T17:59:36.005Z",
+                         "action":  "RECEPCION_COPIA",
+                         "details":  "Pallet duplicado y pegado en Pos. A4 (LIME FG Lote 1124 - 1000 KG)."
+                     },
+                     {
+                         "timestamp":  "2026-10-02T19:10:38.373Z",
+                         "action":  "CONSUMO",
+                         "details":  "Pallet consumido y retirado del almacén en Pos. H3 (BARABLOK™ 400 NA Lote 2072605 - 550 KG)."
+                     },
+                     {
+                         "timestamp":  "2026-10-02T19:10:55.036Z",
+                         "action":  "RECEPCION",
+                         "details":  "Ingreso de 1250 KG (BARABLOK™ 400 NA Lote 2082605) en Pos. H3. Remito: N/A"
+                     },
+                     {
+                         "timestamp":  "2026-10-02T19:11:16.805Z",
+                         "action":  "CONTEO",
+                         "details":  "Stock actualizado en Pos. H3 (BARABLOK™ 400 NA Lote 2082605): Quedan 550 KG."
+                     },
+                     {
+                         "timestamp":  "2026-10-02T21:00:45.647Z",
+                         "action":  "RECEPCION_COPIA",
+                         "details":  "Pallet duplicado y pegado en Pos. M6 (Cloruro de Calcio (CaCl₂) Lote CCP2604-09 - 1250 KG)."
+                     },
+                     {
+                         "timestamp":  "2026-10-02T21:00:47.583Z",
+                         "action":  "RECEPCION_COPIA",
+                         "details":  "Pallet duplicado y pegado en Pos. K6 (Cloruro de Calcio (CaCl₂) Lote CCP2604-09 - 1250 KG)."
+                     },
+                     {
+                         "timestamp":  "2026-10-02T21:00:53.856Z",
+                         "action":  "CONSUMO",
+                         "details":  "Pallet consumido y retirado del almacén en Pos. L6 (Cloruro de Calcio (CaCl₂) Lote CCP2604-09 - 100 KG)."
+                     },
+                     {
+                         "timestamp":  "2026-10-02T21:01:02.128Z",
+                         "action":  "CONTEO",
+                         "details":  "Stock actualizado en Pos. L5 (Cloruro de Calcio (CaCl₂) Lote CCP2604-09): Quedan 1350 KG."
+                     },
+                     {
+                         "timestamp":  "2026-10-02T21:01:07.407Z",
+                         "action":  "RECEPCION_COPIA",
+                         "details":  "Pallet duplicado y pegado en Pos. L6 (Cloruro de Calcio (CaCl₂) Lote CCP2604-09 - 1250 KG)."
+                     },
+                     {
+                         "timestamp":  "2026-10-02T21:01:13.296Z",
+                         "action":  "RECEPCION_COPIA",
+                         "details":  "Pallet duplicado y pegado en Pos. C5 (Cloruro de Calcio (CaCl₂) Lote CCP2604-09 - 1250 KG)."
+                     },
+                     {
+                         "timestamp":  "2026-10-02T21:01:17.528Z",
+                         "action":  "RECEPCION_COPIA",
+                         "details":  "Pallet duplicado y pegado en Pos. G6 (Cloruro de Calcio (CaCl₂) Lote CCP2604-09 - 1250 KG)."
+                     },
+                     {
+                         "timestamp":  "2026-10-02T21:01:19.280Z",
+                         "action":  "CONSUMO",
+                         "details":  "Pallet consumido y retirado del almacén en Pos. G6 (Cloruro de Calcio (CaCl₂) Lote CCP2604-09 - 1250 KG)."
+                     },
+                     {
+                         "timestamp":  "2026-10-02T21:01:26.665Z",
+                         "action":  "MOVER",
+                         "details":  "Pallet trasladado de H3 a H5 (BARABLOK™ 400 NA Lote 2082605)."
+                     },
+                     {
+                         "timestamp":  "2026-10-02T21:01:34.897Z",
+                         "action":  "RECEPCION_COPIA",
+                         "details":  "Pallet duplicado y pegado en Pos. H3 (BARABLOK™ 400 NA Lote 2072605 - 1125 KG)."
+                     },
+                     {
+                         "timestamp":  "2026-10-02T21:01:36.394Z",
+                         "action":  "MOVER",
+                         "details":  "Pallet trasladado de H5 a H4 (BARABLOK™ 400 NA Lote 2082605)."
+                     },
+                     {
+                         "timestamp":  "2026-10-02T21:01:38.051Z",
+                         "action":  "MOVER",
+                         "details":  "Pallet trasladado de G4 a G6 (BARABLOK™ 400 NA Lote 2072605)."
+                     },
+                     {
+                         "timestamp":  "2026-10-02T21:01:46.961Z",
+                         "action":  "RECEPCION_COPIA",
+                         "details":  "Pallet duplicado y pegado en Pos. G4 (BARABLOK™ 400 NA Lote 2072605 - 1125 KG)."
+                     },
+                     {
+                         "timestamp":  "2026-10-02T21:01:48.634Z",
+                         "action":  "MOVER",
+                         "details":  "Pallet trasladado de G6 a G5 (BARABLOK™ 400 NA Lote 2072605)."
+                     },
+                     {
+                         "timestamp":  "2026-10-02T21:02:06.786Z",
+                         "action":  "RECEPCION",
+                         "details":  "Ingreso de 1134 KG (GELTONE® II Lote 2623F3) en Pos. E3. Remito: N/A"
+                     },
+                     {
+                         "timestamp":  "2026-10-02T21:02:11.889Z",
+                         "action":  "RECEPCION_COPIA",
+                         "details":  "Pallet duplicado y pegado en Pos. E4 (GELTONE® II Lote 2623F3 - 1134 KG)."
+                     },
+                     {
+                         "timestamp":  "2026-10-02T21:02:14.275Z",
+                         "action":  "MOVER",
+                         "details":  "Pallet trasladado de E1 a E5 (GELTONE® II Lote 2517K1)."
+                     },
+                     {
+                         "timestamp":  "2026-10-02T21:02:15.188Z",
+                         "action":  "MOVER",
+                         "details":  "Pallet trasladado de E2 a E1 (GELTONE® II Lote 2518K1)."
+                     },
+                     {
+                         "timestamp":  "2026-10-02T21:02:16.371Z",
+                         "action":  "MOVER",
+                         "details":  "Pallet trasladado de E3 a E2 (GELTONE® II Lote 2623F3)."
+                     },
+                     {
+                         "timestamp":  "2026-10-02T21:02:17.283Z",
+                         "action":  "MOVER",
+                         "details":  "Pallet trasladado de E4 a E3 (GELTONE® II Lote 2623F3)."
+                     },
+                     {
+                         "timestamp":  "2026-10-02T21:02:18.155Z",
+                         "action":  "MOVER",
+                         "details":  "Pallet trasladado de E5 a E4 (GELTONE® II Lote 2517K1)."
+                     },
+                     {
+                         "timestamp":  "2026-10-02T21:02:29.162Z",
+                         "action":  "RECEPCION_COPIA",
+                         "details":  "Pallet duplicado y pegado en Pos. B5 (LIME FG Lote 1124 - 1000 KG)."
+                     },
+                     {
+                         "timestamp":  "2026-10-02T21:02:29.530Z",
+                         "action":  "RECEPCION_COPIA",
+                         "details":  "Pallet duplicado y pegado en Pos. B6 (LIME FG Lote 1124 - 1000 KG)."
+                     },
+                     {
+                         "timestamp":  "2026-10-02T21:02:29.946Z",
+                         "action":  "RECEPCION_COPIA",
+                         "details":  "Pallet duplicado y pegado en Pos. A6 (LIME FG Lote 1124 - 1000 KG)."
+                     },
+                     {
+                         "timestamp":  "2026-10-02T21:02:30.321Z",
+                         "action":  "RECEPCION_COPIA",
+                         "details":  "Pallet duplicado y pegado en Pos. A5 (LIME FG Lote 1124 - 1000 KG)."
+                     },
+                     {
+                         "timestamp":  "2026-10-02T21:04:34.190Z",
+                         "action":  "RECEPCION_COPIA",
+                         "details":  "Pallet duplicado y pegado en Pos. E3 (DRILTREAT® Lote 10082601 - 1000 LT)."
+                     }
+                 ],
+    "copiedPallet":  null,
+    "receptionTargetSlot":  null
+}
