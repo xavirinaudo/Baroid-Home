@@ -10,18 +10,12 @@ const DEFAULT_FALLBACK_STATE = {
     {
       id: "principal",
       name: "Zona de Productos Químicos",
-      type: "dual",
-      warehouseDimensions: {
-        solidos: { rows: 6, columns: ["A", "B", "C", "E", "G", "H", "J", "K", "L", "M"] },
-        liquidos: { rows: 6, columns: ["B", "C", "E", "H", "J", "K", "L", "M"] }
-      }
+      type: "mixto",
+      rows: 4,
+      columns: ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"]
     }
   ],
   activeSectorId: "principal",
-  warehouseDimensions: {
-    solidos: { rows: 6, columns: ["A", "B", "C", "E", "G", "H", "J", "K", "L", "M"] },
-    liquidos: { rows: 6, columns: ["B", "C", "E", "H", "J", "K", "L", "M"] }
-  },
   productCatalog: [
     { name: "LIME FG", type: "solido", defaultPackage: "Bolsa 20 kg", unitWeight: 20, unit: "KG", color: "#1D4ED8" },
     { name: "GELTONE® II", type: "solido", defaultPackage: "Bolsa 22.68 kg", unitWeight: 22.68, unit: "KG", color: "#15803D" },
@@ -63,13 +57,19 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
       try {
         const parsed = JSON.parse(saved);
         if (parsed) {
-          // Filtrar cualquier pestaña no deseada (ej. Equipo 1211) y asegurar "Zona de Productos Químicos"
+          // Filtrar cualquier pestaña no deseada (ej. Equipo 1211) y asegurar "Zona de Productos Químicos" de 4x12
           if (Array.isArray(parsed.sectors)) {
             parsed.sectors = parsed.sectors
               .filter(s => !s.name?.toLowerCase().includes("1211") && !s.id?.toLowerCase().includes("1211"))
               .map(s => {
                 if (s.id === "principal" || s.name?.toLowerCase().includes("nave principal")) {
-                  return { ...s, name: "Zona de Productos Químicos" };
+                  return {
+                    ...s,
+                    name: "Zona de Productos Químicos",
+                    type: "mixto",
+                    rows: (s.rows && s.type !== "dual") ? s.rows : 4,
+                    columns: (s.columns && s.columns.length === 12 && s.type !== "dual") ? s.columns : ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"]
+                  };
                 }
                 return s;
               });
@@ -243,30 +243,32 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
   const currentSector = useMemo(() => {
     return (data.sectors && data.sectors.find(s => s.id === activeSectorId)) || data.sectors[0] || {
       id: "principal",
-      name: "Nave Principal",
-      type: "dual"
+      name: "Zona de Productos Químicos",
+      type: "mixto",
+      rows: 4,
+      columns: ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"]
     };
   }, [data.sectors, activeSectorId]);
 
   // KPIs
   const { totalSlots, occupiedCount, freeSlots, occPct, freeSolids, freeLiquids } = useMemo(() => {
-    let tSlots = 108;
+    let tSlots = 48;
     let sOccupied = 0;
     let lOccupied = 0;
-    let sSlots = 60;
-    let lSlots = 48;
+    let sSlots = 48;
+    let lSlots = 0;
 
-    if (currentSector.id === "principal") {
+    if (currentSector.type === "dual") {
       const sDims = data.warehouseDimensions?.solidos || { rows: 6, columns: ["A", "B", "C", "E", "G", "H", "J", "K", "L", "M"] };
       const lDims = data.warehouseDimensions?.liquidos || { rows: 6, columns: ["B", "C", "E", "H", "J", "K", "L", "M"] };
       sSlots = (sDims.rows || 6) * (sDims.columns?.length || 10);
       lSlots = (lDims.rows || 6) * (lDims.columns?.length || 8);
       tSlots = sSlots + lSlots;
-      sOccupied = data.pallets.filter(p => (p.sectorId || "principal") === "principal" && p.zone === "solidos" && p.quantity > 0).length;
-      lOccupied = data.pallets.filter(p => (p.sectorId || "principal") === "principal" && p.zone === "liquidos" && p.quantity > 0).length;
+      sOccupied = data.pallets.filter(p => (p.sectorId || "principal") === currentSector.id && p.zone === "solidos" && p.quantity > 0).length;
+      lOccupied = data.pallets.filter(p => (p.sectorId || "principal") === currentSector.id && p.zone === "liquidos" && p.quantity > 0).length;
     } else {
-      const nRows = currentSector.rows || 6;
-      const nCols = currentSector.columns ? currentSector.columns.length : 6;
+      const nRows = currentSector.rows || 4;
+      const nCols = currentSector.columns ? currentSector.columns.length : 12;
       tSlots = nRows * nCols;
       const occ = data.pallets.filter(p => (p.sectorId || "principal") === currentSector.id && p.quantity > 0).length;
       if (currentSector.type === "liquidos") {
@@ -293,11 +295,11 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
     };
   }, [data, currentSector]);
 
-  // Desplazamiento por Flechas (1 Columna = 116px)
+  // Desplazamiento por Flechas (1 Columna = 116px * zoomLevel)
   const scrollBays = (zoneKey, direction) => {
     const ref = zoneKey === "solidos" ? solidsScrollRef.current : liquidsScrollRef.current;
     if (!ref) return;
-    const delta = direction === "left" ? -116 : 116;
+    const delta = (direction === "left" ? -116 : 116) * zoomLevel;
     ref.scrollBy({ left: delta, behavior: "smooth" });
   };
 
@@ -455,7 +457,7 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
   const renderPalletCard = (zone, col, row) => {
     const pallet = data.pallets.find(p =>
       (p.sectorId || "principal") === activeSectorId &&
-      p.zone === zone &&
+      (currentSector.type !== "dual" || p.zone === zone) &&
       p.col === col &&
       p.row === row &&
       p.quantity > 0
@@ -577,13 +579,13 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
   };
 
   // Dimensiones del sector activo
-  const sDims = currentSector.id === "principal"
+  const sDims = currentSector.type === "dual"
     ? (data.warehouseDimensions?.solidos || { rows: 6, columns: ["A", "B", "C", "E", "G", "H", "J", "K", "L", "M"] })
-    : { rows: currentSector.rows || 6, columns: currentSector.columns || ["A","B","C","D"] };
+    : { rows: currentSector.rows || 4, columns: currentSector.columns || ["A","B","C","D","E","F","G","H","I","J","K","L"] };
 
-  const lDims = currentSector.id === "principal"
+  const lDims = currentSector.type === "dual"
     ? (data.warehouseDimensions?.liquidos || { rows: 6, columns: ["B", "C", "E", "H", "J", "K", "L", "M"] })
-    : { rows: currentSector.rows || 6, columns: currentSector.columns || ["A","B","C","D"] };
+    : { rows: currentSector.rows || 4, columns: currentSector.columns || ["A","B","C","D"] };
 
   return (
     <div className="space-y-4 text-left font-sans">
@@ -716,12 +718,26 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
           </button>
 
           {/* Zoom */}
-          <div className="flex items-center bg-zinc-100 dark:bg-slate-800/80 rounded-xl p-1 border border-zinc-200 dark:border-zinc-700">
-            <button onClick={() => setZoomLevel(prev => Math.max(0.75, prev - 0.05))} className="p-1 text-zinc-500 hover:text-zinc-800 dark:hover:text-white" title="Reducir zoom">
+          <div className="flex items-center bg-zinc-100 dark:bg-slate-800/80 rounded-xl p-1 border border-zinc-200 dark:border-zinc-700" title="Escala del almacén (Clic en % para 100%)">
+            <button
+              onClick={() => setZoomLevel(prev => Math.max(0.60, Math.round((prev - 0.05) * 100) / 100))}
+              className="p-1 text-zinc-500 hover:text-zinc-800 dark:hover:text-white transition-colors"
+              title="Reducir zoom (muestra más columnas y filas en pantalla)"
+            >
               <Icon name="minus" size={12} />
             </button>
-            <span className="text-[10px] font-black px-1.5 text-zinc-600 dark:text-zinc-300">{Math.round(zoomLevel * 100)}%</span>
-            <button onClick={() => setZoomLevel(prev => Math.min(1.25, prev + 0.05))} className="p-1 text-zinc-500 hover:text-zinc-800 dark:hover:text-white" title="Aumentar zoom">
+            <span
+              onClick={() => setZoomLevel(1)}
+              className="text-[10px] font-black px-1.5 text-zinc-600 dark:text-zinc-300 cursor-pointer hover:text-halliburton-red select-none transition-colors"
+              title="Clic para restablecer al 100%"
+            >
+              {Math.round(zoomLevel * 100)}%
+            </span>
+            <button
+              onClick={() => setZoomLevel(prev => Math.min(1.30, Math.round((prev + 0.05) * 100) / 100))}
+              className="p-1 text-zinc-500 hover:text-zinc-800 dark:hover:text-white transition-colors"
+              title="Aumentar zoom"
+            >
               <Icon name="plus" size={12} />
             </button>
           </div>
@@ -838,7 +854,7 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
               </div>
             </div>
           </div>
-          {currentSector.id === "principal" && (
+          {currentSector.type === "dual" && (
             <div className="flex items-center gap-2 text-[10px] font-bold text-zinc-400 shrink-0">
               <span className="px-2 py-0.5 rounded-lg bg-blue-500/10 text-blue-500 font-black">Sólidos: <strong className="text-zinc-700 dark:text-zinc-200">{freeSolids} Libres</strong></span>
               <span className="px-2 py-0.5 rounded-lg bg-purple-500/10 text-purple-500 font-black">Líquidos: <strong className="text-zinc-700 dark:text-zinc-200">{freeLiquids} Libres</strong></span>
@@ -881,16 +897,16 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
             </div>
           )}
 
-          {/* ZONA SÓLIDOS */}
-          {(currentSector.id === "principal" || currentSector.type === "solidos" || currentSector.type === "mixto") && (
+          {/* ZONA DE PRODUCTOS QUÍMICOS (GRILLA PRINCIPAL) */}
+          {(currentSector.type === "dual" || currentSector.type === "solidos" || currentSector.type === "mixto") && (
             <div className="p-4 lg:p-5 rounded-3xl border border-zinc-200 dark:border-zinc-800/80 bg-white dark:bg-slate-900/60 shadow-sm flex flex-col">
               <div className="flex items-center justify-between mb-3 pb-2.5 border-b border-zinc-100 dark:border-zinc-800">
                 <div className="flex items-center gap-2.5">
                   <span className="px-3 py-0.5 rounded-lg bg-blue-500/10 text-blue-500 font-black text-xs uppercase tracking-wider">
-                    {currentSector.id === "principal" ? "ZONA SÓLIDOS" : currentSector.name.toUpperCase()}
+                    {currentSector.type === "dual" ? "ZONA SÓLIDOS" : currentSector.name.toUpperCase()}
                   </span>
                   <span className="text-xs font-semibold text-zinc-400">
-                    Polvos y Arcillas ({sDims.rows} Filas &bull; {sDims.columns.length} Cols)
+                    {currentSector.type === "dual" ? "Polvos y Arcillas" : "Almacén General"} ({sDims.rows} Filas &bull; {sDims.columns.length} Cols)
                   </span>
                 </div>
 
@@ -918,14 +934,15 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
                   <button
                     onClick={() => {
                       const next = { ...data };
-                      if (currentSector.id === "principal") {
+                      if (currentSector.type === "dual") {
+                        if (!next.warehouseDimensions) next.warehouseDimensions = { solidos: { rows: 6, columns: ["A","B","C","D"] } };
                         next.warehouseDimensions.solidos.rows = Math.min(20, (next.warehouseDimensions.solidos.rows || 6) + 1);
                       } else {
                         const s = next.sectors.find(x => x.id === currentSector.id);
-                        if (s) s.rows = Math.min(20, (s.rows || 6) + 1);
+                        if (s) s.rows = Math.min(20, (s.rows || 4) + 1);
                       }
                       persistData(next);
-                      showToast("+1 Fila agregada a Sólidos", "success");
+                      showToast("+1 Fila agregada", "success");
                     }}
                     className="px-2.5 py-1.5 rounded-lg bg-zinc-100 dark:bg-slate-800 hover:bg-zinc-200 dark:hover:bg-slate-700 text-zinc-700 dark:text-zinc-200 text-[10px] font-black uppercase tracking-wider transition-all"
                   >
@@ -936,14 +953,24 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
                   <button
                     onClick={() => {
                       const next = { ...data };
-                      const targetCols = currentSector.id === "principal"
-                        ? next.warehouseDimensions.solidos.columns
-                        : next.sectors.find(x => x.id === currentSector.id).columns;
-                      const nextLetter = ALL_ALPHABET.find(l => !targetCols.includes(l)) || "Z";
-                      targetCols.push(nextLetter);
-                      targetCols.sort();
-                      persistData(next);
-                      showToast(`+ Columna ${nextLetter} agregada a Sólidos`, "success");
+                      let targetCols;
+                      if (currentSector.type === "dual") {
+                        if (!next.warehouseDimensions) next.warehouseDimensions = { solidos: { rows: 6, columns: ["A","B","C","D"] } };
+                        targetCols = next.warehouseDimensions.solidos.columns;
+                      } else {
+                        const s = next.sectors.find(x => x.id === currentSector.id);
+                        if (s) {
+                          if (!s.columns) s.columns = ["A","B","C","D","E","F","G","H","I","J","K","L"];
+                          targetCols = s.columns;
+                        }
+                      }
+                      if (targetCols) {
+                        const nextLetter = ALL_ALPHABET.find(l => !targetCols.includes(l)) || "Z";
+                        targetCols.push(nextLetter);
+                        targetCols.sort();
+                        persistData(next);
+                        showToast(`+ Columna ${nextLetter} agregada`, "success");
+                      }
                     }}
                     className="px-2.5 py-1.5 rounded-lg bg-zinc-100 dark:bg-slate-800 hover:bg-zinc-200 dark:hover:bg-slate-700 text-zinc-700 dark:text-zinc-200 text-[10px] font-black uppercase tracking-wider transition-all"
                   >
@@ -967,9 +994,11 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
                 <div
                   ref={solidsScrollRef}
                   className="overflow-x-auto custom-scrollbar-thick pb-3 scroll-smooth px-1"
-                  style={{ transform: `scale(${zoomLevel})`, transformOrigin: "top left" }}
                 >
-                  <div className="flex gap-2 items-stretch py-1 min-w-max">
+                  <div
+                    className="flex gap-2 items-stretch py-1 min-w-max transition-all duration-150"
+                    style={{ zoom: zoomLevel }}
+                  >
                     {sDims.columns.map((colLetter, cIdx) => (
                       <React.Fragment key={`sol-col-${colLetter}`}>
                         {cIdx > 0 && (
@@ -982,7 +1011,7 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
                         )}
                         <div className="w-[98px] min-w-[98px] max-w-[98px] flex flex-col gap-1.5 shrink-0">
                           {Array.from({ length: sDims.rows }, (_, rIdx) => rIdx + 1).map(rowNum =>
-                            renderPalletCard("solidos", colLetter, rowNum)
+                            renderPalletCard(currentSector.type === "dual" ? "solidos" : "mixto", colLetter, rowNum)
                           )}
                         </div>
                       </React.Fragment>
@@ -1089,9 +1118,11 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
                 <div
                   ref={liquidsScrollRef}
                   className="overflow-x-auto custom-scrollbar-thick pb-3 scroll-smooth px-1"
-                  style={{ transform: `scale(${zoomLevel})`, transformOrigin: "top left" }}
                 >
-                  <div className="flex gap-2 items-stretch py-1 min-w-max">
+                  <div
+                    className="flex gap-2 items-stretch py-1 min-w-max transition-all duration-150"
+                    style={{ zoom: zoomLevel }}
+                  >
                     {lDims.columns.map((colLetter, cIdx) => (
                       <React.Fragment key={`liq-col-${colLetter}`}>
                         {cIdx > 0 && (
@@ -1218,17 +1249,16 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
                 const prod = data.productCatalog.find(p => p.name === prodName) || data.productCatalog[0];
                 const totalQty = units * unitWeight;
 
-                let targetZone = receptionTarget?.zone;
+                let targetZone = receptionTarget?.zone || (currentSector.type === "dual" ? (prod.type === "solido" ? "solidos" : "liquidos") : "mixto");
                 let targetCol = receptionTarget?.col;
                 let targetRow = receptionTarget?.row;
 
                 if (!targetCol) {
                   // Buscar primer espacio vacío disponible
-                  targetZone = prod.type === "solido" ? "solidos" : "liquidos";
-                  const dims = currentSector.id === "principal" ? data.warehouseDimensions[targetZone] : currentSector;
-                  for (let r = 1; r <= (dims.rows || 6); r++) {
-                    for (const c of (dims.columns || ["A","B","C"])) {
-                      const exists = data.pallets.some(p => (p.sectorId || "principal") === activeSectorId && p.zone === targetZone && p.col === c && p.row === r && p.quantity > 0);
+                  const dims = currentSector.type === "dual" ? data.warehouseDimensions[targetZone] : currentSector;
+                  for (let r = 1; r <= (dims?.rows || 4); r++) {
+                    for (const c of (dims?.columns || ["A","B","C","D","E","F","G","H","I","J","K","L"])) {
+                      const exists = data.pallets.some(p => (p.sectorId || "principal") === activeSectorId && (currentSector.type !== "dual" || p.zone === targetZone) && p.col === c && p.row === r && p.quantity > 0);
                       if (!exists) {
                         targetCol = c;
                         targetRow = r;
