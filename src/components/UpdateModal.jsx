@@ -10,8 +10,8 @@ const UpdateModal = ({ isOpen, onClose, onUpdate, updateInfo, lang }) => {
     ? "A new version of Baroid Hub has been published. Update now to access new links, tools, and bug fixes." 
     : "Se ha publicado una nueva versión de Baroid Hub. Actualiza ahora para acceder a nuevos enlaces, herramientas y corrección de errores.";
   const note = isEn
-    ? "Your local data (Mud Pits, Inventory, and Fluid Calculations) will NOT be lost during this update."
-    : "Tus datos locales (Sistema de Piletas, Inventario y Calculadora de Fluidos) NO se perderán con esta actualización.";
+    ? "Your local data (LMP Warehouse & Lots, Mud Pits, Inventory, and Fluid Calculations) will NOT be lost during this update."
+    : "Tus datos locales (Almacén y Lotes LMP, Sistema de Piletas, Inventario y Calculadora de Fluidos) NO se perderán con esta actualización.";
   const btnUpdate = isEn ? "Update Now" : "Actualizar Ahora";
   const btnLater = isEn ? "Later" : "Más tarde";
 

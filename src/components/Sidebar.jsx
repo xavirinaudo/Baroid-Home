@@ -116,6 +116,14 @@ const Sidebar = ({
           <span className="truncate">{t.mudPitSystem}</span>
         </button>
 
+        <button
+          onClick={() => { setActiveSector('warehouse'); setSearchQuery(''); setIsMobileSidebarOpen(false); }}
+          className={`w-full flex items-center gap-4 px-4 py-4 rounded-xl text-sm font-semibold transition-all hover:bg-zinc-50 dark:hover:bg-slate-800/50 ${activeSector === 'warehouse' && !searchQuery ? 'sidebar-item-active shadow-lg' : 'text-zinc-600 dark:text-zinc-400'}`}
+        >
+          <Icon name="package" size={18} />
+          <span className="truncate">{t.warehouseLotsTitle || (lang === 'es' ? 'Almacén y Lotes LMP' : 'LMP Warehouse & Lots')}</span>
+        </button>
+
         <div className="h-[1px] bg-zinc-100 dark:bg-zinc-800 my-4 mx-4"></div>
         <p className="text-[10px] text-zinc-400 font-black uppercase tracking-[0.2em] ml-4 mb-2">{t.sectors}</p>
         

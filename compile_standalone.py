@@ -22,6 +22,7 @@ def compile_standalone():
         "src/components/FluidFormulation.jsx",
         "src/components/InventoryConciliation.jsx",
         "src/components/PiletasSystem.jsx",
+        "src/components/WarehouseLotsSystem.jsx",
         "src/components/MainContent.jsx",
         "src/App.jsx"
     ]

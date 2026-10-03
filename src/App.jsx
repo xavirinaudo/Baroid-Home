@@ -198,6 +198,18 @@ const App = () => {
     }, [lang]);
 
     const handleUpdateApp = async () => {
+        // 0. Proteger y resguardar en Vault los datos de almacén y lotes antes de la actualización
+        try {
+            const whState = localStorage.getItem('lmp_warehouse_state') || localStorage.getItem('lmp_warehouse_state_vault');
+            if (whState) {
+                localStorage.setItem('lmp_warehouse_state_vault', whState);
+                localStorage.setItem('baroid_warehouse_backup_persistent', whState);
+                localStorage.setItem('lmp_warehouse_pre_update_snapshot', whState);
+            }
+        } catch (e) {
+            console.error('Error resguardando almacén previo a update:', e);
+        }
+
         // 1. Perform database merge
         setSectors(prev => {
             const merged = mergeData(prev, INITIAL_DATA_REFINED);
@@ -297,6 +309,8 @@ const App = () => {
             sectionName = 'inventory_reconciliation';
         } else if (activeSector === 'piletas') {
             sectionName = 'mud_pit_system';
+        } else if (activeSector === 'warehouse') {
+            sectionName = 'warehouse_lots';
         } else {
             // Map sector IDs to clean names
             switch (activeSector) {
