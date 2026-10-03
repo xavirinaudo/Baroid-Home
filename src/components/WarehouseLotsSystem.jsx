@@ -9,7 +9,7 @@ const DEFAULT_FALLBACK_STATE = {
   sectors: [
     {
       id: "principal",
-      name: "Nave Principal (Sólidos & Líquidos)",
+      name: "Zona de Productos Químicos",
       type: "dual",
       warehouseDimensions: {
         solidos: { rows: 6, columns: ["A", "B", "C", "E", "G", "H", "J", "K", "L", "M"] },
@@ -52,7 +52,7 @@ const getShortProductName = (name) => {
   return name;
 };
 
-const WarehouseLotsSystem = ({ isEditing, lang = 'es' }) => {
+const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDarkMode }) => {
   // 1. Estado persistente con Dual-Ring Vault
   const [data, setData] = useState(() => {
     let saved = localStorage.getItem("lmp_warehouse_state");
@@ -62,7 +62,28 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es' }) => {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (parsed.pallets && parsed.pallets.length > 0) return parsed;
+        if (parsed) {
+          // Filtrar cualquier pestaña no deseada (ej. Equipo 1211) y asegurar "Zona de Productos Químicos"
+          if (Array.isArray(parsed.sectors)) {
+            parsed.sectors = parsed.sectors
+              .filter(s => !s.name?.toLowerCase().includes("1211") && !s.id?.toLowerCase().includes("1211"))
+              .map(s => {
+                if (s.id === "principal" || s.name?.toLowerCase().includes("nave principal")) {
+                  return { ...s, name: "Zona de Productos Químicos" };
+                }
+                return s;
+              });
+            if (parsed.sectors.length === 0) {
+              parsed.sectors = DEFAULT_FALLBACK_STATE.sectors;
+            }
+          } else {
+            parsed.sectors = DEFAULT_FALLBACK_STATE.sectors;
+          }
+          if (parsed.pallets && Array.isArray(parsed.pallets)) {
+            parsed.pallets = parsed.pallets.filter(p => !p.sectorId?.toLowerCase().includes("1211"));
+          }
+          return parsed;
+        }
       } catch (e) {
         console.error("Error reading saved warehouse state:", e);
       }
@@ -278,6 +299,20 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es' }) => {
     if (!ref) return;
     const delta = direction === "left" ? -116 : 116;
     ref.scrollBy({ left: delta, behavior: "smooth" });
+  };
+
+  // Eliminar Sector Personalizado
+  const handleDeleteSector = (sectorId) => {
+    if (sectorId === "principal") return;
+    const sec = data.sectors.find(s => s.id === sectorId);
+    if (!window.confirm(`¿Eliminar la pestaña "${sec?.name || sectorId}" y sus pallets asignados?`)) return;
+    const nextSectors = data.sectors.filter(s => s.id !== sectorId);
+    const nextPallets = data.pallets.filter(p => (p.sectorId || "principal") !== sectorId);
+    persistData({ ...data, sectors: nextSectors, pallets: nextPallets });
+    if (activeSectorId === sectorId) {
+      setActiveSectorId("principal");
+    }
+    showToast(`Pestaña "${sec?.name || ''}" eliminada`, "info");
   };
 
   // Selección de Pallet
@@ -690,6 +725,29 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es' }) => {
               <Icon name="plus" size={12} />
             </button>
           </div>
+
+          {/* Idioma ES / EN (Integrado sin superposiciones) */}
+          {setLang && (
+            <button
+              onClick={() => setLang(lang === 'es' ? 'en' : 'es')}
+              className="flex items-center gap-1 px-2.5 py-1.5 bg-zinc-100 hover:bg-zinc-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-zinc-700 dark:text-zinc-200 rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-sm"
+              title={lang === 'es' ? "Switch to English" : "Cambiar a Español"}
+            >
+              <Icon name="globe" size={13} className="text-halliburton-red" />
+              <span>{lang.toUpperCase()}</span>
+            </button>
+          )}
+
+          {/* Modo Oscuro / Claro Toggle */}
+          {setDarkMode && (
+            <button
+              onClick={() => setDarkMode(!darkMode)}
+              className="p-2 bg-zinc-100 hover:bg-zinc-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-zinc-600 dark:text-zinc-300 rounded-xl transition-all shadow-sm"
+              title={darkMode ? "Modo Claro" : "Modo Oscuro"}
+            >
+              <Icon name={darkMode ? "sun" : "moon"} size={14} />
+            </button>
+          )}
         </div>
       </div>
 
@@ -713,6 +771,18 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es' }) => {
                 <span className={`text-[10px] px-2 py-0.5 rounded-full font-black ${isActive ? 'bg-white/20 text-white' : 'bg-zinc-100 dark:bg-slate-700 text-zinc-500 dark:text-zinc-300'}`}>
                   {count}
                 </span>
+                {sec.id !== "principal" && (
+                  <span
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteSector(sec.id);
+                    }}
+                    className="ml-1 opacity-60 hover:opacity-100 hover:text-red-300 font-black cursor-pointer text-sm leading-none"
+                    title={`Cerrar / eliminar pestaña "${sec.name}"`}
+                  >
+                    &times;
+                  </span>
+                )}
               </button>
             );
           })}
@@ -882,31 +952,53 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es' }) => {
                 </div>
               </div>
 
-              {/* Grilla con Barra de Scroll Gruesa (12px) */}
-              <div
-                ref={solidsScrollRef}
-                className="overflow-x-auto custom-scrollbar-thick pb-3 scroll-smooth"
-                style={{ transform: `scale(${zoomLevel})`, transformOrigin: "top left" }}
-              >
-                <div className="flex gap-2 items-stretch py-1 min-w-max">
-                  {sDims.columns.map((colLetter, cIdx) => (
-                    <React.Fragment key={`sol-col-${colLetter}`}>
-                      {cIdx > 0 && (
-                        <div
-                          className="w-[16px] min-w-[16px] max-w-[16px] rounded-lg bg-slate-100/70 dark:bg-slate-800/40 border border-dashed border-slate-200 dark:border-slate-800 flex items-center justify-center text-[8px] font-black text-slate-400 select-none tracking-widest shrink-0"
-                          style={{ writingMode: 'vertical-rl' }}
-                        >
-                          PASILLO
-                        </div>
-                      )}
-                      <div className="w-[98px] min-w-[98px] max-w-[98px] flex flex-col gap-1.5 shrink-0">
-                        {Array.from({ length: sDims.rows }, (_, rIdx) => rIdx + 1).map(rowNum =>
-                          renderPalletCard("solidos", colLetter, rowNum)
+              {/* Grilla con Barra de Scroll Gruesa (12px) y Flechas Tenues a los Bordes */}
+              <div className="relative group/zone">
+                {/* Flecha tenue lateral izquierda */}
+                <button
+                  type="button"
+                  onClick={() => scrollBays("solidos", "left")}
+                  className="absolute left-0 top-1/2 -translate-y-1/2 z-20 w-7 h-16 rounded-r-xl bg-zinc-900/40 hover:bg-zinc-900/80 text-white backdrop-blur-sm border-y border-r border-white/20 shadow-lg flex items-center justify-center opacity-0 group-hover/zone:opacity-30 hover:!opacity-100 transition-all duration-200 active:scale-95 cursor-pointer"
+                  title="Desplazar a columnas anteriores (◀)"
+                >
+                  <Icon name="chevron-left" size={18} />
+                </button>
+
+                <div
+                  ref={solidsScrollRef}
+                  className="overflow-x-auto custom-scrollbar-thick pb-3 scroll-smooth px-1"
+                  style={{ transform: `scale(${zoomLevel})`, transformOrigin: "top left" }}
+                >
+                  <div className="flex gap-2 items-stretch py-1 min-w-max">
+                    {sDims.columns.map((colLetter, cIdx) => (
+                      <React.Fragment key={`sol-col-${colLetter}`}>
+                        {cIdx > 0 && (
+                          <div
+                            className="w-[16px] min-w-[16px] max-w-[16px] rounded-lg bg-slate-100/70 dark:bg-slate-800/40 border border-dashed border-slate-200 dark:border-slate-800 flex items-center justify-center text-[8px] font-black text-slate-400 select-none tracking-widest shrink-0"
+                            style={{ writingMode: 'vertical-rl' }}
+                          >
+                            PASILLO
+                          </div>
                         )}
-                      </div>
-                    </React.Fragment>
-                  ))}
+                        <div className="w-[98px] min-w-[98px] max-w-[98px] flex flex-col gap-1.5 shrink-0">
+                          {Array.from({ length: sDims.rows }, (_, rIdx) => rIdx + 1).map(rowNum =>
+                            renderPalletCard("solidos", colLetter, rowNum)
+                          )}
+                        </div>
+                      </React.Fragment>
+                    ))}
+                  </div>
                 </div>
+
+                {/* Flecha tenue lateral derecha */}
+                <button
+                  type="button"
+                  onClick={() => scrollBays("solidos", "right")}
+                  className="absolute right-0 top-1/2 -translate-y-1/2 z-20 w-7 h-16 rounded-l-xl bg-zinc-900/40 hover:bg-zinc-900/80 text-white backdrop-blur-sm border-y border-l border-white/20 shadow-lg flex items-center justify-center opacity-0 group-hover/zone:opacity-30 hover:!opacity-100 transition-all duration-200 active:scale-95 cursor-pointer"
+                  title="Desplazar a columnas siguientes (▶)"
+                >
+                  <Icon name="chevron-right" size={18} />
+                </button>
               </div>
             </div>
           )}
@@ -982,31 +1074,53 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es' }) => {
                 </div>
               </div>
 
-              {/* Grilla con Barra de Scroll Gruesa (12px) */}
-              <div
-                ref={liquidsScrollRef}
-                className="overflow-x-auto custom-scrollbar-thick pb-3 scroll-smooth"
-                style={{ transform: `scale(${zoomLevel})`, transformOrigin: "top left" }}
-              >
-                <div className="flex gap-2 items-stretch py-1 min-w-max">
-                  {lDims.columns.map((colLetter, cIdx) => (
-                    <React.Fragment key={`liq-col-${colLetter}`}>
-                      {cIdx > 0 && (
-                        <div
-                          className="w-[16px] min-w-[16px] max-w-[16px] rounded-lg bg-slate-100/70 dark:bg-slate-800/40 border border-dashed border-slate-200 dark:border-slate-800 flex items-center justify-center text-[8px] font-black text-slate-400 select-none tracking-widest shrink-0"
-                          style={{ writingMode: 'vertical-rl' }}
-                        >
-                          PASILLO
-                        </div>
-                      )}
-                      <div className="w-[98px] min-w-[98px] max-w-[98px] flex flex-col gap-1.5 shrink-0">
-                        {Array.from({ length: lDims.rows }, (_, rIdx) => rIdx + 1).map(rowNum =>
-                          renderPalletCard("liquidos", colLetter, rowNum)
+              {/* Grilla con Barra de Scroll Gruesa (12px) y Flechas Tenues a los Bordes */}
+              <div className="relative group/zone">
+                {/* Flecha tenue lateral izquierda */}
+                <button
+                  type="button"
+                  onClick={() => scrollBays("liquidos", "left")}
+                  className="absolute left-0 top-1/2 -translate-y-1/2 z-20 w-7 h-16 rounded-r-xl bg-zinc-900/40 hover:bg-zinc-900/80 text-white backdrop-blur-sm border-y border-r border-white/20 shadow-lg flex items-center justify-center opacity-0 group-hover/zone:opacity-30 hover:!opacity-100 transition-all duration-200 active:scale-95 cursor-pointer"
+                  title="Desplazar a columnas anteriores (◀)"
+                >
+                  <Icon name="chevron-left" size={18} />
+                </button>
+
+                <div
+                  ref={liquidsScrollRef}
+                  className="overflow-x-auto custom-scrollbar-thick pb-3 scroll-smooth px-1"
+                  style={{ transform: `scale(${zoomLevel})`, transformOrigin: "top left" }}
+                >
+                  <div className="flex gap-2 items-stretch py-1 min-w-max">
+                    {lDims.columns.map((colLetter, cIdx) => (
+                      <React.Fragment key={`liq-col-${colLetter}`}>
+                        {cIdx > 0 && (
+                          <div
+                            className="w-[16px] min-w-[16px] max-w-[16px] rounded-lg bg-slate-100/70 dark:bg-slate-800/40 border border-dashed border-slate-200 dark:border-slate-800 flex items-center justify-center text-[8px] font-black text-slate-400 select-none tracking-widest shrink-0"
+                            style={{ writingMode: 'vertical-rl' }}
+                          >
+                            PASILLO
+                          </div>
                         )}
-                      </div>
-                    </React.Fragment>
-                  ))}
+                        <div className="w-[98px] min-w-[98px] max-w-[98px] flex flex-col gap-1.5 shrink-0">
+                          {Array.from({ length: lDims.rows }, (_, rIdx) => rIdx + 1).map(rowNum =>
+                            renderPalletCard("liquidos", colLetter, rowNum)
+                          )}
+                        </div>
+                      </React.Fragment>
+                    ))}
+                  </div>
                 </div>
+
+                {/* Flecha tenue lateral derecha */}
+                <button
+                  type="button"
+                  onClick={() => scrollBays("liquidos", "right")}
+                  className="absolute right-0 top-1/2 -translate-y-1/2 z-20 w-7 h-16 rounded-l-xl bg-zinc-900/40 hover:bg-zinc-900/80 text-white backdrop-blur-sm border-y border-l border-white/20 shadow-lg flex items-center justify-center opacity-0 group-hover/zone:opacity-30 hover:!opacity-100 transition-all duration-200 active:scale-95 cursor-pointer"
+                  title="Desplazar a columnas siguientes (▶)"
+                >
+                  <Icon name="chevron-right" size={18} />
+                </button>
               </div>
             </div>
           )}
@@ -1015,7 +1129,7 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es' }) => {
 
         {/* Columna Derecha: Acordeón de Stock por Producto y Lote */}
         <div className="xl:col-span-4 2xl:col-span-3 min-w-[280px]">
-          <div className="p-3.5 rounded-2xl border border-zinc-200 dark:border-zinc-800/80 bg-white dark:bg-slate-900/60 shadow-sm sticky top-4">
+          <div className="p-3.5 rounded-2xl border border-zinc-200 dark:border-zinc-800/80 bg-white dark:bg-slate-900/60 shadow-sm">
             <div className="flex items-center justify-between mb-2.5 pb-2 border-b border-zinc-100 dark:border-zinc-800">
               <div>
                 <h3 className="text-xs font-black uppercase tracking-tight text-zinc-800 dark:text-white">
@@ -1032,8 +1146,8 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es' }) => {
               </button>
             </div>
 
-            {/* Lista Acordeón */}
-            <div className="space-y-1.5 max-h-[calc(100vh-220px)] overflow-y-auto custom-scrollbar-thick pr-0.5">
+            {/* Lista Acordeón - Flujo natural sin scrollbar interna lenta */}
+            <div className="space-y-1.5">
               {stockSummary.map(prod => (
                 <div key={prod.name} className="border border-zinc-100 dark:border-zinc-800 rounded-xl overflow-hidden bg-zinc-50/50 dark:bg-slate-800/20">
                   <div

@@ -98,40 +98,42 @@ const MainContent = ({
                 </div>
             </div>
 
-            {/* Top Controls Overlay (Desktop only) */}
-            <div className="hidden lg:flex absolute top-8 right-12 z-40 items-center gap-4">
-                <button
-                    onClick={() => setLang(lang === 'es' ? 'en' : 'es')}
-                    className="p-3.5 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-xl text-zinc-500 dark:text-zinc-400 hover:scale-105 transition-all font-black text-xs tracking-wider flex items-center gap-2"
-                    title={lang === 'es' ? "Switch to English" : "Cambiar a Español"}
-                >
-                    <Icon name="globe" size={20} className="text-halliburton-red" />
-                    <span>{lang.toUpperCase()}</span>
-                </button>
-                <div className="flex bg-white/80 dark:bg-slate-900/80 backdrop-blur-md p-1.5 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-xl">
+            {/* Top Controls Overlay (Desktop only - oculto en warehouse para evitar superposiciones con botones de gestión) */}
+            {activeSector !== 'warehouse' && (
+                <div className="hidden lg:flex absolute top-8 right-12 z-40 items-center gap-4">
                     <button
-                        onClick={() => setCardSize('large')}
-                        className={`p-2.5 rounded-xl transition-all ${cardSize === 'large' ? 'bg-halliburton-red text-white shadow-lg' : 'text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300'}`}
-                        title={lang === 'es' ? "Vista Grande" : "Large View"}
+                        onClick={() => setLang(lang === 'es' ? 'en' : 'es')}
+                        className="p-3.5 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-xl text-zinc-500 dark:text-zinc-400 hover:scale-105 transition-all font-black text-xs tracking-wider flex items-center gap-2"
+                        title={lang === 'es' ? "Switch to English" : "Cambiar a Español"}
                     >
-                        <Icon name="layout-grid" size={20} />
+                        <Icon name="globe" size={20} className="text-halliburton-red" />
+                        <span>{lang.toUpperCase()}</span>
                     </button>
+                    <div className="flex bg-white/80 dark:bg-slate-900/80 backdrop-blur-md p-1.5 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-xl">
+                        <button
+                            onClick={() => setCardSize('large')}
+                            className={`p-2.5 rounded-xl transition-all ${cardSize === 'large' ? 'bg-halliburton-red text-white shadow-lg' : 'text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300'}`}
+                            title={lang === 'es' ? "Vista Grande" : "Large View"}
+                        >
+                            <Icon name="layout-grid" size={20} />
+                        </button>
+                        <button
+                            onClick={() => setCardSize('small')}
+                            className={`p-2.5 rounded-xl transition-all ${cardSize === 'small' ? 'bg-halliburton-red text-white shadow-lg' : 'text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300'}`}
+                            title={lang === 'es' ? "Vista Compacta" : "Compact View"}
+                        >
+                            <Icon name="grid-3x3" size={20} />
+                        </button>
+                    </div>
                     <button
-                        onClick={() => setCardSize('small')}
-                        className={`p-2.5 rounded-xl transition-all ${cardSize === 'small' ? 'bg-halliburton-red text-white shadow-lg' : 'text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300'}`}
-                        title={lang === 'es' ? "Vista Compacta" : "Compact View"}
+                        onClick={() => setDarkMode(!darkMode)}
+                        className="p-3.5 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-xl text-zinc-500 dark:text-zinc-400 hover:scale-105 transition-all"
+                        title={darkMode ? (lang === 'es' ? "Modo Claro" : "Light Mode") : (lang === 'es' ? "Modo Oscuro" : "Dark Mode")}
                     >
-                        <Icon name="grid-3x3" size={20} />
+                        <Icon name={darkMode ? "sun" : "moon"} size={22} />
                     </button>
                 </div>
-                <button
-                    onClick={() => setDarkMode(!darkMode)}
-                    className="p-3.5 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-xl text-zinc-500 dark:text-zinc-400 hover:scale-105 transition-all"
-                    title={darkMode ? (lang === 'es' ? "Modo Claro" : "Light Mode") : (lang === 'es' ? "Modo Oscuro" : "Dark Mode")}
-                >
-                    <Icon name={darkMode ? "sun" : "moon"} size={22} />
-                </button>
-            </div>
+            )}
 
             <div className={activeSector === 'warehouse' ? "w-full max-w-none mx-auto" : (cardSize === 'small' ? "max-w-[1400px] mx-auto" : "max-w-6xl mx-auto")}>
                 {showUpdateBanner && (
@@ -190,7 +192,7 @@ const MainContent = ({
                         activeSector === 'formulation' ? <FluidFormulation isEditing={isEditing} lang={lang} unitMode={unitMode} setUnitMode={setUnitMode} /> :
                         activeSector === 'inventory' ? <InventoryConciliation isEditing={isEditing} lang={lang} /> :
                             activeSector === 'piletas' ? <PiletasSystem isEditing={isEditing} lang={lang} /> :
-                                activeSector === 'warehouse' ? <WarehouseLotsSystem isEditing={isEditing} lang={lang} /> :
+                                activeSector === 'warehouse' ? <WarehouseLotsSystem isEditing={isEditing} lang={lang} setLang={setLang} darkMode={darkMode} setDarkMode={setDarkMode} /> :
                                     displaySectors.map(sec => (
                                     <div key={sec.id} className="space-y-10 animate-fade-in">
                                         {sec.subsectors.map(sub => (
