@@ -233,7 +233,7 @@ const I18N = {
     noMatches: "Sin coincidencias",
     inSlots: "en:",
     solidsZone: "ZONA SÓLIDOS",
-    liquidsZoneTrays: "ZONA LÍQUIDOS (BANDEJAS)",
+    liquidsZoneTrays: "ZONA LÍQUIDOS",
     generalZone: "ZONA GENERAL",
     tray: "Bandeja",
     trays: "Bandejas",
@@ -400,7 +400,7 @@ const I18N = {
     noMatches: "No matches",
     inSlots: "in:",
     solidsZone: "SOLIDS ZONE",
-    liquidsZoneTrays: "LIQUIDS ZONE (TRAYS)",
+    liquidsZoneTrays: "LIQUIDS ZONE",
     generalZone: "GENERAL ZONE",
     tray: "Tray",
     trays: "Trays",
@@ -835,7 +835,7 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
     if (!element) return;
 
     const opt = {
-      margin: [3, 3, 3, 3], // Margen mínimo de 3mm para aprovechar al máximo la superficie A4
+      margin: [4, 4, 4, 4], // Margen equilibrado de 4mm para proteger bordes en A4 apaisado
       filename: `${lang === 'es' ? 'Diagrama_Zona_Productos' : 'Chemical_Products_Zone_Diagram'}_${currentSector.name.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`,
       image: { type: 'jpeg', quality: 0.98 },
       html2canvas: {
@@ -844,7 +844,8 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
         letterRendering: true,
         scrollY: 0,
         scrollX: 0,
-        windowWidth: 1200
+        windowWidth: 1040,
+        width: 1020
       },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape', compress: true },
       pagebreak: { mode: 'avoid-all' }
@@ -1531,77 +1532,61 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
     const maxCols = Math.max(sDims.columns.length, isDual ? lDims.columns.length : 0);
 
     // Altura del card calculada dinámicamente para que quepa estrictamente en 1 página A4 Landscape (<= 750px total)
-    let cardH = 80;
+    let cardH = 65;
     let titleSize = "text-[10px]";
-    let qtySize = "text-[10px]";
     let lotSize = "text-[12px]";
-    let posSize = "text-[8.5px]";
-    let gapClass = "gap-1.5";
-    let padClass = "p-1.5";
+    let qtySize = "text-[9.5px]";
+    let gapClass = "gap-1";
 
     if (totalRows <= 4) {
-      cardH = 108;
+      cardH = 100;
       titleSize = "text-[11.5px]";
-      qtySize = "text-[12px]";
       lotSize = "text-[14px]";
-      posSize = "text-[10px]";
-      gapClass = "gap-1.5";
-      padClass = "p-2";
-    } else if (totalRows <= 5) {
-      cardH = 90;
-      titleSize = "text-[11px]";
       qtySize = "text-[11px]";
-      lotSize = "text-[13px]";
-      posSize = "text-[9.5px]";
       gapClass = "gap-1.5";
-      padClass = "p-1.5";
     } else if (totalRows <= 6) {
-      cardH = 78;
-      titleSize = "text-[10.5px]";
-      qtySize = "text-[10.5px]";
-      lotSize = "text-[12.5px]";
-      posSize = "text-[9px]";
+      cardH = 75;
+      titleSize = "text-[11px]";
+      lotSize = "text-[13px]";
+      qtySize = "text-[10px]";
       gapClass = "gap-1";
-      padClass = "p-1.5";
     } else if (totalRows <= 8) {
       cardH = 62;
-      titleSize = "text-[9.5px]";
+      titleSize = "text-[10px]";
+      lotSize = "text-[12px]";
       qtySize = "text-[9.5px]";
-      lotSize = "text-[11.5px]";
-      posSize = "text-[8.5px]";
       gapClass = "gap-1";
-      padClass = "p-1";
     } else if (totalRows <= 10) {
       cardH = 50;
-      titleSize = "text-[8.5px]";
+      titleSize = "text-[9px]";
+      lotSize = "text-[11px]";
       qtySize = "text-[8.5px]";
-      lotSize = "text-[10.5px]";
-      posSize = "text-[8px]";
       gapClass = "gap-0.5";
-      padClass = "p-0.5 px-1";
     } else if (totalRows <= 12) {
       cardH = 42;
-      titleSize = "text-[7.5px]";
-      qtySize = "text-[7.5px]";
-      lotSize = "text-[9.5px]";
-      posSize = "text-[7px]";
+      titleSize = "text-[8px]";
+      lotSize = "text-[10px]";
+      qtySize = "text-[8px]";
       gapClass = "gap-0.5";
-      padClass = "p-0.5 px-0.5";
     } else {
-      cardH = Math.max(32, Math.floor(510 / totalRows));
-      titleSize = "text-[7px]";
-      qtySize = "text-[7px]";
-      lotSize = "text-[8.5px]";
-      posSize = "text-[6.5px]";
+      cardH = Math.max(34, Math.floor(480 / totalRows));
+      titleSize = "text-[7.5px]";
+      lotSize = "text-[9.5px]";
+      qtySize = "text-[7.5px]";
       gapClass = "gap-0.5";
-      padClass = "p-0.5";
     }
 
-    // Si hay muchas columnas (ej. más de 12), reducir ligeramente la tipografía para que no se desborde horizontalmente
-    if (maxCols > 12) {
-      if (titleSize.includes("12px") || titleSize.includes("11.5px")) titleSize = "text-[10px]";
-      else if (titleSize.includes("11px") || titleSize.includes("10.5px")) titleSize = "text-[9.5px]";
-      else if (titleSize.includes("10px") || titleSize.includes("9.5px")) titleSize = "text-[8.5px]";
+    // Si hay 12 o más columnas (ej. de la A a la M), ajustar ligeramente los tamaños para que no desborden horizontalmente
+    if (maxCols >= 12) {
+      if (totalRows <= 8) {
+        titleSize = "text-[9px]";
+        lotSize = "text-[10.5px]";
+        qtySize = "text-[8.5px]";
+      } else {
+        titleSize = "text-[7.5px]";
+        lotSize = "text-[9.5px]";
+        qtySize = "text-[7.5px]";
+      }
     }
 
     return {
@@ -1609,9 +1594,7 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
       titleSize,
       qtySize,
       lotSize,
-      posSize,
       gapClass,
-      padClass,
       totalRows,
       isDual
     };
@@ -3206,8 +3189,8 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
           {/* HOJA IMPRIMIBLE DE ALTA RESOLUCIÓN Y COBERTURA MÁXIMA A4 (1 SOLA PÁGINA) */}
           <div
             id="printableWarehouseSheet"
-            style={{ width: '1120px', maxWidth: '1120px', boxSizing: 'border-box' }}
-            className="bg-white text-black rounded-2xl p-2.5 shadow-2xl border border-zinc-200 print:border-none print:shadow-none print:p-0 print:m-0 print:w-full print:max-w-none print:min-w-0 print:rounded-none mx-auto overflow-hidden"
+            style={{ width: '1020px', maxWidth: '1020px', boxSizing: 'border-box' }}
+            className="bg-white text-black rounded-xl p-2.5 shadow-2xl border border-zinc-200 print:border-none print:shadow-none print:p-0 print:m-0 print:w-full print:max-w-none print:min-w-0 print:rounded-none mx-auto overflow-hidden"
           >
             {/* ENCABEZADO OFICIAL LIMPIO Y COMPACTO */}
             <div className="border-b-2 border-black pb-1 mb-1.5 flex items-center justify-between">
@@ -3236,7 +3219,7 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
                 <div className="space-y-1">
                   <div className="flex items-center justify-between border-b border-zinc-400 pb-0.5">
                     <span className="text-[10px] font-black uppercase tracking-wider text-black bg-zinc-100 px-2 py-0.5 rounded border border-zinc-300">
-                      {currentSector.type === "dual" ? t("solidsZone") : `${currentSector.name.toUpperCase()} (${t("generalZone")})`}
+                      {currentSector.type === "dual" ? t("solidsZone") : currentSector.name.toUpperCase()}
                     </span>
                     <span className="text-[9px] font-bold text-zinc-600 font-mono">
                       {sDims.rows} {t("rows")} &bull; {sDims.columns.length} {t("cols")}
@@ -3249,9 +3232,6 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
                   >
                     {sDims.columns.map((colLetter) => (
                       <div key={`print-sol-col-${colLetter}`} className={`flex flex-col ${printMetrics.gapClass}`}>
-                        <div className="text-center font-black text-[10px] bg-zinc-200 text-black py-0.5 rounded border border-zinc-400 font-mono leading-none">
-                          {t("colHeader")} {colLetter}
-                        </div>
                         {Array.from({ length: sDims.rows }, (_, rIdx) => {
                           const rowNum = rIdx + 1;
                           const cCol = String(colLetter || '').trim().toUpperCase();
@@ -3264,7 +3244,7 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
                             const pct = cap > 0 ? Math.min(100, Math.round((Number(p.quantity) / cap) * 100)) : 100;
                             const prodDef = productCatalogMap.get(p.product);
                             const prodColor = prodDef ? prodDef.color : "#991B1B";
-                            const bgTint = hexToRgba(prodColor, 0.14);
+                            const bgTint = hexToRgba(prodColor, 0.12);
                             const shortName = getShortProductName(p.product);
 
                             return (
@@ -3277,33 +3257,32 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
                                   minHeight: `${printMetrics.cardH}px`,
                                   maxHeight: `${printMetrics.cardH}px`
                                 }}
-                                className={`rounded-lg ${printMetrics.padClass} border-2 flex flex-col justify-between text-left text-zinc-950 shadow-none overflow-hidden relative select-none page-break-avoid`}
+                                className="rounded-lg p-1 border-2 flex flex-col justify-center items-center text-center shadow-none overflow-hidden select-none page-break-avoid"
                               >
-                                <div className="flex items-center justify-between leading-none w-full gap-0.5">
-                                  <span
-                                    style={{ backgroundColor: prodColor }}
-                                    className={`text-white font-mono font-black ${printMetrics.posSize} px-1.5 py-0.5 rounded leading-none shrink-0 shadow-xs`}
-                                  >
-                                    {colLetter}{rowNum}
-                                  </span>
-                                  {isPartial && (
-                                    <span className={`bg-amber-400 text-slate-950 font-black uppercase ${printMetrics.posSize} px-1 py-0.5 rounded leading-none shrink-0 shadow-xs`}>
-                                      ⚠️ {pct}%
-                                    </span>
-                                  )}
-                                </div>
-                                <div className="my-auto text-center w-full px-0.5">
-                                  <span className={`${printMetrics.titleSize} font-black uppercase text-zinc-950 tracking-tight line-clamp-2 leading-[1.05] block text-center`}>
+                                {/* Línea 1: Nombre de producto (bien visible, negro y destacado) */}
+                                <div className="w-full overflow-hidden leading-tight mb-0.5">
+                                  <span className={`${printMetrics.titleSize} font-black uppercase text-black tracking-tight block truncate`}>
                                     {shortName}
                                   </span>
                                 </div>
-                                <div className="border-t border-zinc-300/80 pt-0.5 w-full flex items-center justify-between leading-none gap-1 bg-white/80 px-1 py-0.5 rounded">
-                                  <span className={`${printMetrics.lotSize} font-mono font-black text-black tracking-tight shrink-0`}>
-                                    L:{p.lot}
+
+                                {/* Línea 2: Lote (más grande) */}
+                                <div className="w-full overflow-hidden leading-tight mb-0.5">
+                                  <span className={`${printMetrics.lotSize} font-mono font-black text-zinc-950 tracking-tight block truncate`}>
+                                    L: {p.lot}
                                   </span>
-                                  <span className={`${printMetrics.qtySize} font-mono font-bold text-zinc-700 tracking-tight shrink-0 text-right`}>
+                                </div>
+
+                                {/* Línea 3: Cantidad y parcial */}
+                                <div className="w-full flex items-center justify-center gap-1 leading-tight overflow-hidden">
+                                  <span className={`${printMetrics.qtySize} font-mono font-bold text-zinc-800 tracking-tight truncate`}>
                                     {Number(p.quantity).toLocaleString("es-AR")} {p.unit || 'KG'}
                                   </span>
+                                  {isPartial && (
+                                    <span className="bg-amber-400 text-slate-950 font-black text-[7.5px] px-1 py-0.2 rounded leading-none shrink-0">
+                                      ⚠️ {pct}%
+                                    </span>
+                                  )}
                                 </div>
                               </div>
                             );
@@ -3316,19 +3295,8 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
                                   minHeight: `${printMetrics.cardH}px`,
                                   maxHeight: `${printMetrics.cardH}px`
                                 }}
-                                className={`rounded-lg ${printMetrics.padClass} border-2 border-dashed border-zinc-300 bg-slate-50/70 flex flex-col justify-between text-left shadow-none overflow-hidden select-none page-break-avoid`}
-                              >
-                                <div className="flex items-center justify-between leading-none w-full text-zinc-400">
-                                  <span className={`font-mono font-black text-zinc-600 ${printMetrics.posSize}`}>{colLetter}{rowNum}</span>
-                                  <span className={`font-black uppercase text-emerald-600 ${printMetrics.posSize}`}>{t("freeTag")}</span>
-                                </div>
-                                <div className="my-auto text-center py-0.5">
-                                  <span className={`${printMetrics.posSize} text-zinc-400 uppercase font-bold tracking-wider`}>{t("freeSlotTag")}</span>
-                                </div>
-                                <div className={`border border-dashed border-zinc-300 rounded px-1 py-0.5 ${printMetrics.posSize} text-zinc-600 font-bold bg-white text-center leading-none`}>
-                                  {t("countBox")}
-                                </div>
-                              </div>
+                                className="rounded-lg border-2 border-dashed border-zinc-300 bg-transparent select-none page-break-avoid"
+                              />
                             );
                           }
                         })}
@@ -3338,7 +3306,7 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
                 </div>
               )}
 
-              {/* SECTOR LÍQUIDOS (BANDEJAS) */}
+              {/* SECTOR LÍQUIDOS */}
               {(currentSector.type === "dual" || currentSector.type === "liquidos") && (
                 <div className="space-y-1 pt-0.5">
                   <div className="flex items-center justify-between border-b border-purple-400 pb-0.5">
@@ -3356,9 +3324,6 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
                   >
                     {lDims.columns.map((colLetter) => (
                       <div key={`print-liq-col-${colLetter}`} className={`flex flex-col ${printMetrics.gapClass}`}>
-                        <div className="text-center font-black text-[10px] bg-purple-100 text-purple-950 py-0.5 rounded border border-purple-300 font-mono leading-none">
-                          {t("trayColHeader")} {colLetter}
-                        </div>
                         {Array.from({ length: lDims.rows }, (_, rIdx) => {
                           const rowNum = rIdx + 1;
                           const cCol = String(colLetter || '').trim().toUpperCase();
@@ -3371,7 +3336,7 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
                             const pct = cap > 0 ? Math.min(100, Math.round((Number(p.quantity) / cap) * 100)) : 100;
                             const prodDef = productCatalogMap.get(p.product);
                             const prodColor = prodDef ? prodDef.color : "#7E22CE";
-                            const bgTint = hexToRgba(prodColor, 0.14);
+                            const bgTint = hexToRgba(prodColor, 0.12);
                             const shortName = getShortProductName(p.product);
 
                             return (
@@ -3384,33 +3349,32 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
                                   minHeight: `${printMetrics.cardH}px`,
                                   maxHeight: `${printMetrics.cardH}px`
                                 }}
-                                className={`rounded-lg ${printMetrics.padClass} border-2 flex flex-col justify-between text-left text-zinc-950 shadow-none overflow-hidden relative select-none page-break-avoid`}
+                                className="rounded-lg p-1 border-2 flex flex-col justify-center items-center text-center shadow-none overflow-hidden select-none page-break-avoid"
                               >
-                                <div className="flex items-center justify-between leading-none w-full gap-0.5">
-                                  <span
-                                    style={{ backgroundColor: prodColor }}
-                                    className={`text-white font-mono font-black ${printMetrics.posSize} px-1.5 py-0.5 rounded leading-none shrink-0 shadow-xs`}
-                                  >
-                                    {colLetter}{rowNum}
-                                  </span>
-                                  {isPartial && (
-                                    <span className={`bg-amber-400 text-slate-950 font-black uppercase ${printMetrics.posSize} px-1 py-0.5 rounded leading-none shrink-0 shadow-xs`}>
-                                      ⚠️ {pct}%
-                                    </span>
-                                  )}
-                                </div>
-                                <div className="my-auto text-center w-full px-0.5">
-                                  <span className={`${printMetrics.titleSize} font-black uppercase text-zinc-950 tracking-tight line-clamp-2 leading-[1.05] block text-center`}>
+                                {/* Línea 1: Nombre de producto (bien visible, negro y destacado) */}
+                                <div className="w-full overflow-hidden leading-tight mb-0.5">
+                                  <span className={`${printMetrics.titleSize} font-black uppercase text-black tracking-tight block truncate`}>
                                     {shortName}
                                   </span>
                                 </div>
-                                <div className="border-t border-zinc-300/80 pt-0.5 w-full flex items-center justify-between leading-none gap-1 bg-white/80 px-1 py-0.5 rounded">
-                                  <span className={`${printMetrics.lotSize} font-mono font-black text-black tracking-tight shrink-0`}>
-                                    L:{p.lot}
+
+                                {/* Línea 2: Lote (más grande) */}
+                                <div className="w-full overflow-hidden leading-tight mb-0.5">
+                                  <span className={`${printMetrics.lotSize} font-mono font-black text-zinc-950 tracking-tight block truncate`}>
+                                    L: {p.lot}
                                   </span>
-                                  <span className={`${printMetrics.qtySize} font-mono font-bold text-zinc-700 tracking-tight shrink-0 text-right`}>
+                                </div>
+
+                                {/* Línea 3: Cantidad y parcial */}
+                                <div className="w-full flex items-center justify-center gap-1 leading-tight overflow-hidden">
+                                  <span className={`${printMetrics.qtySize} font-mono font-bold text-zinc-800 tracking-tight truncate`}>
                                     {Number(p.quantity).toLocaleString("es-AR")} {p.unit || 'LT'}
                                   </span>
+                                  {isPartial && (
+                                    <span className="bg-amber-400 text-slate-950 font-black text-[7.5px] px-1 py-0.2 rounded leading-none shrink-0">
+                                      ⚠️ {pct}%
+                                    </span>
+                                  )}
                                 </div>
                               </div>
                             );
@@ -3423,19 +3387,8 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
                                   minHeight: `${printMetrics.cardH}px`,
                                   maxHeight: `${printMetrics.cardH}px`
                                 }}
-                                className={`rounded-lg ${printMetrics.padClass} border-2 border-dashed border-purple-300 bg-purple-50/40 flex flex-col justify-between text-left shadow-none overflow-hidden select-none page-break-avoid`}
-                              >
-                                <div className="flex items-center justify-between leading-none w-full text-purple-700">
-                                  <span className={`font-mono font-black ${printMetrics.posSize}`}>{colLetter}{rowNum}</span>
-                                  <span className={`font-black uppercase text-purple-600 ${printMetrics.posSize}`}>{t("freeTag")}</span>
-                                </div>
-                                <div className="my-auto text-center py-0.5">
-                                  <span className={`${printMetrics.posSize} text-purple-500 uppercase font-bold tracking-wider`}>{t("trayAvailable")}</span>
-                                </div>
-                                <div className={`border border-dashed border-purple-300 rounded px-1 py-0.5 ${printMetrics.posSize} text-purple-900 font-bold bg-white text-center leading-none`}>
-                                  {t("countBox")}
-                                </div>
-                              </div>
+                                className="rounded-lg border-2 border-dashed border-zinc-300 bg-transparent select-none page-break-avoid"
+                              />
                             );
                           }
                         })}
