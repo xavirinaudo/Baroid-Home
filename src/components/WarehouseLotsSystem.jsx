@@ -464,10 +464,10 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
           // Filtrar cualquier pestaña no deseada (ej. Equipo 1211) y asegurar tipo y dimensiones correctas
           if (Array.isArray(parsed.sectors)) {
             parsed.sectors = parsed.sectors
-              .filter(s => !s.name?.toLowerCase().includes("1211") && !s.id?.toLowerCase().includes("1211"))
+              .filter(s => s && !(s.name || "").toLowerCase().includes("1211") && !(s.id || "").toLowerCase().includes("1211"))
               .map(s => {
-                const isPrincipal = (s.id === "principal" || s.name?.toLowerCase().includes("nave principal") || s.name?.toLowerCase().includes("productos"));
-                const hasLiquidPallets = parsed.pallets && Array.isArray(parsed.pallets) && parsed.pallets.some(p => (p.sectorId || "principal") === s.id && p.zone === "liquidos");
+                const isPrincipal = (s.id === "principal" || (s.name || "").toLowerCase().includes("nave principal") || (s.name || "").toLowerCase().includes("productos"));
+                const hasLiquidPallets = parsed.pallets && Array.isArray(parsed.pallets) && parsed.pallets.some(p => p && (p.sectorId || "principal") === s.id && p.zone === "liquidos");
                 const isDual = s.type === "dual" || hasLiquidPallets;
 
                 if (isPrincipal) {
@@ -492,7 +492,7 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
             parsed.sectors = DEFAULT_FALLBACK_STATE.sectors;
           }
           if (parsed.pallets && Array.isArray(parsed.pallets)) {
-            parsed.pallets = parsed.pallets.filter(p => !p.sectorId?.toLowerCase().includes("1211"));
+            parsed.pallets = parsed.pallets.filter(p => p && !(p.sectorId || "").toLowerCase().includes("1211"));
           } else {
             parsed.pallets = [];
           }
@@ -787,7 +787,18 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
   }, [data.sectors, data.pallets, activeSectorId]);
 
   // KPIs
-  const { totalSlots, occupiedCount, freeSlots, occPct, freeSolids, freeLiquids } = useMemo(() => {
+  const {
+    totalSlots,
+    occupiedCount,
+    freeSlots,
+    occPct,
+    freeSolids,
+    freeLiquids,
+    solidsSlots,
+    liquidsSlots,
+    solidsOccupied,
+    liquidsOccupied
+  } = useMemo(() => {
     let tSlots = 48;
     let sOccupied = 0;
     let lOccupied = 0;
@@ -863,9 +874,9 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
     setReceptionTarget(target);
     setIsCustomProduct(false);
     setCustomProdName("");
-    const firstProd = OFFICIAL_BAROID_CATALOG[0];
-    setReceptionSelectedProd(firstProd.name);
-    setReceptionUnits(firstProd.defaultPackage?.includes("Big Bag") ? 1 : (firstProd.defaultPackage?.includes("Tambor") ? 4 : 50));
+    const firstProd = OFFICIAL_BAROID_CATALOG[0] || {};
+    setReceptionSelectedProd(firstProd.name || "BAROID® Barita");
+    setReceptionUnits((firstProd.defaultPackage || "").includes("Big Bag") ? 1 : ((firstProd.defaultPackage || "").includes("Tambor") ? 4 : 50));
     setReceptionUnitWeight(firstProd.unitWeight || 25);
     setShowReceptionModal(true);
   };
@@ -878,8 +889,8 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
         // Pegar de portapapeles
         const newPallet = {
           ...copiedPallet,
-          id: `PAL-${zone.substring(0,3).toUpperCase()}-${col}${row}-${Date.now().toString().slice(-4)}`,
-          zone,
+          id: `PAL-${(zone || 'mix').substring(0,3).toUpperCase()}-${col}${row}-${Date.now().toString().slice(-4)}`,
+          zone: zone || 'mixto',
           col,
           row,
           sectorId: activeSectorId
@@ -987,18 +998,19 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
   const searchMatches = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
     if (!q) return [];
-    return data.pallets.filter(p =>
+    return (data.pallets || []).filter(p =>
+      p &&
       (p.sectorId || "principal") === activeSectorId &&
       Number(p.quantity) > 0 &&
-      (p.lot?.toLowerCase().includes(q) || p.product?.toLowerCase().includes(q))
+      (((p.lot || "").toLowerCase().includes(q)) || ((p.product || "").toLowerCase().includes(q)))
     );
   }, [data.pallets, activeSectorId, searchQuery]);
 
   // Resumen acumulado por producto y lote
   const stockSummary = useMemo(() => {
     const map = {};
-    data.pallets.forEach(p => {
-      if ((p.sectorId || "principal") !== activeSectorId || !p.quantity || p.quantity <= 0) return;
+    (data.pallets || []).forEach(p => {
+      if (!p || (p.sectorId || "principal") !== activeSectorId || !p.quantity || p.quantity <= 0 || !p.product) return;
       if (!map[p.product]) {
         map[p.product] = {
           name: p.product,
@@ -1008,7 +1020,8 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
         };
       }
       map[p.product].totalQty += Number(p.quantity);
-      map[p.product].lots[p.lot] = (map[p.product].lots[p.lot] || 0) + Number(p.quantity);
+      const lKey = p.lot || "S/L";
+      map[p.product].lots[lKey] = (map[p.product].lots[lKey] || 0) + Number(p.quantity);
     });
     return Object.values(map);
   }, [data.pallets, activeSectorId]);
@@ -1112,8 +1125,8 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
 
     const cleanSearch = searchQuery.trim().toLowerCase();
     if (cleanSearch.length > 0) {
-      const matchLot = pallet.lot?.toLowerCase().includes(cleanSearch);
-      const matchProd = pallet.product?.toLowerCase().includes(cleanSearch);
+      const matchLot = (pallet.lot || "").toLowerCase().includes(cleanSearch);
+      const matchProd = (pallet.product || "").toLowerCase().includes(cleanSearch);
       if (matchLot || matchProd) {
         isHighlighted = true;
       } else {
@@ -1206,14 +1219,26 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
     );
   };
 
-  // Dimensiones del sector activo
-  const sDims = currentSector.type === "dual"
-    ? (data.warehouseDimensions?.solidos || { rows: 6, columns: ["A", "B", "C", "E", "G", "H", "J", "K", "L", "M"] })
-    : { rows: currentSector.rows || 4, columns: currentSector.columns || ["A","B","C","D","E","F","G","H","I","J","K","L"] };
+  // Dimensiones del sector activo garantizadas defensivamente
+  const sDims = useMemo(() => {
+    let raw = currentSector.type === "dual"
+      ? (data.warehouseDimensions?.solidos || { rows: 6, columns: ["A", "B", "C", "E", "G", "H", "J", "K", "L", "M"] })
+      : { rows: currentSector.rows || 4, columns: currentSector.columns || ["A","B","C","D","E","F","G","H","I","J","K","L"] };
+    return {
+      rows: Math.max(1, Number(raw?.rows) || 4),
+      columns: Array.isArray(raw?.columns) && raw.columns.length > 0 ? raw.columns : ["A","B","C","D","E","F","G","H","I","J","K","L"]
+    };
+  }, [currentSector, data.warehouseDimensions]);
 
-  const lDims = currentSector.type === "dual"
-    ? (data.warehouseDimensions?.liquidos || { rows: 6, columns: ["B", "C", "E", "H", "J", "K", "L", "M"] })
-    : { rows: currentSector.rows || 4, columns: currentSector.columns || ["A","B","C","D"] };
+  const lDims = useMemo(() => {
+    let raw = currentSector.type === "dual"
+      ? (data.warehouseDimensions?.liquidos || { rows: 6, columns: ["B", "C", "E", "H", "J", "K", "L", "M"] })
+      : { rows: currentSector.rows || 4, columns: currentSector.columns || ["A","B","C","D"] };
+    return {
+      rows: Math.max(1, Number(raw?.rows) || 4),
+      columns: Array.isArray(raw?.columns) && raw.columns.length > 0 ? raw.columns : ["A","B","C","D"]
+    };
+  }, [currentSector, data.warehouseDimensions]);
 
   return (
     <div className="space-y-4 text-left font-sans">

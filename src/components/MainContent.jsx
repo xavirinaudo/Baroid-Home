@@ -25,6 +25,55 @@ const resolveUrl = (url) => {
         return `${baseUrl.endsWith('/') ? baseUrl : baseUrl + '/'}${cleanUrl}`;
     }
     return url;
+};
+
+class WarehouseErrorBoundary extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = { hasError: false, error: null };
+    }
+    static getDerivedStateFromError(error) {
+        return { hasError: true, error };
+    }
+    componentDidCatch(error, errorInfo) {
+        console.error("Warehouse Lots System Error:", error, errorInfo);
+    }
+    render() {
+        if (this.state.hasError) {
+            return (
+                <div className="p-6 bg-red-50 dark:bg-red-950/30 border-2 border-red-500 rounded-3xl text-center space-y-4 max-w-xl mx-auto my-12 animate-fade-in shadow-xl">
+                    <div className="w-12 h-12 bg-red-500 text-white rounded-2xl flex items-center justify-center mx-auto shadow-md">
+                        <Icon name="alert-triangle" size={24} />
+                    </div>
+                    <h3 className="text-base font-black uppercase text-red-600 dark:text-red-400">
+                        Error al Cargar la Vista de Almacén
+                    </h3>
+                    <p className="text-xs text-zinc-600 dark:text-zinc-300 font-mono bg-white dark:bg-slate-900 p-3 rounded-xl border border-red-200 dark:border-red-800 break-words">
+                        {this.state.error?.toString()}
+                    </p>
+                    <div className="flex justify-center gap-3 pt-2">
+                        <button
+                            onClick={() => this.setState({ hasError: false, error: null })}
+                            className="px-5 py-2.5 bg-halliburton-red hover:bg-red-700 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-md active:scale-95 cursor-pointer"
+                        >
+                            Reintentar Carga
+                        </button>
+                        <button
+                            onClick={() => {
+                                localStorage.removeItem("lmp_warehouse_state");
+                                localStorage.removeItem("lmp_warehouse_state_vault");
+                                window.location.reload();
+                            }}
+                            className="px-5 py-2.5 bg-zinc-200 dark:bg-slate-800 hover:bg-zinc-300 dark:hover:bg-slate-700 text-zinc-800 dark:text-zinc-200 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer"
+                        >
+                            Restablecer Almacén a Cero
+                        </button>
+                    </div>
+                </div>
+            );
+        }
+        return this.props.children;
+    }
 }
 
 const MainContent = ({
@@ -191,7 +240,11 @@ const MainContent = ({
                         activeSector === 'formulation' ? <FluidFormulation isEditing={isEditing} lang={lang} unitMode={unitMode} setUnitMode={setUnitMode} /> :
                         activeSector === 'inventory' ? <InventoryConciliation isEditing={isEditing} lang={lang} /> :
                             activeSector === 'piletas' ? <PiletasSystem isEditing={isEditing} lang={lang} /> :
-                                activeSector === 'warehouse' ? <WarehouseLotsSystem isEditing={isEditing} lang={lang} setLang={setLang} darkMode={darkMode} setDarkMode={setDarkMode} /> :
+                                activeSector === 'warehouse' ? (
+                                    <WarehouseErrorBoundary>
+                                        <WarehouseLotsSystem isEditing={isEditing} lang={lang} setLang={setLang} darkMode={darkMode} setDarkMode={setDarkMode} />
+                                    </WarehouseErrorBoundary>
+                                ) :
                                     displaySectors.map(sec => (
                                     <div key={sec.id} className="space-y-10 animate-fade-in">
                                         {sec.subsectors.map(sub => (
