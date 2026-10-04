@@ -32,6 +32,7 @@ def compile_standalone():
     
     # Add babel global helper if needed
     compiled_js.append("/* Compiled Standalone React Code */\n")
+    compiled_js.append("const { useState, useEffect, useRef, useMemo, useCallback } = React;\n")
     
     for relative_path in files:
         full_path = os.path.join(workspace, relative_path)
@@ -42,6 +43,10 @@ def compile_standalone():
         with open(full_path, "r", encoding="utf-8") as f:
             content = f.read()
             
+        # Clean import.meta
+        content = content.replace("import.meta.env.BASE_URL", "'/'")
+        content = content.replace("import.meta.env.DEV", "false")
+
         # Clean imports and exports
         # Remove imports
         content = re.sub(r'^import\s+.*?;?\s*$', '', content, flags=re.MULTILINE)

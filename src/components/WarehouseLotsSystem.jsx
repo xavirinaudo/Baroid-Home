@@ -54,6 +54,10 @@ const DEFAULT_FALLBACK_STATE = {
   plant: "Planta LMP Baroid / YPF",
   version: "3.0",
   lastUpdated: new Date().toISOString(),
+  warehouseDimensions: {
+    solidos: { rows: 6, columns: ["A", "B", "C", "E", "G", "H", "J", "K", "L", "M"] },
+    liquidos: { rows: 6, columns: ["B", "C", "E", "H", "J", "K", "L", "M"] }
+  },
   sectors: [
     {
       id: "principal",
@@ -489,6 +493,8 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
           }
           if (parsed.pallets && Array.isArray(parsed.pallets)) {
             parsed.pallets = parsed.pallets.filter(p => !p.sectorId?.toLowerCase().includes("1211"));
+          } else {
+            parsed.pallets = [];
           }
           if (!parsed.warehouseDimensions) {
             parsed.warehouseDimensions = {

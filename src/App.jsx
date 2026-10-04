@@ -167,7 +167,7 @@ const App = () => {
 
     useEffect(() => {
         // En desarrollo local no queremos alertar sobre actualizaciones
-        if (import.meta.env.DEV) return;
+        if (typeof process !== 'undefined' && process.env?.NODE_ENV === 'development') return;
 
         const checkVersion = async () => {
             try {

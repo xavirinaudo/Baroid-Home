@@ -18,11 +18,10 @@ const getDisplayUrl = (url) => {
         return url;
     }
 };
-
 const resolveUrl = (url) => {
     if (url && (url.startsWith('documents/') || url.startsWith('/documents/'))) {
         const cleanUrl = url.startsWith('/') ? url.slice(1) : url;
-        const baseUrl = import.meta.env.BASE_URL || '/';
+        const baseUrl = (typeof window !== 'undefined' && window.__BASE_URL__) || '/';
         return `${baseUrl.endsWith('/') ? baseUrl : baseUrl + '/'}${cleanUrl}`;
     }
     return url;

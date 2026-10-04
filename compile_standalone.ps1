@@ -25,6 +25,7 @@ $files = @(
 
 Write-Output "Reading and processing React components..."
 $compiledJs = "/* Compiled Standalone React Code */`n"
+$compiledJs += "const { useState, useEffect, useRef, useMemo, useCallback } = React;`n"
 
 foreach ($file in $files) {
     $fullPath = Join-Path $workspace $file
@@ -35,6 +36,10 @@ foreach ($file in $files) {
     
     $content = [System.IO.File]::ReadAllText($fullPath)
     
+    # Replace import.meta.env before import stripping
+    $content = $content -replace 'import\.meta\.env\.BASE_URL', "'/'"
+    $content = $content -replace 'import\.meta\.env\.DEV', "false"
+
     # Remove imports
     $content = $content -replace '(?m)^import\s+.*?;?\s*$', ''
     $content = $content -replace '(?m)^import\s+type\s+.*?;?\s*$', ''
