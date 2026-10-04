@@ -724,25 +724,24 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
     }
   };
 
-  // Descargar Planilla Diagrama de Zona de Productos en PDF (1 Sola Página A4 Apaisado Máxima Cobertura)
+  // Descargar Planilla Diagrama de Zona de Productos en PDF (Alta Resolución A4 Apaisado Máxima Cobertura)
   const handleDownloadPdf = () => {
     const element = document.getElementById("printableWarehouseSheet");
     if (!element) return;
 
     const opt = {
-      margin: [3, 3, 3, 3], // Margen mínimo de 3mm para aprovechar al máximo la superficie A4
+      margin: [4, 4, 4, 4], // Margen mínimo de 4mm para utilizar el 98% del ancho y alto del papel A4
       filename: `${lang === 'es' ? 'Diagrama_Zona_Productos' : 'Chemical_Products_Zone_Diagram'}_${currentSector.name.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`,
-      image: { type: 'jpeg', quality: 0.98 },
+      image: { type: 'jpeg', quality: 1.0 },
       html2canvas: {
-        scale: 2.5, // 2.5x provee calidad tipográfica de imprenta sin desbordar memoria
+        scale: 3, // Ultra alta resolución (3x) para máxima nitidez y legibilidad
         useCORS: true,
         letterRendering: true,
         scrollY: 0,
-        scrollX: 0,
-        windowWidth: 1200
+        scrollX: 0
       },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape', compress: true },
-      pagebreak: { mode: [] } // Desactiva saltos automáticos para garantizar estrictamente 1 sola página
+      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
     };
 
     const isDark = document.documentElement.classList.contains('dark');
@@ -1240,92 +1239,6 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
       columns: Array.isArray(raw?.columns) && raw.columns.length > 0 ? raw.columns : ["A","B","C","D"]
     };
   }, [currentSector, data.warehouseDimensions]);
-
-  // Métricas geométricas y tipográficas calculadas para que el diagrama entre en 1 SOLA PÁGINA A4 Landscape
-  const printMetrics = useMemo(() => {
-    const isDual = currentSector.type === "dual";
-    const sRows = sDims.rows;
-    const lRows = isDual ? lDims.rows : 0;
-    const totalRows = isDual ? (sRows + lRows) : sRows;
-
-    let cardH = 80;
-    let titleSize = "text-[10px]";
-    let qtySize = "text-[11px]";
-    let lotSize = "text-[9px]";
-    let posSize = "text-[8.5px]";
-    let gapClass = "gap-1.5";
-    let padClass = "p-1.5";
-
-    if (totalRows <= 4) {
-      cardH = 112;
-      titleSize = "text-[11px]";
-      qtySize = "text-[12.5px]";
-      lotSize = "text-[10px]";
-      posSize = "text-[9.5px]";
-      gapClass = "gap-1.5";
-      padClass = "p-2";
-    } else if (totalRows <= 5) {
-      cardH = 94;
-      titleSize = "text-[10.5px]";
-      qtySize = "text-[12px]";
-      lotSize = "text-[9.5px]";
-      posSize = "text-[9px]";
-      gapClass = "gap-1.5";
-      padClass = "p-1.5";
-    } else if (totalRows <= 6) {
-      cardH = 80;
-      titleSize = "text-[10px]";
-      qtySize = "text-[11px]";
-      lotSize = "text-[9px]";
-      posSize = "text-[8.5px]";
-      gapClass = "gap-1";
-      padClass = "p-1.5";
-    } else if (totalRows <= 8) {
-      cardH = 62;
-      titleSize = "text-[9px]";
-      qtySize = "text-[10px]";
-      lotSize = "text-[8px]";
-      posSize = "text-[8px]";
-      gapClass = "gap-1";
-      padClass = "p-1";
-    } else if (totalRows <= 10) {
-      cardH = 50;
-      titleSize = "text-[8px]";
-      qtySize = "text-[9px]";
-      lotSize = "text-[7.5px]";
-      posSize = "text-[7.5px]";
-      gapClass = "gap-0.5";
-      padClass = "p-0.5 px-1";
-    } else if (totalRows <= 12) {
-      cardH = 41;
-      titleSize = "text-[7.5px]";
-      qtySize = "text-[8.5px]";
-      lotSize = "text-[7px]";
-      posSize = "text-[7px]";
-      gapClass = "gap-0.5";
-      padClass = "p-0.5 px-1";
-    } else {
-      cardH = 34;
-      titleSize = "text-[7px]";
-      qtySize = "text-[8px]";
-      lotSize = "text-[6.5px]";
-      posSize = "text-[6.5px]";
-      gapClass = "gap-0.5";
-      padClass = "p-0.5";
-    }
-
-    return {
-      cardH,
-      titleSize,
-      qtySize,
-      lotSize,
-      posSize,
-      gapClass,
-      padClass,
-      totalRows,
-      isDual
-    };
-  }, [currentSector, sDims, lDims]);
 
   return (
     <div className="space-y-4 text-left font-sans">
@@ -2913,53 +2826,53 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
             </div>
           </div>
 
-          {/* HOJA IMPRIMIBLE DE ALTA RESOLUCIÓN Y COBERTURA MÁXIMA A4 (1 SOLA PÁGINA) */}
+          {/* HOJA IMPRIMIBLE DE ALTA RESOLUCIÓN Y COBERTURA MÁXIMA A4 */}
           <div
             id="printableWarehouseSheet"
-            style={{ width: '1120px', maxWidth: '1120px', boxSizing: 'border-box' }}
-            className="bg-white text-black rounded-2xl p-3 shadow-2xl border border-zinc-200 print:border-none print:shadow-none print:p-0 print:m-0 print:w-full print:max-w-none print:min-w-0 print:rounded-none mx-auto overflow-hidden"
+            style={{ width: '100%', minWidth: '1100px' }}
+            className="bg-white text-black rounded-2xl p-4 sm:p-6 shadow-2xl border border-zinc-200 print:border-none print:shadow-none print:p-0 print:m-0 print:w-full print:max-w-none print:min-w-0 print:rounded-none"
           >
-            {/* ENCABEZADO OFICIAL LIMPIO Y COMPACTO */}
-            <div className="border-b-2 border-black pb-1 mb-1.5 flex items-center justify-between">
+            {/* ENCABEZADO OFICIAL LIMPIO Y MINIMALISTA */}
+            <div className="border-b-2 border-black pb-3 mb-4 flex items-end justify-between">
               <div>
-                <h1 className="text-xl font-black uppercase tracking-wider text-black leading-none">
+                <h1 className="text-2xl font-black uppercase tracking-wider text-black leading-tight">
                   {t("diagramSheetTitle")}
                 </h1>
-                <div className="text-[10px] font-bold text-zinc-700 uppercase tracking-widest mt-0.5">
+                <div className="text-xs font-bold text-zinc-700 uppercase tracking-widest mt-1">
                   SECTOR: {currentSector.name.toUpperCase()} &bull; {t("officialCountingSheet")}
                 </div>
               </div>
-              <div className="text-right leading-tight">
-                <div className="text-[10.5px] font-black text-black font-mono">
+              <div className="text-right leading-snug">
+                <div className="text-xs font-black text-black">
                   {t("issued")}: {new Date().toLocaleDateString(lang === 'es' ? 'es-AR' : 'en-US')} - {new Date().toLocaleTimeString(lang === 'es' ? 'es-AR' : 'en-US', { hour: '2-digit', minute: '2-digit' })} hs
                 </div>
-                <div className="text-[9.5px] font-bold text-zinc-700 mt-0.5">
+                <div className="text-[11px] font-bold text-zinc-700 mt-0.5">
                   {t("occupancy")}: {occupiedCount} / {totalSlots} ({occPct}%) &bull; {t("free")}: {freeSlots}
                 </div>
               </div>
             </div>
 
             {/* CONTENIDO DEL ALMACÉN PARA IMPRESIÓN (OCUPA EL 100% DEL ANCHO) */}
-            <div id="printableWarehouseContent" className="space-y-1.5">
+            <div id="printableWarehouseContent" className="space-y-5">
               {/* SECTOR SÓLIDOS (O GENERAL) */}
               {(currentSector.type === "dual" || currentSector.type === "solidos" || currentSector.type === "mixto") && (
-                <div className="space-y-1">
-                  <div className="flex items-center justify-between border-b border-zinc-400 pb-0.5">
-                    <span className="text-[10px] font-black uppercase tracking-wider text-black bg-zinc-100 px-2 py-0.5 rounded border border-zinc-300">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between border-b border-zinc-400 pb-1">
+                    <span className="text-xs font-black uppercase tracking-wider text-black bg-zinc-100 px-2.5 py-0.5 rounded border border-zinc-300">
                       {currentSector.type === "dual" ? t("solidsZone") : `${currentSector.name.toUpperCase()} (${t("generalZone")})`}
                     </span>
-                    <span className="text-[9px] font-bold text-zinc-600 font-mono">
+                    <span className="text-[10px] font-bold text-zinc-600">
                       {sDims.rows} {t("rows")} &bull; {sDims.columns.length} {t("cols")}
                     </span>
                   </div>
 
                   <div
-                    className={`grid ${printMetrics.gapClass}`}
+                    className="grid gap-1.5"
                     style={{ gridTemplateColumns: `repeat(${sDims.columns.length}, minmax(0, 1fr))` }}
                   >
                     {sDims.columns.map((colLetter) => (
-                      <div key={`print-sol-col-${colLetter}`} className={`flex flex-col ${printMetrics.gapClass}`}>
-                        <div className="text-center font-black text-[10px] bg-zinc-200 text-black py-0.5 rounded border border-zinc-400 font-mono leading-none">
+                      <div key={`print-sol-col-${colLetter}`} className="flex flex-col gap-1.5">
+                        <div className="text-center font-black text-xs bg-zinc-200 text-black py-0.5 rounded border border-zinc-400 font-mono">
                           {t("colHeader")} {colLetter}
                         </div>
                         {Array.from({ length: sDims.rows }, (_, rIdx) => {
@@ -2970,53 +2883,28 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
                           if (p && Number(p.quantity) > 0) {
                             const cap = Number(p.capacityNominal) || Number(p.quantity) || 1000;
                             const isPartial = p.status === "partial" || (cap > 0 && Number(p.quantity) < cap);
-                            const pct = cap > 0 ? Math.min(100, Math.round((Number(p.quantity) / cap) * 100)) : 100;
-                            const prodDef = productCatalogMap.get(p.product);
-                            const bgColor = prodDef ? prodDef.color : "#991B1B";
-                            const shortName = getShortProductName(p.product);
 
                             return (
                               <div
                                 key={`p-sol-${colLetter}-${rowNum}`}
-                                style={{
-                                  backgroundColor: bgColor,
-                                  height: `${printMetrics.cardH}px`,
-                                  minHeight: `${printMetrics.cardH}px`,
-                                  maxHeight: `${printMetrics.cardH}px`
-                                }}
-                                className={`rounded-lg ${printMetrics.padClass} flex flex-col justify-between text-left text-white shadow-sm border border-black/30 overflow-hidden relative select-none page-break-avoid`}
+                                className="p-1.5 border-2 border-black bg-white rounded-lg flex flex-col justify-between min-h-[82px] text-left shadow-none page-break-avoid"
                               >
-                                <div className="flex items-center justify-between leading-none w-full gap-0.5">
-                                  <span className={`bg-black/70 text-white font-mono font-black ${printMetrics.posSize} px-1 py-0.5 rounded leading-none shrink-0 border border-white/20`}>
+                                <div className="flex items-center justify-between border-b border-zinc-200 pb-0.5">
+                                  <span className="bg-black text-white px-1.5 py-0.2 rounded font-mono font-black text-[10px] leading-tight">
                                     {colLetter}{rowNum}
                                   </span>
                                   {isPartial && (
-                                    <span className={`bg-amber-400 text-slate-950 font-black uppercase ${printMetrics.posSize} px-1 py-0.5 rounded leading-none shrink-0 shadow-sm`}>
-                                      ⚠️ {pct}%
+                                    <span className="text-[8px] bg-amber-200 text-black px-1 rounded font-black uppercase leading-tight border border-black">
+                                      {t("partialTag")}
                                     </span>
                                   )}
                                 </div>
-                                <div className="my-auto text-center w-full px-0.5">
-                                  <span
-                                    className={`${printMetrics.titleSize} font-black uppercase text-white tracking-tight line-clamp-2 leading-[1.05] block text-center`}
-                                    style={{ textShadow: '0 1px 2px rgba(0,0,0,0.9), 0 0 3px rgba(0,0,0,0.8)' }}
-                                  >
-                                    {shortName}
-                                  </span>
+                                <div className="text-[11px] sm:text-xs font-black uppercase text-black line-clamp-2 my-0.5 leading-tight tracking-tight">
+                                  {p.product}
                                 </div>
-                                <div className="flex items-center justify-between border-t border-white/25 pt-0.5 leading-none w-full gap-1">
-                                  <span
-                                    className={`${printMetrics.lotSize} font-mono font-bold text-amber-200 tracking-tight shrink-0`}
-                                    style={{ textShadow: '0 1px 2px rgba(0,0,0,0.9)' }}
-                                  >
-                                    L:{p.lot}
-                                  </span>
-                                  <span
-                                    className={`${printMetrics.qtySize} font-mono font-black text-white tracking-tight shrink-0 text-right`}
-                                    style={{ textShadow: '0 1px 2px rgba(0,0,0,0.9)' }}
-                                  >
-                                    {Number(p.quantity).toLocaleString("es-AR")} {p.unit || 'KG'}
-                                  </span>
+                                <div className="flex items-center justify-between text-[9px] font-bold text-zinc-900 border-t border-zinc-200 pt-0.5">
+                                  <span className="font-mono">L: {p.lot}</span>
+                                  <span className="font-mono font-black text-black">{Number(p.quantity).toLocaleString()} {p.unit || 'KG'}</span>
                                 </div>
                               </div>
                             );
@@ -3024,21 +2912,16 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
                             return (
                               <div
                                 key={`p-sol-${colLetter}-${rowNum}`}
-                                style={{
-                                  height: `${printMetrics.cardH}px`,
-                                  minHeight: `${printMetrics.cardH}px`,
-                                  maxHeight: `${printMetrics.cardH}px`
-                                }}
-                                className={`rounded-lg ${printMetrics.padClass} border-2 border-dashed border-zinc-400 bg-slate-50/90 flex flex-col justify-between text-left shadow-none overflow-hidden select-none page-break-avoid`}
+                                className="p-1.5 border-2 border-dashed border-zinc-400 bg-zinc-50 rounded-lg flex flex-col justify-between min-h-[82px] text-left page-break-avoid"
                               >
-                                <div className="flex items-center justify-between leading-none w-full text-zinc-500">
-                                  <span className={`font-mono font-black text-zinc-700 ${printMetrics.posSize}`}>{colLetter}{rowNum}</span>
-                                  <span className={`font-black uppercase text-emerald-700 ${printMetrics.posSize}`}>{t("freeTag")}</span>
+                                <div className="flex items-center justify-between text-[9px] font-bold text-zinc-500">
+                                  <span className="font-mono font-black text-zinc-700">{colLetter}{rowNum}</span>
+                                  <span className="text-[8px] uppercase font-black text-emerald-700">{t("freeTag")}</span>
                                 </div>
                                 <div className="my-auto text-center py-0.5">
-                                  <span className={`${printMetrics.lotSize} text-zinc-400 uppercase font-bold tracking-wider`}>{t("freeSlotTag")}</span>
+                                  <span className="text-[9px] text-zinc-400 uppercase font-bold tracking-wider">{t("freeSlotTag")}</span>
                                 </div>
-                                <div className={`border border-dashed border-zinc-400 rounded px-1 py-0.5 ${printMetrics.posSize} text-zinc-800 font-bold bg-white text-center leading-none`}>
+                                <div className="border border-dashed border-zinc-400 rounded px-1 py-0.5 text-[8px] text-zinc-800 font-bold bg-white text-center">
                                   {t("countBox")}
                                 </div>
                               </div>
@@ -3053,23 +2936,23 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
 
               {/* SECTOR LÍQUIDOS (BANDEJAS) */}
               {(currentSector.type === "dual" || currentSector.type === "liquidos") && (
-                <div className="space-y-1 pt-0.5">
-                  <div className="flex items-center justify-between border-b border-purple-400 pb-0.5">
-                    <span className="text-[10px] font-black uppercase tracking-wider text-purple-900 bg-purple-50 px-2 py-0.5 rounded border border-purple-300">
+                <div className="space-y-2 pt-1">
+                  <div className="flex items-center justify-between border-b border-purple-400 pb-1">
+                    <span className="text-xs font-black uppercase tracking-wider text-purple-900 bg-purple-50 px-2.5 py-0.5 rounded border border-purple-300">
                       {t("liquidsZoneTrays")}
                     </span>
-                    <span className="text-[9px] font-bold text-purple-700 font-mono">
+                    <span className="text-[10px] font-bold text-purple-700">
                       {lDims.rows} {t("rows")} &bull; {lDims.columns.length} {t("cols")}
                     </span>
                   </div>
 
                   <div
-                    className={`grid ${printMetrics.gapClass}`}
+                    className="grid gap-1.5"
                     style={{ gridTemplateColumns: `repeat(${lDims.columns.length}, minmax(0, 1fr))` }}
                   >
                     {lDims.columns.map((colLetter) => (
-                      <div key={`print-liq-col-${colLetter}`} className={`flex flex-col ${printMetrics.gapClass}`}>
-                        <div className="text-center font-black text-[10px] bg-purple-100 text-purple-950 py-0.5 rounded border border-purple-300 font-mono leading-none">
+                      <div key={`print-liq-col-${colLetter}`} className="flex flex-col gap-1.5">
+                        <div className="text-center font-black text-xs bg-purple-100 text-purple-950 py-0.5 rounded border border-purple-300 font-mono">
                           {t("trayColHeader")} {colLetter}
                         </div>
                         {Array.from({ length: lDims.rows }, (_, rIdx) => {
@@ -3079,53 +2962,28 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
                           if (p && Number(p.quantity) > 0) {
                             const cap = Number(p.capacityNominal) || Number(p.quantity) || 1000;
                             const isPartial = p.status === "partial" || (cap > 0 && Number(p.quantity) < cap);
-                            const pct = cap > 0 ? Math.min(100, Math.round((Number(p.quantity) / cap) * 100)) : 100;
-                            const prodDef = productCatalogMap.get(p.product);
-                            const bgColor = prodDef ? prodDef.color : "#7E22CE";
-                            const shortName = getShortProductName(p.product);
 
                             return (
                               <div
                                 key={`p-liq-${colLetter}-${rowNum}`}
-                                style={{
-                                  backgroundColor: bgColor,
-                                  height: `${printMetrics.cardH}px`,
-                                  minHeight: `${printMetrics.cardH}px`,
-                                  maxHeight: `${printMetrics.cardH}px`
-                                }}
-                                className={`rounded-lg ${printMetrics.padClass} flex flex-col justify-between text-left text-white shadow-sm border border-black/30 overflow-hidden relative select-none page-break-avoid`}
+                                className="p-1.5 border-2 border-purple-950 bg-white rounded-lg flex flex-col justify-between min-h-[82px] text-left shadow-none page-break-avoid"
                               >
-                                <div className="flex items-center justify-between leading-none w-full gap-0.5">
-                                  <span className={`bg-purple-950/80 text-white font-mono font-black ${printMetrics.posSize} px-1 py-0.5 rounded leading-none shrink-0 border border-white/20`}>
+                                <div className="flex items-center justify-between border-b border-purple-200 pb-0.5">
+                                  <span className="bg-purple-900 text-white px-1.5 py-0.2 rounded font-mono font-black text-[10px] leading-tight">
                                     B-{colLetter}{rowNum}
                                   </span>
                                   {isPartial && (
-                                    <span className={`bg-amber-400 text-slate-950 font-black uppercase ${printMetrics.posSize} px-1 py-0.5 rounded leading-none shrink-0 shadow-sm`}>
-                                      ⚠️ {pct}%
+                                    <span className="text-[8px] bg-amber-200 text-black px-1 rounded font-black uppercase leading-tight border border-purple-900">
+                                      {t("partialTag")}
                                     </span>
                                   )}
                                 </div>
-                                <div className="my-auto text-center w-full px-0.5">
-                                  <span
-                                    className={`${printMetrics.titleSize} font-black uppercase text-white tracking-tight line-clamp-2 leading-[1.05] block text-center`}
-                                    style={{ textShadow: '0 1px 2px rgba(0,0,0,0.9), 0 0 3px rgba(0,0,0,0.8)' }}
-                                  >
-                                    {shortName}
-                                  </span>
+                                <div className="text-[11px] sm:text-xs font-black uppercase text-purple-950 line-clamp-2 my-0.5 leading-tight tracking-tight">
+                                  {p.product}
                                 </div>
-                                <div className="flex items-center justify-between border-t border-white/25 pt-0.5 leading-none w-full gap-1">
-                                  <span
-                                    className={`${printMetrics.lotSize} font-mono font-bold text-amber-200 tracking-tight shrink-0`}
-                                    style={{ textShadow: '0 1px 2px rgba(0,0,0,0.9)' }}
-                                  >
-                                    L:{p.lot}
-                                  </span>
-                                  <span
-                                    className={`${printMetrics.qtySize} font-mono font-black text-white tracking-tight shrink-0 text-right`}
-                                    style={{ textShadow: '0 1px 2px rgba(0,0,0,0.9)' }}
-                                  >
-                                    {Number(p.quantity).toLocaleString("es-AR")} {p.unit || 'LT'}
-                                  </span>
+                                <div className="flex items-center justify-between text-[9px] font-bold text-zinc-900 border-t border-purple-100 pt-0.5">
+                                  <span className="font-mono">L: {p.lot}</span>
+                                  <span className="font-mono font-black text-black">{Number(p.quantity).toLocaleString()} {p.unit || 'LT'}</span>
                                 </div>
                               </div>
                             );
@@ -3133,21 +2991,16 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
                             return (
                               <div
                                 key={`p-liq-${colLetter}-${rowNum}`}
-                                style={{
-                                  height: `${printMetrics.cardH}px`,
-                                  minHeight: `${printMetrics.cardH}px`,
-                                  maxHeight: `${printMetrics.cardH}px`
-                                }}
-                                className={`rounded-lg ${printMetrics.padClass} border-2 border-dashed border-purple-400 bg-purple-50/50 flex flex-col justify-between text-left shadow-none overflow-hidden select-none page-break-avoid`}
+                                className="p-1.5 border-2 border-dashed border-purple-400 bg-purple-50/50 rounded-lg flex flex-col justify-between min-h-[82px] text-left page-break-avoid"
                               >
-                                <div className="flex items-center justify-between leading-none w-full text-purple-800">
-                                  <span className={`font-mono font-black ${printMetrics.posSize}`}>B-{colLetter}{rowNum}</span>
-                                  <span className={`font-black uppercase text-purple-700 ${printMetrics.posSize}`}>{t("freeTag")}</span>
+                                <div className="flex items-center justify-between text-[9px] font-bold text-purple-800">
+                                  <span className="font-mono font-black">B-{colLetter}{rowNum}</span>
+                                  <span className="text-[8px] uppercase font-black text-purple-700">{t("freeTag")}</span>
                                 </div>
                                 <div className="my-auto text-center py-0.5">
-                                  <span className={`${printMetrics.lotSize} text-purple-700 uppercase font-black tracking-wider`}>{t("trayAvailable")}</span>
+                                  <span className="text-[9px] text-purple-700 uppercase font-black tracking-wider">{t("trayAvailable")}</span>
                                 </div>
-                                <div className={`border border-dashed border-purple-400 rounded px-1 py-0.5 ${printMetrics.posSize} text-purple-950 font-bold bg-white text-center leading-none`}>
+                                <div className="border border-dashed border-purple-400 rounded px-1 py-0.5 text-[8px] text-purple-950 font-bold bg-white text-center">
                                   {t("countBox")}
                                 </div>
                               </div>
@@ -3162,7 +3015,7 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
             </div>
 
             {/* PIE DE PLANILLA DE RECUENTO FÍSICO */}
-            <div className="mt-1.5 pt-1 border-t-2 border-black flex items-center justify-between text-[9px] font-bold text-zinc-700 uppercase tracking-wider">
+            <div className="mt-5 pt-3 border-t-2 border-black flex items-center justify-between text-[10px] font-bold text-zinc-700 uppercase tracking-wider">
               <span>{t("countingOfficer")}</span>
               <span>{t("signatureApproval")}</span>
               <span>{t("officialSheetFooter")}</span>
@@ -3174,18 +3027,11 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
             @media print {
               @page {
                 size: landscape;
-                margin: 3mm;
+                margin: 4mm;
               }
-              html, body {
-                margin: 0 !important;
-                padding: 0 !important;
-                height: 100% !important;
-                max-height: 100% !important;
-                overflow: hidden !important;
+              body {
                 background: white !important;
                 color: black !important;
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
               }
               body * {
                 visibility: hidden !important;
@@ -3200,20 +3046,14 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
                 width: 100% !important;
                 max-width: 100% !important;
                 min-width: 0 !important;
-                height: 100% !important;
-                max-height: 204mm !important;
                 margin: 0 !important;
                 padding: 2mm !important;
-                box-sizing: border-box !important;
                 background: white !important;
                 color: black !important;
                 z-index: 999999 !important;
-                overflow: hidden !important;
+                overflow: visible !important;
                 box-shadow: none !important;
                 border: none !important;
-                page-break-after: avoid !important;
-                page-break-before: avoid !important;
-                page-break-inside: avoid !important;
               }
               .no-print {
                 display: none !important;
