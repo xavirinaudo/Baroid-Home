@@ -29,6 +29,9 @@
         rel="stylesheet">
     <!-- PDF Generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- Modern html2canvas 1.4.1 & jsPDF 2.5.1 for exact preview PDF export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         :root {
             --h-red: #CC0000;
@@ -10235,50 +10238,89 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
     }
   };
 
-  // Descargar Planilla Diagrama de Zona de Productos en PDF (1 Sola Página A4 Apaisado Máxima Cobertura)
-  const handleDownloadPdf = () => {
+  // Descargar Planilla Diagrama de Zona de Productos en PDF (1 Sola Página A4 Apaisado - Captura Fiel de la Vista Preliminar)
+  const handleDownloadPdf = async () => {
     const element = document.getElementById("printableWarehouseSheet");
     if (!element) return;
 
-    const opt = {
-      margin: [4, 4, 4, 4], // Margen equilibrado de 4mm para proteger bordes en A4 apaisado
-      filename: `${lang === 'es' ? 'Diagrama_Zona_Productos' : 'Chemical_Products_Zone_Diagram'}_${currentSector.name.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: {
-        scale: 2.5, // 2.5x provee calidad tipográfica de imprenta sin desbordar memoria
-        useCORS: true,
-        letterRendering: true,
-        scrollY: 0,
-        scrollX: 0,
-        windowWidth: 1040,
-        width: 1020
-      },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape', compress: true },
-      pagebreak: { mode: 'avoid-all' }
-    };
+    showToast(t("generatingPdfToast"), "info");
 
     const isDark = document.documentElement.classList.contains('dark');
     if (isDark) document.documentElement.classList.remove('dark');
 
-    const h2p = (typeof window !== "undefined" && window.html2pdf) || (typeof html2pdf !== "undefined" && html2pdf);
-    if (h2p) {
-      showToast(t("generatingPdfToast"), "info");
-      h2p().from(element).set(opt).toPdf().get('pdf').then((pdf) => {
-        // Garantizar estrictamente 1 sola página: eliminar cualquier página adicional
-        while (pdf.internal.getNumberOfPages() > 1) {
-          pdf.deletePage(pdf.internal.getNumberOfPages());
-        }
-      }).save().then(() => {
+    const filename = `${lang === 'es' ? 'Diagrama_Zona_Productos' : 'Chemical_Products_Zone_Diagram'}_${currentSector.name.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+
+    try {
+      // 1. Prioridad: Captura directa con html2canvas standalone + jsPDF
+      // Captura la vista preliminar tal cual está renderizada en pantalla con resolución ultra nítida (3x)
+      const h2c = (typeof window !== "undefined" && window.html2canvas) || (typeof html2canvas !== "undefined" && html2canvas);
+      const jsPdfClass = (typeof window !== "undefined" && (window.jspdf?.jsPDF || window.jsPDF)) || (typeof jspdf !== "undefined" && jspdf?.jsPDF);
+
+      if (h2c && jsPdfClass) {
+        const canvas = await h2c(element, {
+          scale: 3, // Calidad fotográfica 3x nítida
+          useCORS: true,
+          backgroundColor: '#ffffff',
+          logging: false
+        });
+
+        const imgData = canvas.toDataURL('image/jpeg', 0.98);
+        const pdf = new jsPdfClass({
+          orientation: 'landscape',
+          unit: 'mm',
+          format: 'a4',
+          compress: true
+        });
+
+        const pageWidth = 297;
+        const pageHeight = 210;
+        const margin = 4; // Margen de 4mm
+        const printWidth = pageWidth - (margin * 2); // 289mm
+        const printHeight = (canvas.height * printWidth) / canvas.width;
+        const topMargin = Math.max(margin, (pageHeight - printHeight) / 2);
+
+        pdf.addImage(imgData, 'JPEG', margin, topMargin, printWidth, Math.min(printHeight, pageHeight - margin * 2));
+        pdf.save(filename);
+
         if (isDark) document.documentElement.classList.add('dark');
         showToast(t("pdfSuccessToast"), "success");
-      }).catch(err => {
+        return;
+      }
+
+      // 2. Fallback: html2pdf si no estuvieran disponibles como objetos separados
+      const h2p = (typeof window !== "undefined" && window.html2pdf) || (typeof html2pdf !== "undefined" && html2pdf);
+      if (h2p) {
+        const opt = {
+          margin: [4, 4, 4, 4],
+          filename: filename,
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: {
+            scale: 2.5,
+            useCORS: true,
+            backgroundColor: '#ffffff'
+          },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape', compress: true },
+          pagebreak: { mode: 'avoid-all' }
+        };
+
+        await h2p().from(element).set(opt).toPdf().get('pdf').then((pdf) => {
+          while (pdf.internal.getNumberOfPages() > 1) {
+            pdf.deletePage(pdf.internal.getNumberOfPages());
+          }
+        }).save();
+
         if (isDark) document.documentElement.classList.add('dark');
-        console.error("html2pdf error:", err);
-        window.print();
-      });
-    } else {
+        showToast(t("pdfSuccessToast"), "success");
+        return;
+      }
+
+      // 3. Fallback final: diálogo nativo de impresión
       window.print();
       if (isDark) document.documentElement.classList.add('dark');
+    } catch (err) {
+      if (isDark) document.documentElement.classList.add('dark');
+      console.error("PDF generation error:", err);
+      window.print();
     }
   };
 
@@ -10939,6 +10981,9 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
 
     // Altura del card calculada dinámicamente para que quepa estrictamente en 1 página A4 Landscape (<= 750px total)
     let cardH = 65;
+    let titlePx = 10;
+    let lotPx = 12.5;
+    let qtyPx = 9.5;
     let titleSize = "text-[10px]";
     let lotSize = "text-[12px]";
     let qtySize = "text-[9.5px]";
@@ -10946,57 +10991,72 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
 
     if (totalRows <= 4) {
       cardH = 100;
-      titleSize = "text-[11.5px]";
-      lotSize = "text-[14px]";
-      qtySize = "text-[11px]";
+      titlePx = 13;
+      lotPx = 16;
+      qtyPx = 12;
+      titleSize = "text-[12.5px]";
+      lotSize = "text-[15px]";
+      qtySize = "text-[12px]";
       gapClass = "gap-1.5";
     } else if (totalRows <= 6) {
       cardH = 75;
+      titlePx = 11;
+      lotPx = 13.5;
+      qtyPx = 10.5;
       titleSize = "text-[11px]";
       lotSize = "text-[13px]";
       qtySize = "text-[10px]";
       gapClass = "gap-1";
     } else if (totalRows <= 8) {
       cardH = 62;
+      titlePx = 10;
+      lotPx = 12.5;
+      qtyPx = 9.5;
       titleSize = "text-[10px]";
       lotSize = "text-[12px]";
       qtySize = "text-[9.5px]";
       gapClass = "gap-1";
     } else if (totalRows <= 10) {
       cardH = 50;
-      titleSize = "text-[9px]";
-      lotSize = "text-[11px]";
-      qtySize = "text-[8.5px]";
+      titlePx = 9.5;
+      lotPx = 11.5;
+      qtyPx = 9;
+      titleSize = "text-[9.5px]";
+      lotSize = "text-[11.5px]";
+      qtySize = "text-[9px]";
       gapClass = "gap-0.5";
     } else if (totalRows <= 12) {
-      cardH = 42;
-      titleSize = "text-[8px]";
-      lotSize = "text-[10px]";
-      qtySize = "text-[8px]";
+      cardH = 44;
+      titlePx = 9;
+      lotPx = 11;
+      qtyPx = 9;
+      titleSize = "text-[9px]";
+      lotSize = "text-[11px]";
+      qtySize = "text-[9px]";
       gapClass = "gap-0.5";
     } else {
       cardH = Math.max(34, Math.floor(480 / totalRows));
-      titleSize = "text-[7.5px]";
+      titlePx = 8;
+      lotPx = 9.5;
+      qtyPx = 8;
+      titleSize = "text-[8px]";
       lotSize = "text-[9.5px]";
-      qtySize = "text-[7.5px]";
+      qtySize = "text-[8px]";
       gapClass = "gap-0.5";
     }
 
     // Si hay 12 o más columnas (ej. de la A a la M), ajustar ligeramente los tamaños para que no desborden horizontalmente
     if (maxCols >= 12) {
-      if (totalRows <= 8) {
-        titleSize = "text-[9px]";
-        lotSize = "text-[10.5px]";
-        qtySize = "text-[8.5px]";
-      } else {
-        titleSize = "text-[7.5px]";
-        lotSize = "text-[9.5px]";
-        qtySize = "text-[7.5px]";
-      }
+      titlePx = Math.max(7.5, titlePx - 0.8);
+      lotPx = Math.max(9, lotPx - 1);
+      qtyPx = Math.max(7.5, qtyPx - 0.8);
     }
 
     return {
       cardH,
+      titlePx,
+      lotPx,
+      qtyPx,
       titleSize,
       qtySize,
       lotSize,
@@ -12667,25 +12727,37 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
                               >
                                 {/* Línea 1: Nombre de producto (bien visible, negro y destacado) */}
                                 <div className="w-full overflow-hidden leading-tight mb-0.5">
-                                  <span className={`${printMetrics.titleSize} font-black uppercase text-black tracking-tight block truncate`}>
+                                  <span
+                                    style={{ fontSize: `${printMetrics.titlePx}px`, lineHeight: 1.15 }}
+                                    className={`${printMetrics.titleSize} font-black uppercase text-black block truncate tracking-normal`}
+                                  >
                                     {shortName}
                                   </span>
                                 </div>
 
                                 {/* Línea 2: Lote (más grande) */}
                                 <div className="w-full overflow-hidden leading-tight mb-0.5">
-                                  <span className={`${printMetrics.lotSize} font-mono font-black text-zinc-950 tracking-tight block truncate`}>
+                                  <span
+                                    style={{ fontSize: `${printMetrics.lotPx}px`, lineHeight: 1.15 }}
+                                    className={`${printMetrics.lotSize} font-bold text-zinc-950 block truncate tracking-normal`}
+                                  >
                                     L: {p.lot}
                                   </span>
                                 </div>
 
                                 {/* Línea 3: Cantidad y parcial */}
                                 <div className="w-full flex items-center justify-center gap-1 leading-tight overflow-hidden">
-                                  <span className={`${printMetrics.qtySize} font-mono font-bold text-zinc-800 tracking-tight truncate`}>
+                                  <span
+                                    style={{ fontSize: `${printMetrics.qtyPx}px`, lineHeight: 1.15 }}
+                                    className={`${printMetrics.qtySize} font-bold text-zinc-800 truncate tracking-normal`}
+                                  >
                                     {Number(p.quantity).toLocaleString("es-AR")} {p.unit || 'KG'}
                                   </span>
                                   {isPartial && (
-                                    <span className="bg-amber-400 text-slate-950 font-black text-[7.5px] px-1 py-0.2 rounded leading-none shrink-0">
+                                    <span
+                                      style={{ fontSize: `${Math.max(7, printMetrics.qtyPx - 1)}px` }}
+                                      className="bg-amber-400 text-slate-950 font-black px-1 py-0.2 rounded leading-none shrink-0"
+                                    >
                                       ⚠️ {pct}%
                                     </span>
                                   )}
@@ -12759,25 +12831,37 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
                               >
                                 {/* Línea 1: Nombre de producto (bien visible, negro y destacado) */}
                                 <div className="w-full overflow-hidden leading-tight mb-0.5">
-                                  <span className={`${printMetrics.titleSize} font-black uppercase text-black tracking-tight block truncate`}>
+                                  <span
+                                    style={{ fontSize: `${printMetrics.titlePx}px`, lineHeight: 1.15 }}
+                                    className={`${printMetrics.titleSize} font-black uppercase text-black block truncate tracking-normal`}
+                                  >
                                     {shortName}
                                   </span>
                                 </div>
 
                                 {/* Línea 2: Lote (más grande) */}
                                 <div className="w-full overflow-hidden leading-tight mb-0.5">
-                                  <span className={`${printMetrics.lotSize} font-mono font-black text-zinc-950 tracking-tight block truncate`}>
+                                  <span
+                                    style={{ fontSize: `${printMetrics.lotPx}px`, lineHeight: 1.15 }}
+                                    className={`${printMetrics.lotSize} font-bold text-zinc-950 block truncate tracking-normal`}
+                                  >
                                     L: {p.lot}
                                   </span>
                                 </div>
 
                                 {/* Línea 3: Cantidad y parcial */}
                                 <div className="w-full flex items-center justify-center gap-1 leading-tight overflow-hidden">
-                                  <span className={`${printMetrics.qtySize} font-mono font-bold text-zinc-800 tracking-tight truncate`}>
+                                  <span
+                                    style={{ fontSize: `${printMetrics.qtyPx}px`, lineHeight: 1.15 }}
+                                    className={`${printMetrics.qtySize} font-bold text-zinc-800 truncate tracking-normal`}
+                                  >
                                     {Number(p.quantity).toLocaleString("es-AR")} {p.unit || 'LT'}
                                   </span>
                                   {isPartial && (
-                                    <span className="bg-amber-400 text-slate-950 font-black text-[7.5px] px-1 py-0.2 rounded leading-none shrink-0">
+                                    <span
+                                      style={{ fontSize: `${Math.max(7, printMetrics.qtyPx - 1)}px` }}
+                                      className="bg-amber-400 text-slate-950 font-black px-1 py-0.2 rounded leading-none shrink-0"
+                                    >
                                       ⚠️ {pct}%
                                     </span>
                                   )}
@@ -13263,7 +13347,7 @@ const MainContent = ({
 
 
 /* global __APP_VERSION__ */
-const CURRENT_CODE_VERSION = 'v-1791142718';
+const CURRENT_CODE_VERSION = 'v-1791144323';
 
 const mergeData = (localSectors, defaultSectors) => {
     const isCustomId = (id) => {
