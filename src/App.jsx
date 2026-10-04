@@ -109,7 +109,21 @@ const App = () => {
     const fileInputRef = useRef(null);
 
     const resetToDefaults = () => {
-        if (confirm(translations[lang].backupConfirm)) {
+        const confirmMsg = lang === 'es'
+            ? 'Se restablecerán las configuraciones de la aplicación (accesos directos, calculadoras y preferencias). Los datos de tu ALMACÉN Y LOTES NO serán borrados. ¿Deseas continuar?'
+            : 'Application settings (shortcuts, calculators, and preferences) will be reset. Your WAREHOUSE & LOTS inventory will NOT be deleted. Do you want to continue?';
+
+        if (confirm(confirmMsg)) {
+            // Guardar copia integral de emergencia antes de cualquier borrado
+            try {
+                const fullBackup = {};
+                for (let i = 0; i < localStorage.length; i++) {
+                    const k = localStorage.key(i);
+                    fullBackup[k] = localStorage.getItem(k);
+                }
+                localStorage.setItem('baroid_emergency_pre_reset_backup', JSON.stringify(fullBackup));
+            } catch (e) {}
+
             const keysToRemove = [
                 'baroid_piletas_v8',
                 'baroid_fluid_systems_v4',
@@ -124,9 +138,7 @@ const App = () => {
                 'baroid_calc_tabs_v2',
                 'baroid_card_size',
                 'baroid_dark_mode',
-                'baroid_notes',
-                'baroid_products_inventory_v2',
-                'baroid_inventory_entries_v1'
+                'baroid_notes'
             ];
             keysToRemove.forEach(k => localStorage.removeItem(k));
             window.location.reload();
@@ -135,8 +147,8 @@ const App = () => {
 
     const resetSectorsOnly = () => {
         const confirmMsg = lang === 'es' 
-            ? 'Se restablecerán todos los sectores y enlaces a sus valores originales. Perderás los links y sectores personalizados que hayas creado manualmente. Tus calculadoras, piletas, notas e inventario NO se verán afectados. ¿Deseas continuar?' 
-            : 'All default sectors and links will be reset. Any manually created links or sectors will be lost. Your calculators, mud pits, notes, and inventory will NOT be affected. Do you want to continue?';
+            ? 'Se restablecerán todos los sectores y enlaces a sus valores originales. Perderás los links y sectores personalizados que hayas creado manualmente. Tus calculadoras, piletas, notas, inventario y almacén NO se verán afectados. ¿Deseas continuar?' 
+            : 'All default sectors and links will be reset. Any manually created links or sectors will be lost. Your calculators, mud pits, notes, inventory, and warehouse will NOT be affected. Do you want to continue?';
             
         if (confirm(confirmMsg)) {
             localStorage.removeItem('baroid_hub_data_v6');
@@ -153,7 +165,7 @@ const App = () => {
         setShowUpdateModal(false);
     };
 
-    // Check database version compared to code version
+    // Check database version compared to code version & safeguard warehouse on startup
     useEffect(() => {
         const storedVersion = localStorage.getItem('baroid_app_version');
         const hasData = localStorage.getItem('baroid_hub_data_v6') || localStorage.getItem('baroid_hub_data_v5');
@@ -163,6 +175,19 @@ const App = () => {
         } else if (!storedVersion) {
             localStorage.setItem('baroid_app_version', CURRENT_CODE_VERSION);
         }
+
+        // Resguardo proactivo de inventario en almacenamiento multi-anillo
+        try {
+            const wh = localStorage.getItem('lmp_warehouse_state') || localStorage.getItem('lmp_warehouse_state_vault');
+            if (wh) {
+                const parsed = JSON.parse(wh);
+                if (Array.isArray(parsed.pallets) && parsed.pallets.length > 0) {
+                    localStorage.setItem('lmp_warehouse_last_known_good', wh);
+                    localStorage.setItem('lmp_warehouse_state_vault', wh);
+                    localStorage.setItem('baroid_warehouse_backup_persistent', wh);
+                }
+            }
+        } catch (e) {}
     }, []);
 
     useEffect(() => {
@@ -198,13 +223,35 @@ const App = () => {
     }, [lang]);
 
     const handleUpdateApp = async () => {
-        // 0. Proteger y resguardar en Vault los datos de almacén y lotes antes de la actualización
+        // 0. Proteger y resguardar en Multi-Ring Vault los datos de almacén y lotes antes de la actualización
         try {
-            const whState = localStorage.getItem('lmp_warehouse_state') || localStorage.getItem('lmp_warehouse_state_vault');
-            if (whState) {
-                localStorage.setItem('lmp_warehouse_state_vault', whState);
-                localStorage.setItem('baroid_warehouse_backup_persistent', whState);
-                localStorage.setItem('lmp_warehouse_pre_update_snapshot', whState);
+            const whCandidates = [
+                'lmp_warehouse_state',
+                'lmp_warehouse_state_vault',
+                'baroid_warehouse_backup_persistent',
+                'lmp_warehouse_last_known_good'
+            ];
+            let whStateToSave = null;
+            for (const k of whCandidates) {
+                const val = localStorage.getItem(k);
+                if (val && val.includes('"pallets"')) {
+                    try {
+                        const parsed = JSON.parse(val);
+                        if (Array.isArray(parsed.pallets) && parsed.pallets.length > 0) {
+                            whStateToSave = val;
+                            break;
+                        }
+                    } catch (e) {}
+                }
+            }
+            if (!whStateToSave) {
+                whStateToSave = localStorage.getItem('lmp_warehouse_state') || localStorage.getItem('lmp_warehouse_state_vault');
+            }
+            if (whStateToSave) {
+                localStorage.setItem('lmp_warehouse_state_vault', whStateToSave);
+                localStorage.setItem('baroid_warehouse_backup_persistent', whStateToSave);
+                localStorage.setItem('lmp_warehouse_last_known_good', whStateToSave);
+                localStorage.setItem('lmp_warehouse_pre_update_snapshot', whStateToSave);
             }
         } catch (e) {
             console.error('Error resguardando almacén previo a update:', e);

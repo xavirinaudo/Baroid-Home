@@ -51,7 +51,7 @@ class WarehouseErrorBoundary extends React.Component {
                     <p className="text-xs text-zinc-600 dark:text-zinc-300 font-mono bg-white dark:bg-slate-900 p-3 rounded-xl border border-red-200 dark:border-red-800 break-words">
                         {this.state.error?.toString()}
                     </p>
-                    <div className="flex justify-center gap-3 pt-2">
+                    <div className="flex flex-wrap justify-center gap-3 pt-2">
                         <button
                             onClick={() => this.setState({ hasError: false, error: null })}
                             className="px-5 py-2.5 bg-halliburton-red hover:bg-red-700 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-md active:scale-95 cursor-pointer"
@@ -60,13 +60,33 @@ class WarehouseErrorBoundary extends React.Component {
                         </button>
                         <button
                             onClick={() => {
-                                localStorage.removeItem("lmp_warehouse_state");
-                                localStorage.removeItem("lmp_warehouse_state_vault");
+                                const safeData = localStorage.getItem("lmp_warehouse_last_known_good") || localStorage.getItem("baroid_warehouse_backup_persistent");
+                                if (safeData) {
+                                    localStorage.setItem("lmp_warehouse_state", safeData);
+                                    localStorage.setItem("lmp_warehouse_state_vault", safeData);
+                                }
                                 window.location.reload();
+                            }}
+                            className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-md active:scale-95 cursor-pointer"
+                        >
+                            Restaurar Respaldo Seguro
+                        </button>
+                        <button
+                            onClick={() => {
+                                const raw = localStorage.getItem("lmp_warehouse_state") || localStorage.getItem("lmp_warehouse_last_known_good") || "{}";
+                                const blob = new Blob([raw], { type: "application/json" });
+                                const url = URL.createObjectURL(blob);
+                                const a = document.createElement("a");
+                                a.href = url;
+                                a.download = `Respaldo_Emergencia_Almacen_${Date.now()}.json`;
+                                document.body.appendChild(a);
+                                a.click();
+                                document.body.removeChild(a);
+                                URL.revokeObjectURL(url);
                             }}
                             className="px-5 py-2.5 bg-zinc-200 dark:bg-slate-800 hover:bg-zinc-300 dark:hover:bg-slate-700 text-zinc-800 dark:text-zinc-200 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer"
                         >
-                            Restablecer Almacén a Cero
+                            Descargar JSON de Emergencia
                         </button>
                     </div>
                 </div>

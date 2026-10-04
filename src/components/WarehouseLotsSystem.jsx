@@ -470,65 +470,110 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
     return str;
   };
 
-  // 1. Estado persistente con Dual-Ring Vault
+  // 1. Estado persistente con Multi-Ring Vault y Rescate Automático
   const [data, setData] = useState(() => {
-    let saved = localStorage.getItem("lmp_warehouse_state");
-    if (!saved) {
-      saved = localStorage.getItem("lmp_warehouse_state_vault") || localStorage.getItem("baroid_warehouse_backup_persistent");
-    }
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (parsed) {
-          // Filtrar cualquier pestaña no deseada (ej. Equipo 1211) y asegurar tipo y dimensiones correctas
-          if (Array.isArray(parsed.sectors)) {
-            parsed.sectors = parsed.sectors
-              .filter(s => s && !(s.name || "").toLowerCase().includes("1211") && !(s.id || "").toLowerCase().includes("1211"))
-              .map(s => {
-                const isDual = s.type === "dual";
+    const candidateKeys = [
+      "lmp_warehouse_state",
+      "lmp_warehouse_state_vault",
+      "baroid_warehouse_backup_persistent",
+      "lmp_warehouse_last_known_good",
+      "lmp_warehouse_pre_update_snapshot",
+      "warehouse_lots_data_v1",
+      "baroid_warehouse_lots_v1",
+      "warehouse_lots_backup"
+    ];
 
-                if (isPrincipal) {
-                  return {
-                    ...s,
-                    id: "principal",
-                    name: "Zona de Productos Químicos",
-                    type: isDual ? "dual" : "mixto",
-                    rows: s.rows ? Math.max(1, Number(s.rows)) : (isDual ? 6 : 4),
-                    columns: (s.columns && s.columns.length > 0)
-                      ? s.columns
-                      : (isDual ? ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"] : ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"])
-                  };
-                }
+    let bestCandidate = null;
+    let maxPallets = -1;
+
+    for (const key of candidateKeys) {
+      try {
+        const raw = localStorage.getItem(key);
+        if (!raw) continue;
+        const parsed = JSON.parse(raw);
+        if (!parsed) continue;
+
+        const count = Array.isArray(parsed.pallets) ? parsed.pallets.length : 0;
+        // Priorizar el candidato con más pallets para jamás perder datos por un estado vacío accidental
+        if (count > maxPallets) {
+          bestCandidate = parsed;
+          maxPallets = count;
+        }
+      } catch (e) {
+        console.warn(`Error al leer almacenamiento ${key}:`, e);
+      }
+    }
+
+    if (bestCandidate) {
+      try {
+        if (Array.isArray(bestCandidate.sectors) && bestCandidate.sectors.length > 0) {
+          bestCandidate.sectors = bestCandidate.sectors
+            .filter(s => s && !(s.name || "").toLowerCase().includes("1211") && !(s.id || "").toLowerCase().includes("1211"))
+            .map(s => {
+              const isDual = s.type === "dual";
+              const isPrincipal = s.id === "principal" || (s.name || "").toLowerCase().includes("químicos") || (s.name || "").toLowerCase().includes("quimicos") || (s.name || "").toLowerCase().includes("principal");
+
+              if (isPrincipal) {
                 return {
                   ...s,
-                  type: isDual ? "dual" : (s.type || "mixto"),
+                  id: "principal",
+                  name: "Zona de Productos Químicos",
+                  type: isDual ? "dual" : "mixto",
                   rows: s.rows ? Math.max(1, Number(s.rows)) : (isDual ? 6 : 4),
                   columns: (s.columns && s.columns.length > 0)
                     ? s.columns
-                    : ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"]
+                    : (isDual ? ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"] : ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"])
                 };
-              });
-            if (parsed.sectors.length === 0) {
-              parsed.sectors = DEFAULT_FALLBACK_STATE.sectors;
-            }
-          } else {
-            parsed.sectors = DEFAULT_FALLBACK_STATE.sectors;
+              }
+              return {
+                ...s,
+                type: isDual ? "dual" : (s.type || "mixto"),
+                rows: s.rows ? Math.max(1, Number(s.rows)) : (isDual ? 6 : 4),
+                columns: (s.columns && s.columns.length > 0)
+                  ? s.columns
+                  : ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"]
+              };
+            });
+          if (bestCandidate.sectors.length === 0) {
+            bestCandidate.sectors = DEFAULT_FALLBACK_STATE.sectors;
           }
-          if (parsed.pallets && Array.isArray(parsed.pallets)) {
-            parsed.pallets = parsed.pallets.filter(p => p && !(p.sectorId || "").toLowerCase().includes("1211"));
-          } else {
-            parsed.pallets = [];
-          }
-          if (!parsed.warehouseDimensions) {
-            parsed.warehouseDimensions = {
-              solidos: { rows: 6, columns: ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"] },
-              liquidos: { rows: 6, columns: ["A", "B", "C", "D", "E", "F", "G", "H"] }
-            };
-          }
-          return parsed;
+        } else {
+          bestCandidate.sectors = DEFAULT_FALLBACK_STATE.sectors;
         }
+
+        if (Array.isArray(bestCandidate.pallets)) {
+          bestCandidate.pallets = bestCandidate.pallets.filter(p => p && !(p.sectorId || "").toLowerCase().includes("1211"));
+        } else {
+          bestCandidate.pallets = [];
+        }
+
+        if (!bestCandidate.warehouseDimensions) {
+          bestCandidate.warehouseDimensions = {
+            solidos: { rows: 6, columns: ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"] },
+            liquidos: { rows: 6, columns: ["A", "B", "C", "D", "E", "F", "G", "H"] }
+          };
+        }
+
+        // Resincronizar de inmediato a todos los vaults para blindar persistencia
+        try {
+          const serialized = JSON.stringify(bestCandidate);
+          localStorage.setItem("lmp_warehouse_state", serialized);
+          localStorage.setItem("lmp_warehouse_state_vault", serialized);
+          localStorage.setItem("baroid_warehouse_backup_persistent", serialized);
+          if (bestCandidate.pallets.length > 0) {
+            localStorage.setItem("lmp_warehouse_last_known_good", serialized);
+          }
+        } catch (e) {}
+
+        return bestCandidate;
       } catch (e) {
-        console.error("Error reading saved warehouse state:", e);
+        console.error("Error al procesar candidato de almacén:", e);
+        if (Array.isArray(bestCandidate.pallets) && bestCandidate.pallets.length > 0) {
+          return {
+            ...DEFAULT_FALLBACK_STATE,
+            pallets: bestCandidate.pallets
+          };
+        }
       }
     }
     return DEFAULT_FALLBACK_STATE;
@@ -701,7 +746,7 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
     return () => clearTimeout(timer);
   }, [toastMsg]);
 
-  // Persistencia Dual-Ring Vault en cada cambio de data
+  // Persistencia Multi-Ring Vault en cada cambio de data
   const persistData = (nextData, pushUndo = true) => {
     if (pushUndo) {
       setUndoStack(prev => [...prev.slice(-19), JSON.stringify(data)]);
@@ -714,8 +759,56 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
       localStorage.setItem("lmp_warehouse_state", serialized);
       localStorage.setItem("lmp_warehouse_state_vault", serialized);
       localStorage.setItem("baroid_warehouse_backup_persistent", serialized);
+
+      // Guardar en 'lmp_warehouse_last_known_good' únicamente si contiene pallets cargados
+      if (Array.isArray(nextData.pallets) && nextData.pallets.length > 0) {
+        localStorage.setItem("lmp_warehouse_last_known_good", serialized);
+        localStorage.setItem("lmp_warehouse_last_known_good_time", Date.now().toString());
+      }
     } catch (err) {
       console.error("Error saving warehouse state to vault:", err);
+    }
+  };
+
+  // Restaurar Copia de Seguridad Automática / Último Buen Estado Conocido
+  const handleRestoreSafeBackup = () => {
+    const candidateKeys = [
+      "lmp_warehouse_last_known_good",
+      "baroid_warehouse_backup_persistent",
+      "lmp_warehouse_pre_wipe_backup",
+      "lmp_warehouse_pre_update_snapshot",
+      "lmp_warehouse_state_vault"
+    ];
+
+    let foundBackup = null;
+    let foundCount = 0;
+
+    for (const key of candidateKeys) {
+      try {
+        const raw = localStorage.getItem(key);
+        if (!raw) continue;
+        const parsed = JSON.parse(raw);
+        if (parsed && Array.isArray(parsed.pallets) && parsed.pallets.length > 0) {
+          if (parsed.pallets.length > foundCount) {
+            foundBackup = parsed;
+            foundCount = parsed.pallets.length;
+          }
+        }
+      } catch (e) {}
+    }
+
+    if (!foundBackup || foundCount === 0) {
+      showToast(lang === 'en' ? "No backup with pallets found in this browser." : "No se encontró ningún respaldo con pallets en este navegador.", "warning");
+      return;
+    }
+
+    const confirmMsg = lang === 'en'
+      ? `The last safe backup with ${foundCount} pallets and lots will be restored. Do you want to apply it now?`
+      : `Se restaurará la última copia de seguridad segura encontrada con ${foundCount} pallets y lotes. ¿Deseas aplicarla ahora?`;
+
+    if (confirm(confirmMsg)) {
+      persistData(foundBackup);
+      showToast(lang === 'en' ? `✓ Backup restored: ${foundCount} pallets recovered.` : `✓ Respaldo restaurado con éxito: ${foundCount} pallets recuperados.`, "success");
     }
   };
 
@@ -817,9 +910,12 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
     showToast(t("backupDownloaded"), "success");
   };
 
-  // Vaciar Almacén (Empezar de Cero)
+  // Vaciar Almacén (Empezar de Cero con Salvaguarda)
   const handleClearWarehouse = () => {
     if (confirm(t("emptyConfirm"))) {
+      try {
+        localStorage.setItem("lmp_warehouse_pre_wipe_backup", JSON.stringify(data));
+      } catch (e) {}
       const nextData = {
         ...data,
         pallets: []
@@ -831,8 +927,8 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
 
   // Descargar Planilla Diagrama de Zona de Productos en PDF (1 Sola Página A4 Apaisado - Captura Fiel de la Vista Preliminar)
   const handleDownloadPdf = async () => {
-    const element = document.getElementById("printableWarehouseSheet");
-    if (!element) return;
+    const origElement = document.getElementById("printableWarehouseSheet");
+    if (!origElement) return;
 
     showToast(t("generatingPdfToast"), "info");
 
@@ -842,35 +938,77 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
     const filename = `${lang === 'es' ? 'Diagrama_Zona_Productos' : 'Chemical_Products_Zone_Diagram'}_${currentSector.name.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
 
     try {
-      // 1. Prioridad: Captura directa con html2canvas standalone + jsPDF
-      // Captura la vista preliminar tal cual está renderizada en pantalla con resolución ultra nítida (3x)
       const h2c = (typeof window !== "undefined" && window.html2canvas) || (typeof html2canvas !== "undefined" && html2canvas);
       const jsPdfClass = (typeof window !== "undefined" && (window.jspdf?.jsPDF || window.jsPDF)) || (typeof jspdf !== "undefined" && jspdf?.jsPDF);
 
       if (h2c && jsPdfClass) {
-        const canvas = await h2c(element, {
-          scale: 3, // Calidad fotográfica 3x nítida
+        // 1. Clonar en un wrapper aislado para eliminar scroll, márgenes y asegurar renderizado perfecto (mismo método que el index original)
+        const wrapper = document.createElement("div");
+        wrapper.id = "pdfExportWrapper";
+        wrapper.style.position = "fixed";
+        wrapper.style.top = "-9999px";
+        wrapper.style.left = "-9999px";
+        wrapper.style.width = "1200px";
+        wrapper.style.background = "#FFFFFF";
+        wrapper.style.padding = "10px";
+        wrapper.style.boxSizing = "border-box";
+        wrapper.style.fontFamily = "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+        wrapper.style.color = "#000000";
+        wrapper.style.zIndex = "99999";
+
+        const clone = origElement.cloneNode(true);
+        clone.style.width = "100%";
+        clone.style.maxWidth = "100%";
+        clone.style.boxShadow = "none";
+        clone.style.border = "none";
+        clone.style.margin = "0";
+        clone.style.padding = "0";
+
+        wrapper.appendChild(clone);
+        document.body.appendChild(wrapper);
+
+        // Esperar un ciclo para que el navegador resuelva fuentes y estilos del clon
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        const canvas = await h2c(wrapper, {
+          scale: 2, // 2x provee nitidez perfecta sin distorsión
           useCORS: true,
           backgroundColor: '#ffffff',
           logging: false
         });
 
-        const imgData = canvas.toDataURL('image/jpeg', 0.98);
+        document.body.removeChild(wrapper);
+
+        // 2. Generación jsPDF con ajuste proporcional estricto (mismo método que app.js del index)
         const pdf = new jsPdfClass({
           orientation: 'landscape',
           unit: 'mm',
-          format: 'a4',
-          compress: true
+          format: 'a4'
         });
 
         const pageWidth = 297;
         const pageHeight = 210;
-        const margin = 4; // Margen de 4mm
-        const printWidth = pageWidth - (margin * 2); // 289mm
-        const printHeight = (canvas.height * printWidth) / canvas.width;
-        const topMargin = Math.max(margin, (pageHeight - printHeight) / 2);
+        const margin = 5;
+        const usableWidth = pageWidth - (margin * 2);
+        const usableHeight = pageHeight - (margin * 2);
 
-        pdf.addImage(imgData, 'JPEG', margin, topMargin, printWidth, Math.min(printHeight, pageHeight - margin * 2));
+        const imgWidth = usableWidth;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+        let renderHeight = imgHeight;
+        let renderWidth = imgWidth;
+        let offsetX = margin;
+        let offsetY = margin;
+
+        if (imgHeight > usableHeight) {
+          renderHeight = usableHeight;
+          renderWidth = (canvas.width * renderHeight) / canvas.height;
+          offsetX = margin + ((usableWidth - renderWidth) / 2);
+        } else {
+          offsetY = margin + ((usableHeight - renderHeight) / 2);
+        }
+
+        pdf.addImage(canvas.toDataURL("image/png"), "PNG", offsetX, offsetY, renderWidth, renderHeight);
         pdf.save(filename);
 
         if (isDark) document.documentElement.classList.add('dark');
@@ -878,40 +1016,65 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
         return;
       }
 
-      // 2. Fallback: html2pdf si no estuvieran disponibles como objetos separados
-      const h2p = (typeof window !== "undefined" && window.html2pdf) || (typeof html2pdf !== "undefined" && html2pdf);
-      if (h2p) {
-        const opt = {
-          margin: [4, 4, 4, 4],
-          filename: filename,
-          image: { type: 'jpeg', quality: 0.98 },
-          html2canvas: {
-            scale: 2.5,
-            useCORS: true,
-            backgroundColor: '#ffffff'
-          },
-          jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape', compress: true },
-          pagebreak: { mode: 'avoid-all' }
-        };
-
-        await h2p().from(element).set(opt).toPdf().get('pdf').then((pdf) => {
-          while (pdf.internal.getNumberOfPages() > 1) {
-            pdf.deletePage(pdf.internal.getNumberOfPages());
-          }
-        }).save();
-
-        if (isDark) document.documentElement.classList.add('dark');
-        showToast(t("pdfSuccessToast"), "success");
-        return;
-      }
-
-      // 3. Fallback final: diálogo nativo de impresión
+      // Fallback: diálogo nativo de impresión
       window.print();
       if (isDark) document.documentElement.classList.add('dark');
     } catch (err) {
       if (isDark) document.documentElement.classList.add('dark');
       console.error("PDF generation error:", err);
       window.print();
+    }
+  };
+
+  // Descargar Captura PNG Directa de Alta Resolución (Screenshot)
+  const handleDownloadImage = async () => {
+    const origElement = document.getElementById("printableWarehouseSheet");
+    if (!origElement) return;
+
+    showToast(lang === 'es' ? "Generando captura de pantalla..." : "Generating screenshot...", "info");
+
+    try {
+      const h2c = (typeof window !== "undefined" && window.html2canvas) || (typeof html2canvas !== "undefined" && html2canvas);
+      if (h2c) {
+        const wrapper = document.createElement("div");
+        wrapper.id = "imgExportWrapper";
+        wrapper.style.position = "fixed";
+        wrapper.style.top = "-9999px";
+        wrapper.style.left = "-9999px";
+        wrapper.style.width = "1200px";
+        wrapper.style.background = "#FFFFFF";
+        wrapper.style.padding = "10px";
+        wrapper.style.boxSizing = "border-box";
+        wrapper.style.fontFamily = "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+        wrapper.style.color = "#000000";
+        wrapper.style.zIndex = "99999";
+
+        const clone = origElement.cloneNode(true);
+        clone.style.width = "100%";
+        clone.style.boxShadow = "none";
+        clone.style.border = "none";
+        clone.style.margin = "0";
+
+        wrapper.appendChild(clone);
+        document.body.appendChild(wrapper);
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        const canvas = await h2c(wrapper, {
+          scale: 2,
+          useCORS: true,
+          backgroundColor: '#ffffff',
+          logging: false
+        });
+        document.body.removeChild(wrapper);
+
+        const link = document.createElement("a");
+        link.download = `${lang === 'es' ? 'Diagrama_Zona_Productos' : 'Chemical_Products_Zone_Diagram'}_${currentSector.name.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.png`;
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+        showToast(lang === 'es' ? "✓ Captura PNG descargada con éxito." : "✓ PNG Screenshot downloaded.", "success");
+      }
+    } catch (err) {
+      console.error("Image generation error:", err);
     }
   };
 
@@ -1570,8 +1733,8 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
     const totalRows = isDual ? (sRows + lRows) : sRows;
     const maxCols = Math.max(sDims.columns.length, isDual ? lDims.columns.length : 0);
 
-    // Altura del card calculada dinámicamente para que quepa estrictamente en 1 página A4 Landscape (<= 750px total)
-    let cardH = 65;
+    // Altura del card confortable para que nunca se aplasten las líneas de texto
+    let cardH = 56;
     let titlePx = 10;
     let lotPx = 12.5;
     let qtyPx = 9.5;
@@ -1581,58 +1744,58 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
     let gapClass = "gap-1";
 
     if (totalRows <= 4) {
-      cardH = 100;
-      titlePx = 13;
-      lotPx = 16;
+      cardH = 88;
+      titlePx = 12.5;
+      lotPx = 15;
       qtyPx = 12;
-      titleSize = "text-[12.5px]";
+      titleSize = "text-[12px]";
       lotSize = "text-[15px]";
       qtySize = "text-[12px]";
       gapClass = "gap-1.5";
     } else if (totalRows <= 6) {
-      cardH = 75;
-      titlePx = 11;
+      cardH = 72;
+      titlePx = 11.5;
       lotPx = 13.5;
-      qtyPx = 10.5;
+      qtyPx = 11;
       titleSize = "text-[11px]";
       lotSize = "text-[13px]";
-      qtySize = "text-[10px]";
+      qtySize = "text-[10.5px]";
       gapClass = "gap-1";
     } else if (totalRows <= 8) {
       cardH = 62;
-      titlePx = 10;
+      titlePx = 10.5;
       lotPx = 12.5;
-      qtyPx = 9.5;
+      qtyPx = 10;
       titleSize = "text-[10px]";
       lotSize = "text-[12px]";
-      qtySize = "text-[9.5px]";
+      qtySize = "text-[10px]";
       gapClass = "gap-1";
     } else if (totalRows <= 10) {
+      cardH = 54;
+      titlePx = 10;
+      lotPx = 12;
+      qtyPx = 9.5;
+      titleSize = "text-[9.5px]";
+      lotSize = "text-[11.5px]";
+      qtySize = "text-[9.5px]";
+      gapClass = "gap-0.5";
+    } else if (totalRows <= 12) {
       cardH = 50;
       titlePx = 9.5;
       lotPx = 11.5;
-      qtyPx = 9;
-      titleSize = "text-[9.5px]";
-      lotSize = "text-[11.5px]";
-      qtySize = "text-[9px]";
-      gapClass = "gap-0.5";
-    } else if (totalRows <= 12) {
-      cardH = 44;
-      titlePx = 9;
-      lotPx = 11;
       qtyPx = 9;
       titleSize = "text-[9px]";
       lotSize = "text-[11px]";
       qtySize = "text-[9px]";
       gapClass = "gap-0.5";
     } else {
-      cardH = Math.max(34, Math.floor(480 / totalRows));
-      titlePx = 8;
-      lotPx = 9.5;
-      qtyPx = 8;
-      titleSize = "text-[8px]";
-      lotSize = "text-[9.5px]";
-      qtySize = "text-[8px]";
+      cardH = Math.max(44, Math.floor(520 / totalRows));
+      titlePx = 8.5;
+      lotPx = 10.5;
+      qtyPx = 8.5;
+      titleSize = "text-[8.5px]";
+      lotSize = "text-[10.5px]";
+      qtySize = "text-[8.5px]";
       gapClass = "gap-0.5";
     }
 
@@ -1762,6 +1925,16 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
           >
             <Icon name="download" size={14} />
             <span className="hidden sm:inline">{t("backup")}</span>
+          </button>
+
+          {/* Restaurar Respaldo Seguro */}
+          <button
+            onClick={handleRestoreSafeBackup}
+            className="flex items-center gap-1.5 px-3 py-2 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-sm border border-emerald-200 dark:border-emerald-800/40"
+            title={lang === 'es' ? "Restaurar automáticamente el último inventario con pallets guardado en este equipo" : "Restore last safe inventory backup with pallets from this browser"}
+          >
+            <Icon name="shield-check" size={14} className="text-emerald-600 dark:text-emerald-400" />
+            <span className="hidden sm:inline">{lang === 'es' ? "Restaurar Copia" : "Restore Copy"}</span>
           </button>
 
           {/* Vaciar Almacén */}
@@ -3226,6 +3399,15 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
               </button>
               <button
                 type="button"
+                onClick={handleDownloadImage}
+                className="flex items-center gap-2 px-3.5 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-sm active:scale-95 cursor-pointer"
+                title={lang === 'es' ? "Descargar captura directa en imagen PNG de alta resolución" : "Download high-res PNG screenshot"}
+              >
+                <Icon name="camera" size={15} />
+                <span>{lang === 'es' ? 'Captura PNG' : 'PNG Image'}</span>
+              </button>
+              <button
+                type="button"
                 onClick={handleNativePrint}
                 className="flex items-center gap-2 px-4 py-2.5 bg-halliburton-red hover:bg-red-700 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-md active:scale-95 cursor-pointer"
                 title={t("printSavePdfBtn")}
@@ -3317,7 +3499,7 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
                                 className="rounded-lg p-1 border-2 flex flex-col justify-center items-center text-center shadow-none overflow-hidden select-none page-break-avoid"
                               >
                                 {/* Línea 1: Nombre de producto (bien visible, negro y destacado) */}
-                                <div className="w-full overflow-hidden leading-tight mb-0.5">
+                                <div className="w-full shrink-0 overflow-hidden leading-tight mb-0.5 text-center">
                                   <span
                                     style={{ fontSize: `${printMetrics.titlePx}px`, lineHeight: 1.15 }}
                                     className={`${printMetrics.titleSize} font-black uppercase text-black block truncate tracking-normal`}
@@ -3327,7 +3509,7 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
                                 </div>
 
                                 {/* Línea 2: Lote (más grande) */}
-                                <div className="w-full overflow-hidden leading-tight mb-0.5">
+                                <div className="w-full shrink-0 overflow-hidden leading-tight mb-0.5 text-center">
                                   <span
                                     style={{ fontSize: `${printMetrics.lotPx}px`, lineHeight: 1.15 }}
                                     className={`${printMetrics.lotSize} font-bold text-zinc-950 block truncate tracking-normal`}
@@ -3337,7 +3519,7 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
                                 </div>
 
                                 {/* Línea 3: Cantidad y parcial */}
-                                <div className="w-full flex items-center justify-center gap-1 leading-tight overflow-hidden">
+                                <div className="w-full shrink-0 flex items-center justify-center gap-1 leading-tight overflow-hidden text-center">
                                   <span
                                     style={{ fontSize: `${printMetrics.qtyPx}px`, lineHeight: 1.15 }}
                                     className={`${printMetrics.qtySize} font-bold text-zinc-800 truncate tracking-normal`}
@@ -3421,7 +3603,7 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
                                 className="rounded-lg p-1 border-2 flex flex-col justify-center items-center text-center shadow-none overflow-hidden select-none page-break-avoid"
                               >
                                 {/* Línea 1: Nombre de producto (bien visible, negro y destacado) */}
-                                <div className="w-full overflow-hidden leading-tight mb-0.5">
+                                <div className="w-full shrink-0 overflow-hidden leading-tight mb-0.5 text-center">
                                   <span
                                     style={{ fontSize: `${printMetrics.titlePx}px`, lineHeight: 1.15 }}
                                     className={`${printMetrics.titleSize} font-black uppercase text-black block truncate tracking-normal`}
@@ -3431,7 +3613,7 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
                                 </div>
 
                                 {/* Línea 2: Lote (más grande) */}
-                                <div className="w-full overflow-hidden leading-tight mb-0.5">
+                                <div className="w-full shrink-0 overflow-hidden leading-tight mb-0.5 text-center">
                                   <span
                                     style={{ fontSize: `${printMetrics.lotPx}px`, lineHeight: 1.15 }}
                                     className={`${printMetrics.lotSize} font-bold text-zinc-950 block truncate tracking-normal`}
@@ -3441,7 +3623,7 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
                                 </div>
 
                                 {/* Línea 3: Cantidad y parcial */}
-                                <div className="w-full flex items-center justify-center gap-1 leading-tight overflow-hidden">
+                                <div className="w-full shrink-0 flex items-center justify-center gap-1 leading-tight overflow-hidden text-center">
                                   <span
                                     style={{ fontSize: `${printMetrics.qtyPx}px`, lineHeight: 1.15 }}
                                     className={`${printMetrics.qtySize} font-bold text-zinc-800 truncate tracking-normal`}
