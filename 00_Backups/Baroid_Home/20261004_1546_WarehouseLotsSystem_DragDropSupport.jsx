@@ -212,10 +212,6 @@ const I18N = {
     csvSuccess: "✓ Archivo Excel CSV descargado con éxito.",
     noFreeSlots: "No hay espacio libre en este sector para recibir este producto.",
     palletReceived: "✓ Pallet recibido en {pos} ({prod} L: {lot})",
-    palletMoved: "✓ Pallet {prod} trasladado de {from} a {to}.",
-    palletsSwapped: "✓ Pallets intercambiados entre {pos1} y {pos2}.",
-    dropHere: "Soltar aquí",
-    swapWith: "Intercambiar",
     stockDeducted: "✓ Saldo actualizado: {newQty} {unit} restantes.",
     tabCreated: "✓ Pestaña \"{name}\" creada exitosamente.",
     tabDeleted: "Pestaña \"{name}\" eliminada.",
@@ -379,10 +375,6 @@ const I18N = {
     csvSuccess: "✓ Excel CSV file downloaded successfully.",
     noFreeSlots: "No free space in this sector to receive this product.",
     palletReceived: "✓ Pallet received at {pos} ({prod} Lot: {lot})",
-    palletMoved: "✓ Pallet {prod} moved from {from} to {to}.",
-    palletsSwapped: "✓ Pallets swapped between {pos1} and {pos2}.",
-    dropHere: "Drop here",
-    swapWith: "Swap",
     stockDeducted: "✓ Balance updated: {newQty} {unit} remaining.",
     tabCreated: "✓ Tab \"{name}\" successfully created.",
     tabDeleted: "Tab \"{name}\" deleted.",
@@ -537,8 +529,6 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
   const [activeSectorId, setActiveSectorId] = useState(data.activeSectorId || "principal");
   const [selectedPallet, setSelectedPallet] = useState(null);
   const [copiedPallet, setCopiedPallet] = useState(null);
-  const [draggedPallet, setDraggedPallet] = useState(null); // { pallet, zone, col, row, sectorId }
-  const [dragOverTarget, setDragOverTarget] = useState(null); // { zone, col, row }
   const [activeFilter, setActiveFilter] = useState(null); // { type: 'lot' | 'product' | 'partial', value: string }
   const [searchQuery, setSearchQuery] = useState("");
   const [zoomLevel, setZoomLevel] = useState(1);
@@ -587,39 +577,6 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
     return sec;
   }, [data.sectors, activeSectorId]);
 
-  // Dimensiones del sector activo garantizadas defensivamente
-  const sDims = useMemo(() => {
-    let raw;
-    if (currentSector.type === "dual") {
-      raw = currentSector.warehouseDimensions?.solidos || data.warehouseDimensions?.solidos || { rows: 6, columns: ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"] };
-    } else {
-      raw = {
-        rows: currentSector.rows || 4,
-        columns: currentSector.columns || ["A","B","C","D","E","F","G","H","I","J","K","L"]
-      };
-    }
-    return {
-      rows: Math.max(1, Number(raw?.rows) || 4),
-      columns: Array.isArray(raw?.columns) && raw.columns.length > 0 ? raw.columns : ["A","B","C","D","E","F","G","H","I","J","K","L"]
-    };
-  }, [currentSector, data.warehouseDimensions]);
-
-  const lDims = useMemo(() => {
-    let raw;
-    if (currentSector.type === "dual") {
-      raw = currentSector.warehouseDimensions?.liquidos || data.warehouseDimensions?.liquidos || { rows: 6, columns: ["A", "B", "C", "D", "E", "F", "G", "H"] };
-    } else {
-      raw = {
-        rows: currentSector.rows || 4,
-        columns: currentSector.columns || ["A","B","C","D"]
-      };
-    }
-    return {
-      rows: Math.max(1, Number(raw?.rows) || 4),
-      columns: Array.isArray(raw?.columns) && raw.columns.length > 0 ? raw.columns : ["A","B","C","D"]
-    };
-  }, [currentSector, data.warehouseDimensions]);
-
   // Mapas Hash O(1) para eliminar lag en renderizado de celdas y hover con indexación estricta sin fugas de zona
   const palletsMap = useMemo(() => {
     const map = new Map();
@@ -647,30 +604,6 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
     }
     return map;
   }, [data.pallets, currentSector, activeSectorId]);
-
-  // Helper universal de consulta O(1) de pallet por posición para garantizar coincidencia 100% idéntica entre App y PDF
-  const getPalletAt = (zone, col, row) => {
-    const cCol = String(col || '').trim().toUpperCase();
-    const cRow = Number(row);
-    const isDual = currentSector.type === "dual";
-    const zKey = (zone === "liquidos" || zone === "liquido") ? "liquidos" : "solidos";
-
-    if (isDual) {
-      return (
-        palletsMap.get(`${zKey}_${cCol}_${cRow}`) ||
-        palletsMap.get(`${zone}_${cCol}_${cRow}`) ||
-        null
-      );
-    }
-    // Lienzo único / sector mixto o general
-    return (
-      palletsMap.get(`${cCol}_${cRow}`) ||
-      palletsMap.get(`mixto_${cCol}_${cRow}`) ||
-      palletsMap.get(`solidos_${cCol}_${cRow}`) ||
-      palletsMap.get(`${zone}_${cCol}_${cRow}`) ||
-      null
-    );
-  };
 
   const productCatalogMap = useMemo(() => {
     const map = new Map();
@@ -847,7 +780,7 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
         windowWidth: 1200
       },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape', compress: true },
-      pagebreak: { mode: 'avoid-all' }
+      pagebreak: { mode: [] } // Desactiva saltos automáticos para garantizar estrictamente 1 sola página
     };
 
     const isDark = document.documentElement.classList.contains('dark');
@@ -856,12 +789,7 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
     const h2p = (typeof window !== "undefined" && window.html2pdf) || (typeof html2pdf !== "undefined" && html2pdf);
     if (h2p) {
       showToast(t("generatingPdfToast"), "info");
-      h2p().from(element).set(opt).toPdf().get('pdf').then((pdf) => {
-        // Garantizar estrictamente 1 sola página: eliminar cualquier página adicional
-        while (pdf.internal.getNumberOfPages() > 1) {
-          pdf.deletePage(pdf.internal.getNumberOfPages());
-        }
-      }).save().then(() => {
+      h2p().from(element).set(opt).save().then(() => {
         if (isDark) document.documentElement.classList.add('dark');
         showToast(t("pdfSuccessToast"), "success");
       }).catch(err => {
@@ -899,16 +827,18 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
     let lSlots = 0;
 
     if (currentSector.type === "dual") {
+      const sDims = data.warehouseDimensions?.solidos || { rows: 6, columns: ["A", "B", "C", "E", "G", "H", "J", "K", "L", "M"] };
+      const lDims = data.warehouseDimensions?.liquidos || { rows: 6, columns: ["B", "C", "E", "H", "J", "K", "L", "M"] };
       sSlots = (sDims.rows || 6) * (sDims.columns?.length || 10);
       lSlots = (lDims.rows || 6) * (lDims.columns?.length || 8);
       tSlots = sSlots + lSlots;
-      sOccupied = data.pallets.filter(p => (p.sectorId || "principal") === currentSector.id && p.zone !== "liquidos" && Number(p.quantity) > 0).length;
-      lOccupied = data.pallets.filter(p => (p.sectorId || "principal") === currentSector.id && p.zone === "liquidos" && Number(p.quantity) > 0).length;
+      sOccupied = data.pallets.filter(p => (p.sectorId || "principal") === currentSector.id && p.zone !== "liquidos" && p.quantity > 0).length;
+      lOccupied = data.pallets.filter(p => (p.sectorId || "principal") === currentSector.id && p.zone === "liquidos" && p.quantity > 0).length;
     } else {
-      const nRows = sDims.rows || 4;
-      const nCols = sDims.columns ? sDims.columns.length : 12;
+      const nRows = currentSector.rows || 4;
+      const nCols = currentSector.columns ? currentSector.columns.length : 12;
       tSlots = nRows * nCols;
-      const occ = data.pallets.filter(p => (p.sectorId || "principal") === currentSector.id && Number(p.quantity) > 0).length;
+      const occ = data.pallets.filter(p => (p.sectorId || "principal") === currentSector.id && p.quantity > 0).length;
       if (currentSector.type === "liquidos") {
         lSlots = tSlots;
         lOccupied = occ;
@@ -935,7 +865,7 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
       solidsOccupied: sOccupied,
       liquidsOccupied: lOccupied
     };
-  }, [data.pallets, currentSector, sDims, lDims]);
+  }, [data, currentSector]);
 
   // Desplazamiento por Flechas (1 Columna = 116px * zoomLevel)
   const scrollBays = (zoneKey, direction) => {
@@ -1038,166 +968,6 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
     }
   };
 
-  // --- DRAG & DROP HANDLERS (Mover e Intercambiar Pallets) ---
-  const handleDragStart = (e, pallet, zone, col, row) => {
-    if (!pallet) return;
-    const cCol = String(col || pallet.col || '').trim().toUpperCase();
-    const cRow = Number(row ?? pallet.row);
-    const zZone = zone || pallet.zone || (currentSector.type === "dual" ? "solidos" : "mixto");
-
-    setDraggedPallet({
-      pallet,
-      zone: zZone,
-      col: cCol,
-      row: cRow,
-      sectorId: activeSectorId
-    });
-
-    e.dataTransfer.effectAllowed = "move";
-    try {
-      e.dataTransfer.setData("text/plain", pallet.id);
-    } catch (_) {}
-  };
-
-  const handleDragOver = (e, zone, col, row) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = "move";
-    const cCol = String(col || '').trim().toUpperCase();
-    const cRow = Number(row);
-    const zZone = zone || (currentSector.type === "dual" ? "solidos" : "mixto");
-
-    if (
-      !dragOverTarget ||
-      dragOverTarget.zone !== zZone ||
-      dragOverTarget.col !== cCol ||
-      dragOverTarget.row !== cRow
-    ) {
-      setDragOverTarget({ zone: zZone, col: cCol, row: cRow });
-    }
-  };
-
-  const handleDragLeave = (e, zone, col, row) => {
-    const cCol = String(col || '').trim().toUpperCase();
-    const cRow = Number(row);
-    const zZone = zone || (currentSector.type === "dual" ? "solidos" : "mixto");
-
-    if (
-      dragOverTarget &&
-      dragOverTarget.zone === zZone &&
-      dragOverTarget.col === cCol &&
-      dragOverTarget.row === cRow
-    ) {
-      setDragOverTarget(null);
-    }
-  };
-
-  const handleDragEnd = () => {
-    setDraggedPallet(null);
-    setDragOverTarget(null);
-  };
-
-  const handleDrop = (e, targetPallet, targetZone, targetCol, targetRow) => {
-    e.preventDefault();
-    setDragOverTarget(null);
-    if (!draggedPallet) return;
-
-    const tCol = String(targetCol || '').trim().toUpperCase();
-    const tRow = Number(targetRow);
-    const tZone = targetZone || (currentSector.type === "dual" ? "solidos" : "mixto");
-
-    const sCol = String(draggedPallet.col || '').trim().toUpperCase();
-    const sRow = Number(draggedPallet.row);
-    const sZone = draggedPallet.zone;
-
-    // Si se suelta en la misma ubicación exacta
-    if (sZone === tZone && sCol === tCol && sRow === tRow) {
-      setDraggedPallet(null);
-      return;
-    }
-
-    const currentPallets = [...(data.pallets || [])];
-
-    if (!targetPallet) {
-      // 1. TRASLADO A ESPACIO VACÍO
-      const nextPallets = currentPallets.map(p => {
-        if (
-          p.id === draggedPallet.pallet.id ||
-          ((p.sectorId || "principal") === activeSectorId &&
-            String(p.col).trim().toUpperCase() === sCol &&
-            Number(p.row) === sRow &&
-            (currentSector.type !== "dual" || (p.zone || "solidos") === sZone))
-        ) {
-          return {
-            ...p,
-            zone: tZone,
-            col: tCol,
-            row: tRow,
-            sectorId: activeSectorId
-          };
-        }
-        return p;
-      });
-
-      persistData({ ...data, pallets: nextPallets });
-      showToast(
-        t("palletMoved", {
-          prod: draggedPallet.pallet.product,
-          from: `${sCol}${sRow}`,
-          to: `${tCol}${tRow}`
-        }),
-        "success"
-      );
-    } else {
-      // 2. INTERCAMBIO (SWAP) ENTRE DOS PALLETS
-      const nextPallets = currentPallets.map(p => {
-        // Pallet arrastrado pasa a la celda de destino
-        if (
-          p.id === draggedPallet.pallet.id ||
-          ((p.sectorId || "principal") === activeSectorId &&
-            String(p.col).trim().toUpperCase() === sCol &&
-            Number(p.row) === sRow &&
-            (currentSector.type !== "dual" || (p.zone || "solidos") === sZone))
-        ) {
-          return {
-            ...p,
-            zone: tZone,
-            col: tCol,
-            row: tRow,
-            sectorId: activeSectorId
-          };
-        }
-        // Pallet existente en destino pasa a la celda de origen
-        if (
-          p.id === targetPallet.id ||
-          ((p.sectorId || "principal") === activeSectorId &&
-            String(p.col).trim().toUpperCase() === tCol &&
-            Number(p.row) === tRow &&
-            (currentSector.type !== "dual" || (p.zone || "solidos") === tZone))
-        ) {
-          return {
-            ...p,
-            zone: sZone,
-            col: sCol,
-            row: sRow,
-            sectorId: activeSectorId
-          };
-        }
-        return p;
-      });
-
-      persistData({ ...data, pallets: nextPallets });
-      showToast(
-        t("palletsSwapped", {
-          pos1: `${sCol}${sRow}`,
-          pos2: `${tCol}${tRow}`
-        }),
-        "success"
-      );
-    }
-
-    setDraggedPallet(null);
-  };
-
   // Toggle Resaltar Parciales
   const togglePartialFilter = () => {
     if (activeFilter && activeFilter.type === "partial") {
@@ -1223,8 +993,6 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
         if (showNewSectorModal) setShowNewSectorModal(false);
         if (showDimensionsModal) setShowDimensionsModal(false);
         if (showPrintModal) setShowPrintModal(false);
-        if (draggedPallet) setDraggedPallet(null);
-        if (dragOverTarget) setDragOverTarget(null);
         if (copiedPallet) {
           setCopiedPallet(null);
           showToast(t("cancelCopy"), "info");
@@ -1245,7 +1013,7 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [selectedPallet, copiedPallet, draggedPallet, dragOverTarget, showReceptionModal, showPalletActionModal, showNewSectorModal, showDimensionsModal, showPrintModal, undoStack, data, lang, searchQuery, activeFilter]);
+  }, [selectedPallet, copiedPallet, showReceptionModal, showPalletActionModal, showNewSectorModal, showDimensionsModal, showPrintModal, undoStack, data, lang, searchQuery, activeFilter]);
 
   // Búsqueda reactiva de lotes y productos en el almacén
   const searchMatches = useMemo(() => {
@@ -1312,19 +1080,15 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
     showToast(t("csvSuccess"), "success");
   };
 
-  // Render Pallet Card Individual con HashMap O(1) de alto rendimiento y Soporte Drag & Drop
+  // Render Pallet Card Individual con HashMap O(1) de alto rendimiento
   const renderPalletCard = (zone, col, row) => {
     const cCol = String(col || '').trim().toUpperCase();
     const cRow = Number(row);
-    const pallet = getPalletAt(zone, cCol, cRow);
+    const lookupKey = currentSector.type === "dual" ? `${zone}_${cCol}_${cRow}` : `${cCol}_${cRow}`;
+    const pallet = palletsMap.get(lookupKey) || palletsMap.get(`${zone}_${cCol}_${cRow}`) || palletsMap.get(`${cCol}_${cRow}`);
 
     const isSelected = selectedPallet && selectedPallet.id === pallet?.id;
     const isCopied = copiedPallet && copiedPallet.id === pallet?.id;
-
-    const isDragTarget = dragOverTarget && dragOverTarget.zone === zone && dragOverTarget.col === cCol && dragOverTarget.row === cRow;
-    const isBeingDragged = draggedPallet && (draggedPallet.pallet.id === pallet?.id || (
-      draggedPallet.zone === zone && draggedPallet.col === cCol && draggedPallet.row === cRow
-    ));
 
     if (!pallet) {
       const isLiquids = zone === "liquidos";
@@ -1332,37 +1096,23 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
         <div
           key={`${zone}-${col}-${row}`}
           onClick={() => handlePalletClick(null, zone, col, row)}
-          onDragOver={(e) => handleDragOver(e, zone, col, row)}
-          onDragLeave={(e) => handleDragLeave(e, zone, col, row)}
-          onDrop={(e) => handleDrop(e, null, zone, col, row)}
           style={{ width: `${cardWidth}px`, height: `${cardHeight}px`, minWidth: `${cardWidth}px`, maxWidth: `${cardWidth}px`, minHeight: `${cardHeight}px`, maxHeight: `${cardHeight}px` }}
           className={`rounded-xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-all select-none p-1 text-center ${
-            isDragTarget
-              ? 'bg-emerald-100/90 dark:bg-emerald-950/60 border-emerald-500 ring-4 ring-emerald-400 scale-105 shadow-xl text-emerald-700 dark:text-emerald-300'
-              : copiedPallet
-                ? 'bg-blue-50/70 dark:bg-blue-950/30 border-blue-400 dark:border-blue-600 animate-pulse hover:bg-blue-100 hover:scale-105'
-                : isLiquids
-                  ? 'bg-purple-50/40 dark:bg-purple-950/20 border-purple-300 dark:border-purple-800/60 hover:border-purple-500 hover:bg-purple-50/80 text-purple-600 dark:text-purple-400'
-                  : 'bg-slate-50/80 dark:bg-slate-800/20 border-slate-200 dark:border-slate-800 hover:border-halliburton-red hover:bg-red-50/10 text-slate-400 dark:text-slate-500'
+            copiedPallet
+              ? 'bg-blue-50/70 dark:bg-blue-950/30 border-blue-400 dark:border-blue-600 animate-pulse hover:bg-blue-100 hover:scale-105'
+              : isLiquids
+                ? 'bg-purple-50/40 dark:bg-purple-950/20 border-purple-300 dark:border-purple-800/60 hover:border-purple-500 hover:bg-purple-50/80 text-purple-600 dark:text-purple-400'
+                : 'bg-slate-50/80 dark:bg-slate-800/20 border-slate-200 dark:border-slate-800 hover:border-halliburton-red hover:bg-red-50/10 text-slate-400 dark:text-slate-500'
           }`}
           title={
-            isDragTarget
-              ? t("dropHere")
-              : copiedPallet
-                ? `${t("paste")} (${isLiquids ? t("tray") + ' ' : ''}${col}${row})`
-                : isLiquids
-                  ? t("containmentTrayTooltip", { col, row })
-                  : t("emptySlotTooltip", { col, row })
+            copiedPallet
+              ? `${t("paste")} (${isLiquids ? t("tray") + ' ' : ''}${col}${row})`
+              : isLiquids
+                ? t("containmentTrayTooltip", { col, row })
+                : t("emptySlotTooltip", { col, row })
           }
         >
-          {isDragTarget ? (
-            <div className="flex flex-col items-center justify-center animate-bounce pointer-events-none">
-              <Icon name="arrow-down" size={18} className="text-emerald-600 dark:text-emerald-400" />
-              <span className="text-[10px] font-black uppercase tracking-wider text-emerald-700 dark:text-emerald-300">
-                {t("dropHere")}
-              </span>
-            </div>
-          ) : copiedPallet ? (
+          {copiedPallet ? (
             <span className="text-[10px] font-black text-blue-600 dark:text-blue-400 flex items-center gap-1 uppercase tracking-wider">
               <Icon name="copy" size={12} /> {t("paste")} {col}{row}
             </span>
@@ -1424,12 +1174,6 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
     return (
       <div
         key={pallet.id}
-        draggable={true}
-        onDragStart={(e) => handleDragStart(e, pallet, zone, col, row)}
-        onDragEnd={handleDragEnd}
-        onDragOver={(e) => handleDragOver(e, zone, col, row)}
-        onDragLeave={(e) => handleDragLeave(e, zone, col, row)}
-        onDrop={(e) => handleDrop(e, pallet, zone, col, row)}
         onClick={() => handlePalletClick(pallet, zone, col, row)}
         onDoubleClick={() => handlePalletDblClick(pallet)}
         style={{
@@ -1441,29 +1185,13 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
           minHeight: `${cardHeight}px`,
           maxHeight: `${cardHeight}px`
         }}
-        className={`rounded-xl relative p-1 pt-3.5 flex flex-col items-center justify-center cursor-grab active:cursor-grabbing select-none transition-all overflow-hidden ${
-          isBeingDragged
-            ? 'opacity-30 scale-95 border-2 border-dashed border-white shadow-none ring-0'
-            : isDragTarget
-              ? 'ring-4 ring-sky-400 ring-offset-2 scale-105 z-30 shadow-2xl'
-              : isSelected
-                ? 'ring-4 ring-sky-400 ring-offset-2 z-20 shadow-xl scale-105'
-                : 'shadow-md hover:scale-102 hover:shadow-lg'
+        className={`rounded-xl relative p-1 pt-3.5 flex flex-col items-center justify-center cursor-pointer select-none transition-all overflow-hidden ${
+          isSelected ? 'ring-4 ring-sky-400 ring-offset-2 z-20 shadow-xl scale-105' : 'shadow-md hover:scale-102 hover:shadow-lg'
         } ${isPartial ? 'border-2 border-dashed border-amber-400 shadow-[inset_0_0_10px_rgba(245,158,11,0.3)]' : 'border border-white/20'} ${
           isDimmed ? 'opacity-20 grayscale contrast-75 scale-95' : ''
-        } ${isHighlighted && !isBeingDragged ? 'ring-4 ring-amber-400 ring-offset-2 scale-105 z-30 shadow-2xl animate-pulse' : ''}`}
+        } ${isHighlighted ? 'ring-4 ring-amber-400 ring-offset-2 scale-105 z-30 shadow-2xl animate-pulse' : ''}`}
         title={`${pallet.product} | ${t("filter") === "Filter" ? "Lot" : "Lote"}: ${pallet.lot} | ${pallet.quantity} ${pallet.unit}${isPartial ? ` (PARCIAL: ${pct}%)` : ''} | Pos: ${col}${row}`}
       >
-        {/* Overlay cuando se arrastra otro pallet sobre este (Swap) */}
-        {isDragTarget && !isBeingDragged && (
-          <div className="absolute inset-0 bg-sky-950/85 backdrop-blur-xs rounded-xl flex flex-col items-center justify-center z-40 text-white font-bold p-1 animate-pulse pointer-events-none">
-            <Icon name="refresh-cw" size={16} className="text-sky-300 animate-spin mb-0.5" />
-            <span className="text-[9px] font-black uppercase tracking-wider text-center leading-none">
-              {t("swapWith")}
-            </span>
-          </div>
-        )}
-
         {/* Botón Copiar (Esquina Sup. Izquierda) */}
         <button
           type="button"
@@ -1485,7 +1213,7 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
         </button>
 
         {/* Contenido Central: Nombre, Cantidad y Lote */}
-        <div className="flex flex-col items-center justify-center text-center w-full gap-0.5 leading-none pointer-events-none">
+        <div className="flex flex-col items-center justify-center text-center w-full gap-0.5 leading-none">
           <span className="text-[9.5px] font-black uppercase text-white tracking-tight drop-shadow max-w-[96%] overflow-hidden line-clamp-2 text-center" style={{ lineHeight: '1.05' }}>
             {shortName}
           </span>
@@ -1513,15 +1241,46 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
     );
   };
 
+  // Dimensiones del sector activo garantizadas defensivamente
+  const sDims = useMemo(() => {
+    let raw;
+    if (currentSector.type === "dual") {
+      raw = currentSector.warehouseDimensions?.solidos || data.warehouseDimensions?.solidos || { rows: 6, columns: ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"] };
+    } else {
+      raw = {
+        rows: currentSector.rows || 4,
+        columns: currentSector.columns || ["A","B","C","D","E","F","G","H","I","J","K","L"]
+      };
+    }
+    return {
+      rows: Math.max(1, Number(raw?.rows) || 4),
+      columns: Array.isArray(raw?.columns) && raw.columns.length > 0 ? raw.columns : ["A","B","C","D","E","F","G","H","I","J","K","L"]
+    };
+  }, [currentSector, data.warehouseDimensions]);
+
+  const lDims = useMemo(() => {
+    let raw;
+    if (currentSector.type === "dual") {
+      raw = currentSector.warehouseDimensions?.liquidos || data.warehouseDimensions?.liquidos || { rows: 6, columns: ["A", "B", "C", "D", "E", "F", "G", "H"] };
+    } else {
+      raw = {
+        rows: currentSector.rows || 4,
+        columns: currentSector.columns || ["A","B","C","D"]
+      };
+    }
+    return {
+      rows: Math.max(1, Number(raw?.rows) || 4),
+      columns: Array.isArray(raw?.columns) && raw.columns.length > 0 ? raw.columns : ["A","B","C","D"]
+    };
+  }, [currentSector, data.warehouseDimensions]);
+
   // Métricas geométricas y tipográficas calculadas para que el diagrama entre en 1 SOLA PÁGINA A4 Landscape
   const printMetrics = useMemo(() => {
     const isDual = currentSector.type === "dual";
     const sRows = sDims.rows;
     const lRows = isDual ? lDims.rows : 0;
     const totalRows = isDual ? (sRows + lRows) : sRows;
-    const maxCols = Math.max(sDims.columns.length, isDual ? lDims.columns.length : 0);
 
-    // Altura del card calculada dinámicamente para que quepa estrictamente en 1 página A4 Landscape (<= 750px total)
     let cardH = 80;
     let titleSize = "text-[10px]";
     let qtySize = "text-[10px]";
@@ -1531,68 +1290,61 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
     let padClass = "p-1.5";
 
     if (totalRows <= 4) {
-      cardH = 108;
-      titleSize = "text-[11.5px]";
-      qtySize = "text-[12px]";
-      lotSize = "text-[14px]";
-      posSize = "text-[10px]";
+      cardH = 112;
+      titleSize = "text-[11px]";
+      qtySize = "text-[11.5px]";
+      lotSize = "text-[14px]"; // Número de lote agrandado y destacado
+      posSize = "text-[9.5px]";
       gapClass = "gap-1.5";
       padClass = "p-2";
     } else if (totalRows <= 5) {
-      cardH = 90;
-      titleSize = "text-[11px]";
+      cardH = 94;
+      titleSize = "text-[10.5px]";
       qtySize = "text-[11px]";
-      lotSize = "text-[13px]";
-      posSize = "text-[9.5px]";
+      lotSize = "text-[13px]"; // Número de lote agrandado y destacado
+      posSize = "text-[9px]";
       gapClass = "gap-1.5";
       padClass = "p-1.5";
     } else if (totalRows <= 6) {
-      cardH = 78;
-      titleSize = "text-[10.5px]";
-      qtySize = "text-[10.5px]";
-      lotSize = "text-[12.5px]";
-      posSize = "text-[9px]";
+      cardH = 80;
+      titleSize = "text-[10px]";
+      qtySize = "text-[10px]";
+      lotSize = "text-[12px]"; // Número de lote agrandado y destacado
+      posSize = "text-[8.5px]";
       gapClass = "gap-1";
       padClass = "p-1.5";
     } else if (totalRows <= 8) {
       cardH = 62;
-      titleSize = "text-[9.5px]";
-      qtySize = "text-[9.5px]";
-      lotSize = "text-[11.5px]";
-      posSize = "text-[8.5px]";
+      titleSize = "text-[9px]";
+      qtySize = "text-[9px]";
+      lotSize = "text-[11px]"; // Número de lote agrandado y destacado
+      posSize = "text-[8px]";
       gapClass = "gap-1";
       padClass = "p-1";
     } else if (totalRows <= 10) {
       cardH = 50;
-      titleSize = "text-[8.5px]";
-      qtySize = "text-[8.5px]";
-      lotSize = "text-[10.5px]";
-      posSize = "text-[8px]";
+      titleSize = "text-[8px]";
+      qtySize = "text-[8px]";
+      lotSize = "text-[9.5px]"; // Número de lote agrandado y destacado
+      posSize = "text-[7.5px]";
       gapClass = "gap-0.5";
       padClass = "p-0.5 px-1";
     } else if (totalRows <= 12) {
-      cardH = 42;
+      cardH = 41;
       titleSize = "text-[7.5px]";
       qtySize = "text-[7.5px]";
-      lotSize = "text-[9.5px]";
+      lotSize = "text-[8.5px]"; // Número de lote agrandado y destacado
       posSize = "text-[7px]";
       gapClass = "gap-0.5";
-      padClass = "p-0.5 px-0.5";
+      padClass = "p-0.5 px-1";
     } else {
-      cardH = Math.max(32, Math.floor(510 / totalRows));
+      cardH = 34;
       titleSize = "text-[7px]";
       qtySize = "text-[7px]";
-      lotSize = "text-[8.5px]";
+      lotSize = "text-[7.5px]";
       posSize = "text-[6.5px]";
       gapClass = "gap-0.5";
       padClass = "p-0.5";
-    }
-
-    // Si hay muchas columnas (ej. más de 12), reducir ligeramente la tipografía para que no se desborde horizontalmente
-    if (maxCols > 12) {
-      if (titleSize.includes("12px") || titleSize.includes("11.5px")) titleSize = "text-[10px]";
-      else if (titleSize.includes("11px") || titleSize.includes("10.5px")) titleSize = "text-[9.5px]";
-      else if (titleSize.includes("10px") || titleSize.includes("9.5px")) titleSize = "text-[8.5px]";
     }
 
     return {
@@ -3198,7 +2950,7 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
           <div
             id="printableWarehouseSheet"
             style={{ width: '1120px', maxWidth: '1120px', boxSizing: 'border-box' }}
-            className="bg-white text-black rounded-2xl p-2.5 shadow-2xl border border-zinc-200 print:border-none print:shadow-none print:p-0 print:m-0 print:w-full print:max-w-none print:min-w-0 print:rounded-none mx-auto overflow-hidden"
+            className="bg-white text-black rounded-2xl p-3 shadow-2xl border border-zinc-200 print:border-none print:shadow-none print:p-0 print:m-0 print:w-full print:max-w-none print:min-w-0 print:rounded-none mx-auto overflow-hidden"
           >
             {/* ENCABEZADO OFICIAL LIMPIO Y COMPACTO */}
             <div className="border-b-2 border-black pb-1 mb-1.5 flex items-center justify-between">
@@ -3247,7 +2999,8 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
                           const rowNum = rIdx + 1;
                           const cCol = String(colLetter || '').trim().toUpperCase();
                           const cRow = Number(rowNum);
-                          const p = getPalletAt(currentSector.type === "dual" ? "solidos" : "mixto", cCol, cRow);
+                          const lookupKey = currentSector.type === "dual" ? `solidos_${cCol}_${cRow}` : `${cCol}_${cRow}`;
+                          const p = palletsMap.get(lookupKey);
 
                           if (p && Number(p.quantity) > 0) {
                             const cap = Number(p.capacityNominal) || Number(p.quantity) || 1000;
@@ -3354,7 +3107,7 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
                           const rowNum = rIdx + 1;
                           const cCol = String(colLetter || '').trim().toUpperCase();
                           const cRow = Number(rowNum);
-                          const p = getPalletAt("liquidos", cCol, cRow);
+                          const p = palletsMap.get(`liquidos_${cCol}_${cRow}`);
 
                           if (p && Number(p.quantity) > 0) {
                             const cap = Number(p.capacityNominal) || Number(p.quantity) || 1000;
@@ -3382,7 +3135,7 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
                                     style={{ backgroundColor: prodColor }}
                                     className={`text-white font-mono font-black ${printMetrics.posSize} px-1.5 py-0.5 rounded leading-none shrink-0 shadow-xs`}
                                   >
-                                    {colLetter}{rowNum}
+                                    B-{colLetter}{rowNum}
                                   </span>
                                   {isPartial && (
                                     <span className={`bg-amber-400 text-slate-950 font-black uppercase ${printMetrics.posSize} px-1 py-0.5 rounded leading-none shrink-0 shadow-xs`}>
@@ -3417,7 +3170,7 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
                                 className={`rounded-lg ${printMetrics.padClass} border-2 border-dashed border-purple-300 bg-purple-50/40 flex flex-col justify-between text-left shadow-none overflow-hidden select-none page-break-avoid`}
                               >
                                 <div className="flex items-center justify-between leading-none w-full text-purple-700">
-                                  <span className={`font-mono font-black ${printMetrics.posSize}`}>{colLetter}{rowNum}</span>
+                                  <span className={`font-mono font-black ${printMetrics.posSize}`}>B-{colLetter}{rowNum}</span>
                                   <span className={`font-black uppercase text-purple-600 ${printMetrics.posSize}`}>{t("freeTag")}</span>
                                 </div>
                                 <div className="my-auto text-center py-0.5">
