@@ -388,6 +388,7 @@ export const translations = {
     retortSampleCaVol: "mL Muestra Calcio",
     retortTitrationClHeader: "2.1 Titulación de Cloruros",
     retortTitrationCaHeader: "2.2 Titulación de Calcio",
+    retortOwrRatio: "Relación Aceite/Agua (OWR)",
 
     // Rheology Section
     rheoFixedParams: "Parámetros Fijos",
@@ -397,9 +398,10 @@ export const translations = {
     rheoPresetHeavy: "Densificado",
     rheoPresetYield: "Alta Cedencia",
     rheoPresetBasic: "Básico",
-    rheoPlasticVisc: "Viscosidad Plástica (VP)",
-    rheoYieldPoint: "Punto Cedente (YP)",
-    rheoTrueYield: "Esfuerzo Cedente Real (τ₀)",
+    rheoPlasticVisc: "Viscosidad Plástica",
+    rheoYieldPoint: "Punto Cedente",
+    rheoTrueYield: "Esfuerzo Cedente Real",
+    rheoCalcParamsHeader: "Parámetros Calculados",
     rheoAlert: "Ajuste técnico: El esfuerzo de cedencia real (τ₀) no puede superar o igualar la lectura θ₃₀₀ ({limit} lb/100ft²). Se limitó automáticamente a {val}.",
     rheoIndexHeader: "Índices de Consistencia H-B",
     rheoIndexN: "Índice n",
@@ -806,6 +808,7 @@ export const translations = {
     retortSampleCaVol: "mL Calcium Sample",
     retortTitrationClHeader: "2.1 Chloride Titration",
     retortTitrationCaHeader: "2.2 Calcium Titration",
+    retortOwrRatio: "Oil/Water Ratio (OWR)",
 
     // Rheology Section
     rheoFixedParams: "Fixed Rheological Parameters",
@@ -815,9 +818,10 @@ export const translations = {
     rheoPresetHeavy: "Weighted Mud",
     rheoPresetYield: "High Yield Point",
     rheoPresetBasic: "Standard Preset",
-    rheoPlasticVisc: "Plastic Viscosity (PV)",
-    rheoYieldPoint: "Yield Point (YP)",
-    rheoTrueYield: "True Yield Stress (τ₀)",
+    rheoPlasticVisc: "Plastic Viscosity",
+    rheoYieldPoint: "Yield Point",
+    rheoTrueYield: "True Yield Stress",
+    rheoCalcParamsHeader: "Calculated Parameters",
     rheoAlert: "Technical adjustment: True yield stress (τ₀) cannot exceed or equal θ₃₀₀ reading ({limit} lb/100ft²). Restricted to {val}.",
     rheoIndexHeader: "Herschel-Bulkley Flow Indexes",
     rheoIndexN: "Flow Behavior Index (n)",

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import Icon from './Icon';
+import html2pdf from 'html2pdf.js';
 
 // Catálogo Maestro Oficial de Productos BAROID
 const OFFICIAL_BAROID_CATALOG = [
@@ -202,7 +203,74 @@ const I18N = {
     rowAdded: "+1 Fila agregada",
     colAdded: "+ Columna {col} agregada",
     emptyConfirm: "¿Estás seguro de que deseas vaciar todos los lotes del almacén para comenzar desde cero? Podrás deshacer esta acción con Ctrl+Z.",
-    warehouseCleared: "🗑️ Almacén vaciado. Listo para nuevo inventario."
+    warehouseCleared: "🗑️ Almacén vaciado. Listo para nuevo inventario.",
+    pdfPrintout: "Impresión PDF",
+    warehouseSheetTitle: "Diagrama Almacén",
+    fieldCountingSheetSubtitle: "Planilla conteo físico",
+    lotProdSearch: "Buscador de Lote / Producto",
+    searchPlaceholder: "Escribe lote o producto...",
+    clearBtn: "Limpiar",
+    directHighlight: "Resalta ubicación directa en mapa",
+    noMatches: "Sin coincidencias",
+    inSlots: "en:",
+    solidsZone: "ZONA SÓLIDOS",
+    liquidsZoneTrays: "ZONA LÍQUIDOS (BANDEJAS)",
+    generalZone: "ZONA GENERAL",
+    tray: "Bandeja",
+    trays: "Bandejas",
+    loadedPallets: "pallets cargados",
+    diagramSheetTitle: "DIAGRAMA DE ZONA DE PRODUCTOS",
+    officialCountingSheet: "PLANILLA OFICIAL DE RECUENTO FÍSICO",
+    issued: "Emisión",
+    occupancy: "Ocupación",
+    countingOfficer: "Responsable de Recuento: ___________________________",
+    signatureApproval: "Firma / Aprobación: ___________________________",
+    officialSheetFooter: "Baroid LMP • Planilla Oficial de Conteo Físico",
+    printPreviewTitle: "Vista de Impresión • Diagrama de Zona de Productos",
+    printPreviewSubtitle: "Diseñado en formato horizontal A4 con máxima resolución para recuento y verificación física en almacén.",
+    downloadPdfBtn: "Descargar PDF",
+    printSavePdfBtn: "Imprimir / Guardar PDF",
+    closeModal: "✕ Cerrar (Esc)",
+    availableTray: "BANDEJA DISPONIBLE",
+    trayAvailable: "BANDEJA LIBRE",
+    freeSlotTag: "Espacio Libre",
+    countBox: "Conteo: [ _____ ]",
+    colHeader: "Col",
+    trayColHeader: "Bandejas",
+    partialTag: "PARCIAL",
+    freeTag: "(LIBRE)",
+    containmentTrayTooltip: "Bandeja {col}{row} (Libre - Contención Antiderrame) • Recepcionar Pallet",
+    emptySlotTooltip: "+ {col}{row} • Recepcionar Pallet",
+    generatingPdfToast: "Generando archivo PDF en máxima resolución...",
+    pdfSuccessToast: "✓ Archivo PDF descargado con éxito.",
+    navColsTooltip: "Navegar columna a columna",
+    prevCol: "Columna anterior (◀)",
+    nextCol: "Columna siguiente (▶)",
+    scrollToPrevCol: "Desplazar a columnas anteriores (◀)",
+    scrollToNextCol: "Desplazar a columnas siguientes (▶)",
+    openPrintModalTooltip: "Abrir e imprimir Diagrama de Zona de Productos para conteo físico",
+    currentRegisteredStock: "Stock Registrado Actual",
+    nominalCapacity: "Cap. Nominal",
+    directMode: "Directo",
+    byPackagesMode: "Por Bolsas / Envases",
+    howMuchRemaining: "¿Cuánto queda del producto?",
+    remainingPackages: "Bolsas / Envases que quedan",
+    weightPerPackage: "Peso / Vol. por Envase",
+    resultingCalculation: "Cálculo resultante",
+    palletWillZeroWarning: "El pallet quedará en 0 y la posición {pos} se liberará.",
+    recipeConsumption: "Consumo para receta",
+    remainingLabel: "Quedan",
+    upwardAdjustment: "Ajuste de inventario en alza",
+    noStockChanges: "Sin cambios en el stock del pallet.",
+    confirmEmptyPallet: "¿Vaciar totalmente el pallet en {pos}?",
+    emptyToZeroBtn: "Vaciar a 0",
+    saveBtn: "Guardar",
+    closeEsc: "Cerrar (Esc)",
+    invalidJsonFormat: "❌ El archivo no contiene un formato válido (falta lista de pallets).",
+    jsonLoadSuccess: "✅ Inventario cargado con éxito: {count} pallets y lotes importados.",
+    jsonLoadError: "❌ Error al procesar el archivo JSON.",
+    backupDownloaded: "📥 Copia de seguridad JSON descargada.",
+    confirmDeletePallet: "¿Vaciar totalmente {prod} (Lote: {lot}) en {pos}?"
   },
   en: {
     mapTitle: "Chemical Products Zone Map",
@@ -298,7 +366,74 @@ const I18N = {
     rowAdded: "+1 Row added",
     colAdded: "+ Column {col} added",
     emptyConfirm: "Are you sure you want to empty all lots in this warehouse to start from scratch? You can undo with Ctrl+Z.",
-    warehouseCleared: "🗑️ Warehouse cleared. Ready for fresh inventory."
+    warehouseCleared: "🗑️ Warehouse cleared. Ready for fresh inventory.",
+    pdfPrintout: "PDF Printout",
+    warehouseSheetTitle: "Warehouse Sheet",
+    fieldCountingSheetSubtitle: "Field counting sheet",
+    lotProdSearch: "Lot / Product Search",
+    searchPlaceholder: "Search lot or product...",
+    clearBtn: "Clear",
+    directHighlight: "Direct highlight on map",
+    noMatches: "No matches",
+    inSlots: "in:",
+    solidsZone: "SOLIDS ZONE",
+    liquidsZoneTrays: "LIQUIDS ZONE (TRAYS)",
+    generalZone: "GENERAL ZONE",
+    tray: "Tray",
+    trays: "Trays",
+    loadedPallets: "loaded pallets",
+    diagramSheetTitle: "CHEMICAL PRODUCTS ZONE DIAGRAM",
+    officialCountingSheet: "OFFICIAL PHYSICAL COUNTING SHEET",
+    issued: "Issued",
+    occupancy: "Occupancy",
+    countingOfficer: "Counting Officer: ___________________________",
+    signatureApproval: "Signature / Approval: ___________________________",
+    officialSheetFooter: "Baroid LMP • Official Counting Sheet",
+    printPreviewTitle: "Print Preview • Chemical Products Zone Diagram",
+    printPreviewSubtitle: "Designed in high-resolution A4 landscape format for physical counting and field audits.",
+    downloadPdfBtn: "Download PDF",
+    printSavePdfBtn: "Print / Save PDF",
+    closeModal: "✕ Close (Esc)",
+    availableTray: "AVAILABLE TRAY",
+    trayAvailable: "FREE TRAY",
+    freeSlotTag: "Free Slot",
+    countBox: "Count: [ _____ ]",
+    colHeader: "Col",
+    trayColHeader: "Trays",
+    partialTag: "PARTIAL",
+    freeTag: "(FREE)",
+    containmentTrayTooltip: "Tray {col}{row} (Free - Containment Tray) • Receive Pallet",
+    emptySlotTooltip: "+ {col}{row} • Receive Pallet",
+    generatingPdfToast: "Generating high-resolution PDF file...",
+    pdfSuccessToast: "✓ PDF file downloaded successfully.",
+    navColsTooltip: "Navigate column by column",
+    prevCol: "Previous column (◀)",
+    nextCol: "Next column (▶)",
+    scrollToPrevCol: "Scroll to previous columns (◀)",
+    scrollToNextCol: "Scroll to next columns (▶)",
+    openPrintModalTooltip: "Open and print Chemical Products Zone Diagram for physical counting",
+    currentRegisteredStock: "Current Registered Stock",
+    nominalCapacity: "Nominal Cap.",
+    directMode: "Direct",
+    byPackagesMode: "By Bags / Packages",
+    howMuchRemaining: "How much product remains?",
+    remainingPackages: "Remaining bags / packages",
+    weightPerPackage: "Weight / Vol. per Package",
+    resultingCalculation: "Resulting calculation",
+    palletWillZeroWarning: "The pallet will be emptied to 0 and slot {pos} will be freed.",
+    recipeConsumption: "Recipe consumption",
+    remainingLabel: "Remaining",
+    upwardAdjustment: "Upward inventory adjustment",
+    noStockChanges: "No change in pallet stock.",
+    confirmEmptyPallet: "Completely empty pallet at {pos}?",
+    emptyToZeroBtn: "Empty to 0",
+    saveBtn: "Save",
+    closeEsc: "Close (Esc)",
+    invalidJsonFormat: "❌ File does not contain a valid format (missing pallets list).",
+    jsonLoadSuccess: "✅ Inventory loaded successfully: {count} pallets and lots imported.",
+    jsonLoadError: "❌ Error processing JSON file.",
+    backupDownloaded: "📥 JSON backup downloaded.",
+    confirmDeletePallet: "Completely empty {prod} (Lot: {lot}) at {pos}?"
   }
 };
 
@@ -390,6 +525,7 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
   const [remainingBagWeight, setRemainingBagWeight] = useState(25);
   const [showDimensionsModal, setShowDimensionsModal] = useState(false);
   const [showNewSectorModal, setShowNewSectorModal] = useState(false);
+  const [showPrintModal, setShowPrintModal] = useState(false);
 
   // Estado para modal de Nueva Pestaña (Lienzo Único vs Doble Área)
   const [newTabStructure, setNewTabStructure] = useState('single'); // 'single' | 'dual'
@@ -500,7 +636,7 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
       try {
         const imported = JSON.parse(event.target.result);
         if (!imported || !Array.isArray(imported.pallets)) {
-          showToast("❌ El archivo no contiene un formato válido (falta lista de pallets).", "error");
+          showToast(t("invalidJsonFormat"), "error");
           return;
         }
 
@@ -545,10 +681,10 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
         };
 
         persistData(nextData);
-        showToast(`✅ Inventario cargado con éxito: ${normalizedPallets.length} pallets y lotes importados.`, "success");
+        showToast(t("jsonLoadSuccess", { count: normalizedPallets.length }), "success");
       } catch (err) {
         console.error("Error importando JSON:", err);
-        showToast("❌ Error al procesar el archivo JSON.", "error");
+        showToast(t("jsonLoadError"), "error");
       }
     };
     reader.readAsText(file, "UTF-8");
@@ -567,19 +703,63 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
-    showToast("📥 Copia de seguridad JSON descargada.", "success");
+    showToast(t("backupDownloaded"), "success");
   };
 
   // Vaciar Almacén (Empezar de Cero)
   const handleClearWarehouse = () => {
-    if (confirm("¿Estás seguro de que deseas vaciar todos los lotes del almacén para comenzar desde cero? Podrás deshacer esta acción con Ctrl+Z.")) {
+    if (confirm(t("emptyConfirm"))) {
       const nextData = {
         ...data,
         pallets: []
       };
       persistData(nextData);
-      showToast("🗑️ Almacén vaciado. Listo para nuevo inventario.", "info");
+      showToast(t("warehouseCleared"), "info");
     }
+  };
+
+  // Descargar Planilla Diagrama de Zona de Productos en PDF (Alta Resolución A4 Apaisado Máxima Cobertura)
+  const handleDownloadPdf = () => {
+    const element = document.getElementById("printableWarehouseSheet");
+    if (!element) return;
+
+    const opt = {
+      margin: [4, 4, 4, 4], // Margen mínimo de 4mm para utilizar el 98% del ancho y alto del papel A4
+      filename: `${lang === 'es' ? 'Diagrama_Zona_Productos' : 'Chemical_Products_Zone_Diagram'}_${currentSector.name.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`,
+      image: { type: 'jpeg', quality: 1.0 },
+      html2canvas: {
+        scale: 3, // Ultra alta resolución (3x) para máxima nitidez y legibilidad
+        useCORS: true,
+        letterRendering: true,
+        scrollY: 0,
+        scrollX: 0
+      },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape', compress: true },
+      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+    };
+
+    const isDark = document.documentElement.classList.contains('dark');
+    if (isDark) document.documentElement.classList.remove('dark');
+
+    const h2p = (typeof window !== "undefined" && window.html2pdf) || (typeof html2pdf !== "undefined" && html2pdf);
+    if (h2p) {
+      showToast(t("generatingPdfToast"), "info");
+      h2p().from(element).set(opt).save().then(() => {
+        if (isDark) document.documentElement.classList.add('dark');
+        showToast(t("pdfSuccessToast"), "success");
+      }).catch(err => {
+        if (isDark) document.documentElement.classList.add('dark');
+        console.error("html2pdf error:", err);
+        window.print();
+      });
+    } else {
+      window.print();
+      if (isDark) document.documentElement.classList.add('dark');
+    }
+  };
+
+  const handleNativePrint = () => {
+    window.print();
   };
 
   // Sector actual con auto-detección dual defensiva
@@ -641,7 +821,11 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
       freeSlots: free,
       occPct: pct,
       freeSolids: Math.max(0, sSlots - sOccupied),
-      freeLiquids: Math.max(0, lSlots - lOccupied)
+      freeLiquids: Math.max(0, lSlots - lOccupied),
+      solidsSlots: sSlots,
+      liquidsSlots: lSlots,
+      solidsOccupied: sOccupied,
+      liquidsOccupied: lOccupied
     };
   }, [data, currentSector]);
 
@@ -739,7 +923,7 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
   // Eliminar / Vaciar Pallet
   const handleDeletePallet = (pallet, e) => {
     if (e) e.stopPropagation();
-    if (confirm(`¿${t("deleteEmpty")} ${pallet.product} (${t("lotNumber")}: ${pallet.lot}) en ${pallet.col}${pallet.row}?`)) {
+    if (confirm(t("confirmDeletePallet", { prod: pallet.product, lot: pallet.lot, pos: `${pallet.col}${pallet.row}` }))) {
       const nextPallets = data.pallets.filter(p => p.id !== pallet.id);
       persistData({ ...data, pallets: nextPallets });
       showToast(t("palletDeleted", { pos: `${pallet.col}${pallet.row}` }), "warning");
@@ -770,6 +954,7 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
         if (showPalletActionModal) setShowPalletActionModal(false);
         if (showNewSectorModal) setShowNewSectorModal(false);
         if (showDimensionsModal) setShowDimensionsModal(false);
+        if (showPrintModal) setShowPrintModal(false);
         if (copiedPallet) {
           setCopiedPallet(null);
           showToast(t("cancelCopy"), "info");
@@ -790,7 +975,7 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [selectedPallet, copiedPallet, showReceptionModal, showPalletActionModal, showNewSectorModal, showDimensionsModal, undoStack, data, lang, searchQuery, activeFilter]);
+  }, [selectedPallet, copiedPallet, showReceptionModal, showPalletActionModal, showNewSectorModal, showDimensionsModal, showPrintModal, undoStack, data, lang, searchQuery, activeFilter]);
 
   // Búsqueda reactiva de lotes y productos en el almacén
   const searchMatches = useMemo(() => {
@@ -865,22 +1050,43 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
     const isCopied = copiedPallet && copiedPallet.id === pallet?.id;
 
     if (!pallet) {
+      const isLiquids = zone === "liquidos";
       return (
         <div
           key={`${zone}-${col}-${row}`}
           onClick={() => handlePalletClick(null, zone, col, row)}
           style={{ width: `${cardWidth}px`, height: `${cardHeight}px`, minWidth: `${cardWidth}px`, maxWidth: `${cardWidth}px`, minHeight: `${cardHeight}px`, maxHeight: `${cardHeight}px` }}
-          className={`rounded-xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-all select-none ${
+          className={`rounded-xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-all select-none p-1 text-center ${
             copiedPallet
               ? 'bg-blue-50/70 dark:bg-blue-950/30 border-blue-400 dark:border-blue-600 animate-pulse hover:bg-blue-100 hover:scale-105'
-              : 'bg-slate-50/80 dark:bg-slate-800/20 border-slate-200 dark:border-slate-800 hover:border-halliburton-red hover:bg-red-50/10 text-slate-400 dark:text-slate-500'
+              : isLiquids
+                ? 'bg-purple-50/40 dark:bg-purple-950/20 border-purple-300 dark:border-purple-800/60 hover:border-purple-500 hover:bg-purple-50/80 text-purple-600 dark:text-purple-400'
+                : 'bg-slate-50/80 dark:bg-slate-800/20 border-slate-200 dark:border-slate-800 hover:border-halliburton-red hover:bg-red-50/10 text-slate-400 dark:text-slate-500'
           }`}
-          title={copiedPallet ? `${t("paste")} (${col}${row})` : `+ ${col}${row} &bull; ${t("receivePallet")}`}
+          title={
+            copiedPallet
+              ? `${t("paste")} (${isLiquids ? t("tray") + ' ' : ''}${col}${row})`
+              : isLiquids
+                ? t("containmentTrayTooltip", { col, row })
+                : t("emptySlotTooltip", { col, row })
+          }
         >
           {copiedPallet ? (
             <span className="text-[10px] font-black text-blue-600 dark:text-blue-400 flex items-center gap-1 uppercase tracking-wider">
               <Icon name="copy" size={12} /> {t("paste")} {col}{row}
             </span>
+          ) : isLiquids ? (
+            <div className="flex flex-col items-center justify-center leading-tight">
+              <span className="text-[9px] font-black uppercase tracking-wider text-purple-600 dark:text-purple-400">
+                {t("tray")}
+              </span>
+              <span className="text-xs font-black tracking-wider text-purple-700 dark:text-purple-300">
+                {col}{row}
+              </span>
+              <span className="text-[8px] font-bold text-purple-500/80 dark:text-purple-400/80 uppercase">
+                {t("free")}
+              </span>
+            </div>
           ) : (
             <span className="text-xs font-black tracking-wider text-slate-400 dark:text-slate-600">
               + {col}{row}
@@ -1074,46 +1280,6 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
             <span>{activeFilter?.type === "partial" ? t("showingPartials") : t("highlightPartials")}</span>
           </button>
 
-          {/* Buscador Instantáneo de Lote / Producto */}
-          <div className="relative flex items-center">
-            <Icon name="search" size={13} className="absolute left-3 text-zinc-400 pointer-events-none" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={lang === 'es' ? "Buscar lote o producto..." : "Search lot or product..."}
-              className="pl-8 pr-7 py-2 bg-zinc-100 hover:bg-zinc-200/70 dark:bg-slate-800 dark:hover:bg-slate-700/70 focus:bg-white dark:focus:bg-slate-900 border border-zinc-200 dark:border-zinc-700 rounded-xl text-xs font-bold text-zinc-800 dark:text-white outline-none focus:ring-2 focus:ring-halliburton-red transition-all w-44 sm:w-56 shadow-inner"
-            />
-            {searchQuery && (
-              <button
-                type="button"
-                onClick={() => setSearchQuery("")}
-                className="absolute right-2.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-white text-xs font-black cursor-pointer"
-                title="Limpiar búsqueda (Esc)"
-              >
-                &times;
-              </button>
-            )}
-          </div>
-
-          {/* Badge con Ubicaciones Encontradas */}
-          {searchQuery && (
-            <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black transition-all ${
-              searchMatches.length > 0
-                ? 'bg-amber-500/15 border border-amber-500/40 text-amber-600 dark:text-amber-400 shadow-sm'
-                : 'bg-zinc-100 dark:bg-slate-800 text-zinc-400'
-            }`}>
-              {searchMatches.length > 0 ? (
-                <>
-                  <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span>
-                  <span>📍 {searchMatches.length} en: {searchMatches.map(m => `${m.col}${m.row}`).slice(0, 4).join(', ')}{searchMatches.length > 4 ? '...' : ''}</span>
-                </>
-              ) : (
-                <span>❌ Sin coincidencias</span>
-              )}
-            </div>
-          )}
-
           {/* Badge de Filtro Activo */}
           {activeFilter && (
             <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-500/15 border border-amber-500/40 rounded-xl text-xs font-black text-amber-500">
@@ -1269,53 +1435,166 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
         </button>
       </div>
 
-      {/* KPIs Compactos: Capacidad de Pedido y Ocupación */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        {/* KPI 1: Espacios Libres para Pedido */}
-        <div className="p-3.5 px-4 rounded-2xl border border-zinc-200 dark:border-zinc-800/80 bg-white dark:bg-slate-900/60 shadow-sm flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0">
-              <Icon name="package-plus" size={20} />
-            </div>
-            <div>
-              <span className="text-[9px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400 block">{t("orderCapacity")}</span>
-              <div className="text-xl font-black italic tracking-tight text-emerald-500 leading-tight">
-                {freeSlots} {t("free")}
+      {/* 4 TARJETAS SUPERIORES: Capacidad de Pedido, Barra de Búsqueda, Ocupación Actual, Impresión PDF */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+        {/* TARJETA 1: Capacidad de Pedido (Compacta) */}
+        <div className="p-3.5 px-4 rounded-2xl border border-zinc-200 dark:border-zinc-800/80 bg-white dark:bg-slate-900/60 shadow-sm flex flex-col justify-between gap-2.5">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0">
+                <Icon name="package-plus" size={18} />
+              </div>
+              <div>
+                <span className="text-[9px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400 block">{t("orderCapacity")}</span>
+                <div className="text-xl font-black italic tracking-tight text-emerald-500 leading-tight">
+                  {freeSlots} {t("free")}
+                </div>
               </div>
             </div>
+            <span className="text-xs font-black text-emerald-600/80 dark:text-emerald-400/80 bg-emerald-500/10 px-2 py-0.5 rounded-lg">
+              {totalSlots > 0 ? Math.round((freeSlots / totalSlots) * 100) : 0}%
+            </span>
           </div>
-          <div className="flex-1 max-w-xs hidden sm:block">
-            <div className="w-full bg-zinc-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
+
+          <div>
+            <div className="w-full bg-zinc-100 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
               <div className="bg-emerald-500 h-full rounded-full transition-all duration-500" style={{ width: `${totalSlots > 0 ? (freeSlots / totalSlots) * 100 : 0}%` }}></div>
             </div>
-            <div className="text-[9px] text-zinc-400 font-bold mt-1 text-right">
-              {t("orderAvailable")}
-            </div>
+            {currentSector.type === "dual" ? (
+              <div className="flex items-center justify-between text-[10px] font-bold text-zinc-500 dark:text-zinc-400 mt-1.5">
+                <span className="text-blue-500 font-black">{t("solids")}: {freeSolids}</span>
+                <span className="text-purple-500 font-black">{t("trays")}: {freeLiquids}</span>
+              </div>
+            ) : (
+              <div className="text-[9px] text-zinc-400 font-bold mt-1 text-right">
+                {t("orderAvailable")}
+              </div>
+            )}
           </div>
         </div>
 
-        {/* KPI 2: Ocupación Actual */}
-        <div className="p-3.5 px-4 rounded-2xl border border-zinc-200 dark:border-zinc-800/80 bg-white dark:bg-slate-900/60 shadow-sm flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-halliburton-red/10 text-halliburton-red flex items-center justify-center shrink-0">
-              <Icon name="layers" size={20} />
-            </div>
-            <div>
-              <span className="text-[9px] font-black uppercase tracking-widest text-zinc-400 block">{t("currentOccupancy")}</span>
-              <div className="flex items-baseline gap-2">
-                <span className="text-xl font-black italic tracking-tight text-zinc-800 dark:text-white leading-tight">
-                  {occupiedCount} / {totalSlots}
-                </span>
-                <span className="text-xs font-black text-zinc-400">({occPct}%)</span>
+        {/* TARJETA 2: Barra de Búsqueda Instantánea de Lote / Producto */}
+        <div className="p-3.5 px-4 rounded-2xl border border-zinc-200 dark:border-zinc-800/80 bg-white dark:bg-slate-900/60 shadow-sm flex flex-col justify-between gap-2">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <div className="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0">
+                <Icon name="search" size={18} />
               </div>
+              <span className="text-[9px] font-black uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
+                {t("lotProdSearch")}
+              </span>
             </div>
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery("")}
+                className="text-zinc-400 hover:text-zinc-600 dark:hover:text-white text-xs font-black cursor-pointer px-1.5 py-0.5 rounded-md hover:bg-zinc-100 dark:hover:bg-slate-800"
+                title="Limpiar búsqueda (Esc)"
+              >
+                &times; {t("clearBtn")}
+              </button>
+            )}
           </div>
-          {currentSector.type === "dual" && (
-            <div className="flex items-center gap-2 text-[10px] font-bold text-zinc-400 shrink-0">
-              <span className="px-2 py-0.5 rounded-lg bg-blue-500/10 text-blue-500 font-black">{t("solids")}: <strong className="text-zinc-700 dark:text-zinc-200">{freeSolids} {t("free")}</strong></span>
-              <span className="px-2 py-0.5 rounded-lg bg-purple-500/10 text-purple-500 font-black">{t("liquids")}: <strong className="text-zinc-700 dark:text-zinc-200">{freeLiquids} {t("free")}</strong></span>
+
+          <div className="relative">
+            <Icon name="search" size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder={t("searchPlaceholder")}
+              className="w-full pl-7 pr-3 py-1.5 bg-zinc-100 hover:bg-zinc-200/60 dark:bg-slate-800 dark:hover:bg-slate-700/60 focus:bg-white dark:focus:bg-slate-900 border border-zinc-200 dark:border-zinc-700 rounded-xl text-xs font-bold text-zinc-800 dark:text-white outline-none focus:ring-2 focus:ring-amber-500 transition-all shadow-inner"
+            />
+          </div>
+
+          {searchQuery ? (
+            <div className="text-[10px] font-black truncate flex items-center gap-1">
+              {searchMatches.length > 0 ? (
+                <span className="text-amber-600 dark:text-amber-400 flex items-center gap-1 truncate">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping shrink-0"></span>
+                  <span>📍 {searchMatches.length} {t("inSlots")} {searchMatches.map(m => (m.zone === 'liquidos' ? 'B-' : '') + `${m.col}${m.row}`).slice(0, 4).join(', ')}{searchMatches.length > 4 ? '...' : ''}</span>
+                </span>
+              ) : (
+                <span className="text-rose-500 dark:text-rose-400">❌ {t("noMatches")}</span>
+              )}
+            </div>
+          ) : (
+            <div className="text-[9px] text-zinc-400 font-bold truncate">
+              {t("directHighlight")}
             </div>
           )}
+        </div>
+
+        {/* TARJETA 3: Ocupación Actual */}
+        <div className="p-3.5 px-4 rounded-2xl border border-zinc-200 dark:border-zinc-800/80 bg-white dark:bg-slate-900/60 shadow-sm flex flex-col justify-between gap-2.5">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-xl bg-halliburton-red/10 text-halliburton-red flex items-center justify-center shrink-0">
+                <Icon name="layers" size={18} />
+              </div>
+              <div>
+                <span className="text-[9px] font-black uppercase tracking-widest text-zinc-400 block">{t("currentOccupancy")}</span>
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-xl font-black italic tracking-tight text-zinc-800 dark:text-white leading-tight">
+                    {occupiedCount} / {totalSlots}
+                  </span>
+                  <span className="text-xs font-black text-zinc-400">({occPct}%)</span>
+                </div>
+              </div>
+            </div>
+            <span className={`text-xs font-black px-2 py-0.5 rounded-lg ${
+              occPct >= 90 ? 'bg-red-500/10 text-red-500' : occPct >= 70 ? 'bg-amber-500/10 text-amber-500' : 'bg-blue-500/10 text-blue-500'
+            }`}>
+              {occupiedCount} pallets
+            </span>
+          </div>
+
+          <div>
+            <div className="w-full bg-zinc-100 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
+              <div className="bg-halliburton-red h-full rounded-full transition-all duration-500" style={{ width: `${occPct}%` }}></div>
+            </div>
+            {currentSector.type === "dual" ? (
+              <div className="flex items-center justify-between text-[10px] font-bold text-zinc-500 dark:text-zinc-400 mt-1.5">
+                <span className="text-blue-500 font-black">{t("solids")}: {solidsOccupied}/{solidsSlots}</span>
+                <span className="text-purple-500 font-black">{t("trays")}: {liquidsOccupied}/{liquidsSlots}</span>
+              </div>
+            ) : (
+              <div className="text-[9px] text-zinc-400 font-bold mt-1 text-right">
+                {occupiedCount} {t("loadedPallets")}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* TARJETA 4: Impresión PDF / Conteo de Materiales */}
+        <div
+          onClick={() => setShowPrintModal(true)}
+          className="group p-3.5 px-4 rounded-2xl border border-zinc-200 dark:border-zinc-800/80 bg-white dark:bg-slate-900/60 shadow-sm hover:border-halliburton-red dark:hover:border-halliburton-red hover:shadow-md cursor-pointer transition-all flex flex-col justify-between gap-2.5 active:scale-[0.99]"
+          title={t("openPrintModalTooltip")}
+        >
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-xl bg-halliburton-red/10 text-halliburton-red group-hover:bg-halliburton-red group-hover:text-white flex items-center justify-center shrink-0 transition-all">
+                <Icon name="printer" size={18} />
+              </div>
+              <div>
+                <span className="text-[9px] font-black uppercase tracking-widest text-zinc-400 group-hover:text-halliburton-red transition-colors block">
+                  {t("pdfPrintout")}
+                </span>
+                <div className="text-base font-black italic tracking-tight text-zinc-800 dark:text-white group-hover:text-halliburton-red transition-colors leading-tight">
+                  {t("warehouseSheetTitle")}
+                </div>
+              </div>
+            </div>
+            <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-lg bg-zinc-100 group-hover:bg-halliburton-red text-zinc-600 group-hover:text-white dark:bg-slate-800 dark:text-zinc-300 transition-all">
+              PDF
+            </span>
+          </div>
+
+          <div className="flex items-center justify-between text-[10px] font-bold text-zinc-400 group-hover:text-zinc-600 dark:group-hover:text-zinc-300 transition-colors pt-0.5 border-t border-zinc-100 dark:border-zinc-800/60">
+            <span>{t("fieldCountingSheetSubtitle")}</span>
+            <Icon name="chevron-right" size={14} className="text-halliburton-red transform group-hover:translate-x-1 transition-transform" />
+          </div>
         </div>
       </div>
 
@@ -1359,20 +1638,20 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
               <div className="flex items-center justify-between mb-3 pb-2.5 border-b border-zinc-100 dark:border-zinc-800">
                 <div className="flex items-center gap-2.5">
                   <span className="px-3 py-0.5 rounded-lg bg-blue-500/10 text-blue-500 font-black text-xs uppercase tracking-wider">
-                    {currentSector.type === "dual" ? t("solids").toUpperCase() : currentSector.name.toUpperCase()}
+                    {currentSector.type === "dual" ? t("solidsZone") : currentSector.name.toUpperCase()}
                   </span>
                   <span className="text-xs font-semibold text-zinc-400">
-                    {currentSector.type === "dual" ? t("powdersClays") : t("generalWarehouse")} ({sDims.rows} {t("rows")} &bull; {sDims.columns.length} {t("cols")})
+                    ({sDims.rows} {t("rows")} &bull; {sDims.columns.length} {t("cols")})
                   </span>
                 </div>
 
                 <div className="flex items-center gap-1.5">
                   {/* Flechas de Navegación por Columna (◀ Cols ▶) */}
-                  <div className="flex items-center bg-zinc-100 dark:bg-slate-800 rounded-xl p-0.5 border border-zinc-200 dark:border-zinc-700" title="Navegar columna a columna">
+                  <div className="flex items-center bg-zinc-100 dark:bg-slate-800 rounded-xl p-0.5 border border-zinc-200 dark:border-zinc-700" title={t("navColsTooltip")}>
                     <button
                       onClick={() => scrollBays("solidos", "left")}
                       className="p-1 text-zinc-600 dark:text-zinc-300 hover:text-halliburton-red hover:bg-white dark:hover:bg-slate-700 rounded-lg transition-all"
-                      title="Columna anterior (◀)"
+                      title={t("prevCol")}
                     >
                       <Icon name="chevron-left" size={16} />
                     </button>
@@ -1380,7 +1659,7 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
                     <button
                       onClick={() => scrollBays("solidos", "right")}
                       className="p-1 text-zinc-600 dark:text-zinc-300 hover:text-halliburton-red hover:bg-white dark:hover:bg-slate-700 rounded-lg transition-all"
-                      title="Columna siguiente (▶)"
+                      title={t("nextCol")}
                     >
                       <Icon name="chevron-right" size={16} />
                     </button>
@@ -1442,7 +1721,7 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
                   type="button"
                   onClick={() => scrollBays("solidos", "left")}
                   className="absolute left-0 top-1/2 -translate-y-1/2 z-20 w-7 h-16 rounded-r-xl bg-zinc-900/40 hover:bg-zinc-900/80 text-white backdrop-blur-sm border-y border-r border-white/20 shadow-lg flex items-center justify-center opacity-0 group-hover/zone:opacity-30 hover:!opacity-100 transition-all duration-200 active:scale-95 cursor-pointer"
-                  title="Desplazar a columnas anteriores (◀)"
+                  title={t("scrollToPrevCol")}
                 >
                   <Icon name="chevron-left" size={18} />
                 </button>
@@ -1482,7 +1761,7 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
                   type="button"
                   onClick={() => scrollBays("solidos", "right")}
                   className="absolute right-0 top-1/2 -translate-y-1/2 z-20 w-7 h-16 rounded-l-xl bg-zinc-900/40 hover:bg-zinc-900/80 text-white backdrop-blur-sm border-y border-l border-white/20 shadow-lg flex items-center justify-center opacity-0 group-hover/zone:opacity-30 hover:!opacity-100 transition-all duration-200 active:scale-95 cursor-pointer"
-                  title="Desplazar a columnas siguientes (▶)"
+                  title={t("scrollToNextCol")}
                 >
                   <Icon name="chevron-right" size={18} />
                 </button>
@@ -1496,20 +1775,20 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
               <div className="flex items-center justify-between mb-3 pb-2.5 border-b border-zinc-100 dark:border-zinc-800">
                 <div className="flex items-center gap-2.5">
                   <span className="px-3 py-0.5 rounded-lg bg-purple-500/10 text-purple-500 font-black text-xs uppercase tracking-wider">
-                    {t("liquids").toUpperCase()}
+                    {t("liquidsZoneTrays")}
                   </span>
                   <span className="text-xs font-semibold text-zinc-400">
-                    {t("drumsIbc")} ({lDims.rows} {t("rows")} &bull; {lDims.columns.length} {t("cols")})
+                    ({lDims.rows} {t("rows")} &bull; {lDims.columns.length} {t("cols")})
                   </span>
                 </div>
 
                 <div className="flex items-center gap-1.5">
                   {/* Flechas de Navegación por Columna (◀ Cols ▶) */}
-                  <div className="flex items-center bg-zinc-100 dark:bg-slate-800 rounded-xl p-0.5 border border-zinc-200 dark:border-zinc-700" title="Navegar columna a columna">
+                  <div className="flex items-center bg-zinc-100 dark:bg-slate-800 rounded-xl p-0.5 border border-zinc-200 dark:border-zinc-700" title={t("navColsTooltip")}>
                     <button
                       onClick={() => scrollBays("liquidos", "left")}
                       className="p-1 text-zinc-600 dark:text-zinc-300 hover:text-halliburton-red hover:bg-white dark:hover:bg-slate-700 rounded-lg transition-all"
-                      title="Columna anterior (◀)"
+                      title={t("prevCol")}
                     >
                       <Icon name="chevron-left" size={16} />
                     </button>
@@ -1517,7 +1796,7 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
                     <button
                       onClick={() => scrollBays("liquidos", "right")}
                       className="p-1 text-zinc-600 dark:text-zinc-300 hover:text-halliburton-red hover:bg-white dark:hover:bg-slate-700 rounded-lg transition-all"
-                      title="Columna siguiente (▶)"
+                      title={t("nextCol")}
                     >
                       <Icon name="chevron-right" size={16} />
                     </button>
@@ -1579,7 +1858,7 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
                   type="button"
                   onClick={() => scrollBays("liquidos", "left")}
                   className="absolute left-0 top-1/2 -translate-y-1/2 z-20 w-7 h-16 rounded-r-xl bg-zinc-900/40 hover:bg-zinc-900/80 text-white backdrop-blur-sm border-y border-r border-white/20 shadow-lg flex items-center justify-center opacity-0 group-hover/zone:opacity-30 hover:!opacity-100 transition-all duration-200 active:scale-95 cursor-pointer"
-                  title="Desplazar a columnas anteriores (◀)"
+                  title={t("scrollToPrevCol")}
                 >
                   <Icon name="chevron-left" size={18} />
                 </button>
@@ -1619,7 +1898,7 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
                   type="button"
                   onClick={() => scrollBays("liquidos", "right")}
                   className="absolute right-0 top-1/2 -translate-y-1/2 z-20 w-7 h-16 rounded-l-xl bg-zinc-900/40 hover:bg-zinc-900/80 text-white backdrop-blur-sm border-y border-l border-white/20 shadow-lg flex items-center justify-center opacity-0 group-hover/zone:opacity-30 hover:!opacity-100 transition-all duration-200 active:scale-95 cursor-pointer"
-                  title="Desplazar a columnas siguientes (▶)"
+                  title={t("scrollToNextCol")}
                 >
                   <Icon name="chevron-right" size={18} />
                 </button>
@@ -1982,7 +2261,7 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
                     {actionPallet.product}
                   </h3>
                   <span className="text-[10px] font-bold text-amber-500 font-mono block">
-                    Posición {actionPallet.col}{actionPallet.row} &bull; Lote: {actionPallet.lot}
+                    {t("position")} {actionPallet.col}{actionPallet.row} &bull; {t("lotNumber")}: {actionPallet.lot}
                   </span>
                 </div>
               </div>
@@ -1990,7 +2269,7 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
                 type="button"
                 onClick={() => setShowPalletActionModal(false)}
                 className="w-8 h-8 rounded-xl bg-zinc-100 dark:bg-slate-800 hover:bg-zinc-200 text-zinc-400 hover:text-white flex items-center justify-center transition-colors"
-                title="Cerrar (Esc)"
+                title={t("closeEsc")}
               >
                 <Icon name="x" size={16} />
               </button>
@@ -1999,13 +2278,13 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
             {/* Tarjeta de Stock Actual */}
             <div className="p-3 bg-zinc-50 dark:bg-slate-800/40 rounded-2xl flex justify-between items-center border border-zinc-100 dark:border-zinc-800">
               <div>
-                <span className="text-[10px] font-black uppercase tracking-wider text-zinc-400 block">Stock Registrado Actual</span>
+                <span className="text-[10px] font-black uppercase tracking-wider text-zinc-400 block">{t("currentRegisteredStock")}</span>
                 <span className="text-base font-black font-mono text-zinc-800 dark:text-white">
                   {Number(actionPallet.quantity).toLocaleString("es-AR")} {actionPallet.unit}
                 </span>
               </div>
               <span className="text-[10px] font-bold text-zinc-400 bg-zinc-100 dark:bg-slate-800 px-2 py-1 rounded-lg">
-                Cap. Nominal: {actionPallet.capacityNominal || actionPallet.quantity} {actionPallet.unit}
+                {t("nominalCapacity")}: {actionPallet.capacityNominal || actionPallet.quantity} {actionPallet.unit}
               </span>
             </div>
 
@@ -2020,7 +2299,7 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
                     : 'text-zinc-500 hover:text-zinc-800 dark:hover:text-white'
                 }`}
               >
-                {actionPallet.unit} (Directo)
+                {actionPallet.unit} ({t("directMode")})
               </button>
               <button
                 type="button"
@@ -2031,7 +2310,7 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
                     : 'text-zinc-500 hover:text-zinc-800 dark:hover:text-white'
                 }`}
               >
-                Por Bolsas / Envases
+                {t("byPackagesMode")}
               </button>
             </div>
 
@@ -2069,7 +2348,7 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
                 <div>
                   <div className="flex justify-between items-center mb-1">
                     <label className="text-[10px] font-black uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-                      ¿Cuánto queda del producto? ({actionPallet.unit})
+                      {t("howMuchRemaining")} ({actionPallet.unit})
                     </label>
                   </div>
                   <div className="relative">
@@ -2095,7 +2374,7 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
                   <div className="grid grid-cols-2 gap-2">
                     <div>
                       <label className="text-[9.5px] font-black uppercase tracking-wider text-zinc-500 dark:text-zinc-400 block mb-1">
-                        Bolsas / Envases que quedan
+                        {t("remainingPackages")}
                       </label>
                       <input
                         type="number"
@@ -2115,7 +2394,7 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
                     </div>
                     <div>
                       <label className="text-[9.5px] font-black uppercase tracking-wider text-zinc-500 dark:text-zinc-400 block mb-1">
-                        Peso por Bolsa ({actionPallet.unit})
+                        {t("weightPerPackage")} ({actionPallet.unit})
                       </label>
                       <input
                         type="number"
@@ -2134,7 +2413,7 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
                     </div>
                   </div>
                   <div className="p-2.5 bg-zinc-50 dark:bg-slate-800/50 rounded-xl flex items-center justify-between text-xs">
-                    <span className="font-bold text-zinc-500">Cálculo resultante:</span>
+                    <span className="font-bold text-zinc-500">{t("resultingCalculation")}:</span>
                     <strong className="font-mono font-black text-zinc-900 dark:text-emerald-400 text-sm">
                       {((parseFloat(remainingBagsCount) || 0) * (parseFloat(remainingBagWeight) || 0)).toLocaleString("es-AR")} {actionPallet.unit}
                     </strong>
@@ -2150,28 +2429,28 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
                   return (
                     <div className="p-2.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-400 text-xs font-bold flex items-center gap-2">
                       <Icon name="trash-2" size={14} />
-                      <span>El pallet quedará en 0 y la posición {actionPallet.col}{actionPallet.row} se liberará.</span>
+                      <span>{t("palletWillZeroWarning", { pos: `${actionPallet.col}${actionPallet.row}` })}</span>
                     </div>
                   );
                 }
                 if (diff > 0) {
                   return (
                     <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs font-bold flex items-center justify-between">
-                      <span>Consumo para receta: <strong>{diff.toLocaleString("es-AR")} {actionPallet.unit}</strong></span>
-                      <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-emerald-500/20">Quedan: {currentVal.toLocaleString("es-AR")} {actionPallet.unit}</span>
+                      <span>{t("recipeConsumption")}: <strong>{diff.toLocaleString("es-AR")} {actionPallet.unit}</strong></span>
+                      <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-emerald-500/20">{t("remainingLabel")}: {currentVal.toLocaleString("es-AR")} {actionPallet.unit}</span>
                     </div>
                   );
                 }
                 if (diff < 0) {
                   return (
                     <div className="p-2.5 rounded-xl bg-blue-500/10 border border-blue-500/30 text-blue-600 dark:text-blue-400 text-xs font-bold">
-                      Ajuste de inventario en alza: +{Math.abs(diff).toLocaleString("es-AR")} {actionPallet.unit}.
+                      {t("upwardAdjustment")}: +{Math.abs(diff).toLocaleString("es-AR")} {actionPallet.unit}.
                     </div>
                   );
                 }
                 return (
                   <div className="p-2 rounded-xl bg-zinc-100 dark:bg-slate-800 text-zinc-500 text-[11px] text-center font-semibold">
-                    Sin cambios en el stock del pallet.
+                    {t("noStockChanges")}
                   </div>
                 );
               })()}
@@ -2181,7 +2460,7 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
                 <button
                   type="button"
                   onClick={() => {
-                    if (confirm(`¿Vaciar totalmente el pallet en ${actionPallet.col}${actionPallet.row}?`)) {
+                    if (confirm(t("confirmEmptyPallet", { pos: `${actionPallet.col}${actionPallet.row}` }))) {
                       const nextPallets = data.pallets.filter(p => p.id !== actionPallet.id);
                       persistData({ ...data, pallets: nextPallets });
                       setShowPalletActionModal(false);
@@ -2189,22 +2468,22 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
                     }
                   }}
                   className="px-3 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 rounded-xl text-xs font-black uppercase tracking-wider transition-colors shrink-0"
-                  title="Vaciar pallet a 0 y liberar celda"
+                  title={t("emptyToZeroBtn")}
                 >
-                  Vaciar a 0
+                  {t("emptyToZeroBtn")}
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowPalletActionModal(false)}
                   className="flex-1 py-2.5 bg-zinc-100 hover:bg-zinc-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-zinc-700 dark:text-zinc-200 rounded-xl text-xs font-black uppercase tracking-wider transition-colors"
                 >
-                  Cancelar
+                  {t("cancelBtn")}
                 </button>
                 <button
                   type="submit"
                   className="flex-1 py-2.5 bg-halliburton-red hover:bg-red-700 text-white rounded-xl text-xs font-black uppercase tracking-wider shadow-md transition-all active:scale-95"
                 >
-                  Guardar
+                  {t("saveBtn")}
                 </button>
               </div>
             </form>
@@ -2465,6 +2744,295 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
               </div>
             </form>
           </div>
+        </div>
+      )}
+
+      {/* MODAL DE IMPRESIÓN Y DIAGRAMA DE ZONA DE PRODUCTOS (ALTA RESOLUCIÓN A4 APAISADO) */}
+      {showPrintModal && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex flex-col justify-start items-center overflow-y-auto p-4 sm:p-6 print:p-0 print:bg-white print:static print:overflow-visible">
+          {/* Barra Superior de Control (No se imprime) */}
+          <div className="w-full max-w-7xl bg-white dark:bg-slate-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 mb-4 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xl no-print">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-halliburton-red text-white flex items-center justify-center shrink-0 shadow-md">
+                <Icon name="printer" size={20} />
+              </div>
+              <div>
+                <h3 className="text-sm font-black uppercase tracking-wider text-zinc-800 dark:text-white">
+                  {t("printPreviewTitle")}
+                </h3>
+                <p className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium">
+                  {t("printPreviewSubtitle")}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 flex-wrap">
+              <button
+                type="button"
+                onClick={handleDownloadPdf}
+                className="flex items-center gap-2 px-4 py-2.5 bg-zinc-800 hover:bg-black dark:bg-slate-800 dark:hover:bg-slate-700 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-sm active:scale-95 cursor-pointer"
+                title={t("downloadPdfBtn")}
+              >
+                <Icon name="download" size={15} />
+                <span>{t("downloadPdfBtn")}</span>
+              </button>
+              <button
+                type="button"
+                onClick={handleNativePrint}
+                className="flex items-center gap-2 px-4 py-2.5 bg-halliburton-red hover:bg-red-700 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-md active:scale-95 cursor-pointer"
+                title={t("printSavePdfBtn")}
+              >
+                <Icon name="printer" size={15} />
+                <span>{t("printSavePdfBtn")}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowPrintModal(false)}
+                className="px-3.5 py-2.5 bg-zinc-100 hover:bg-zinc-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-zinc-700 dark:text-zinc-200 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer"
+              >
+                {t("closeModal")}
+              </button>
+            </div>
+          </div>
+
+          {/* HOJA IMPRIMIBLE DE ALTA RESOLUCIÓN Y COBERTURA MÁXIMA A4 */}
+          <div
+            id="printableWarehouseSheet"
+            style={{ width: '100%', minWidth: '1100px' }}
+            className="bg-white text-black rounded-2xl p-4 sm:p-6 shadow-2xl border border-zinc-200 print:border-none print:shadow-none print:p-0 print:m-0 print:w-full print:max-w-none print:min-w-0 print:rounded-none"
+          >
+            {/* ENCABEZADO OFICIAL LIMPIO Y MINIMALISTA */}
+            <div className="border-b-2 border-black pb-3 mb-4 flex items-end justify-between">
+              <div>
+                <h1 className="text-2xl font-black uppercase tracking-wider text-black leading-tight">
+                  {t("diagramSheetTitle")}
+                </h1>
+                <div className="text-xs font-bold text-zinc-700 uppercase tracking-widest mt-1">
+                  SECTOR: {currentSector.name.toUpperCase()} &bull; {t("officialCountingSheet")}
+                </div>
+              </div>
+              <div className="text-right leading-snug">
+                <div className="text-xs font-black text-black">
+                  {t("issued")}: {new Date().toLocaleDateString(lang === 'es' ? 'es-AR' : 'en-US')} - {new Date().toLocaleTimeString(lang === 'es' ? 'es-AR' : 'en-US', { hour: '2-digit', minute: '2-digit' })} hs
+                </div>
+                <div className="text-[11px] font-bold text-zinc-700 mt-0.5">
+                  {t("occupancy")}: {occupiedCount} / {totalSlots} ({occPct}%) &bull; {t("free")}: {freeSlots}
+                </div>
+              </div>
+            </div>
+
+            {/* CONTENIDO DEL ALMACÉN PARA IMPRESIÓN (OCUPA EL 100% DEL ANCHO) */}
+            <div id="printableWarehouseContent" className="space-y-5">
+              {/* SECTOR SÓLIDOS (O GENERAL) */}
+              {(currentSector.type === "dual" || currentSector.type === "solidos" || currentSector.type === "mixto") && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between border-b border-zinc-400 pb-1">
+                    <span className="text-xs font-black uppercase tracking-wider text-black bg-zinc-100 px-2.5 py-0.5 rounded border border-zinc-300">
+                      {currentSector.type === "dual" ? t("solidsZone") : `${currentSector.name.toUpperCase()} (${t("generalZone")})`}
+                    </span>
+                    <span className="text-[10px] font-bold text-zinc-600">
+                      {sDims.rows} {t("rows")} &bull; {sDims.columns.length} {t("cols")}
+                    </span>
+                  </div>
+
+                  <div
+                    className="grid gap-1.5"
+                    style={{ gridTemplateColumns: `repeat(${sDims.columns.length}, minmax(0, 1fr))` }}
+                  >
+                    {sDims.columns.map((colLetter) => (
+                      <div key={`print-sol-col-${colLetter}`} className="flex flex-col gap-1.5">
+                        <div className="text-center font-black text-xs bg-zinc-200 text-black py-0.5 rounded border border-zinc-400 font-mono">
+                          {t("colHeader")} {colLetter}
+                        </div>
+                        {Array.from({ length: sDims.rows }, (_, rIdx) => {
+                          const rowNum = rIdx + 1;
+                          const lookupKey = currentSector.type === "dual" ? `solidos_${colLetter}_${rowNum}` : `${colLetter}_${rowNum}`;
+                          const p = palletsMap.get(lookupKey) || palletsMap.get(`${colLetter}_${rowNum}`);
+
+                          if (p && Number(p.quantity) > 0) {
+                            const cap = Number(p.capacityNominal) || Number(p.quantity) || 1000;
+                            const isPartial = p.status === "partial" || (cap > 0 && Number(p.quantity) < cap);
+
+                            return (
+                              <div
+                                key={`p-sol-${colLetter}-${rowNum}`}
+                                className="p-1.5 border-2 border-black bg-white rounded-lg flex flex-col justify-between min-h-[82px] text-left shadow-none page-break-avoid"
+                              >
+                                <div className="flex items-center justify-between border-b border-zinc-200 pb-0.5">
+                                  <span className="bg-black text-white px-1.5 py-0.2 rounded font-mono font-black text-[10px] leading-tight">
+                                    {colLetter}{rowNum}
+                                  </span>
+                                  {isPartial && (
+                                    <span className="text-[8px] bg-amber-200 text-black px-1 rounded font-black uppercase leading-tight border border-black">
+                                      {t("partialTag")}
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="text-[11px] sm:text-xs font-black uppercase text-black line-clamp-2 my-0.5 leading-tight tracking-tight">
+                                  {p.product}
+                                </div>
+                                <div className="flex items-center justify-between text-[9px] font-bold text-zinc-900 border-t border-zinc-200 pt-0.5">
+                                  <span className="font-mono">L: {p.lot}</span>
+                                  <span className="font-mono font-black text-black">{Number(p.quantity).toLocaleString()} {p.unit || 'KG'}</span>
+                                </div>
+                              </div>
+                            );
+                          } else {
+                            return (
+                              <div
+                                key={`p-sol-${colLetter}-${rowNum}`}
+                                className="p-1.5 border-2 border-dashed border-zinc-400 bg-zinc-50 rounded-lg flex flex-col justify-between min-h-[82px] text-left page-break-avoid"
+                              >
+                                <div className="flex items-center justify-between text-[9px] font-bold text-zinc-500">
+                                  <span className="font-mono font-black text-zinc-700">{colLetter}{rowNum}</span>
+                                  <span className="text-[8px] uppercase font-black text-emerald-700">{t("freeTag")}</span>
+                                </div>
+                                <div className="my-auto text-center py-0.5">
+                                  <span className="text-[9px] text-zinc-400 uppercase font-bold tracking-wider">{t("freeSlotTag")}</span>
+                                </div>
+                                <div className="border border-dashed border-zinc-400 rounded px-1 py-0.5 text-[8px] text-zinc-800 font-bold bg-white text-center">
+                                  {t("countBox")}
+                                </div>
+                              </div>
+                            );
+                          }
+                        })}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* SECTOR LÍQUIDOS (BANDEJAS) */}
+              {(currentSector.type === "dual" || currentSector.type === "liquidos") && (
+                <div className="space-y-2 pt-1">
+                  <div className="flex items-center justify-between border-b border-purple-400 pb-1">
+                    <span className="text-xs font-black uppercase tracking-wider text-purple-900 bg-purple-50 px-2.5 py-0.5 rounded border border-purple-300">
+                      {t("liquidsZoneTrays")}
+                    </span>
+                    <span className="text-[10px] font-bold text-purple-700">
+                      {lDims.rows} {t("rows")} &bull; {lDims.columns.length} {t("cols")}
+                    </span>
+                  </div>
+
+                  <div
+                    className="grid gap-1.5"
+                    style={{ gridTemplateColumns: `repeat(${lDims.columns.length}, minmax(0, 1fr))` }}
+                  >
+                    {lDims.columns.map((colLetter) => (
+                      <div key={`print-liq-col-${colLetter}`} className="flex flex-col gap-1.5">
+                        <div className="text-center font-black text-xs bg-purple-100 text-purple-950 py-0.5 rounded border border-purple-300 font-mono">
+                          {t("trayColHeader")} {colLetter}
+                        </div>
+                        {Array.from({ length: lDims.rows }, (_, rIdx) => {
+                          const rowNum = rIdx + 1;
+                          const p = palletsMap.get(`liquidos_${colLetter}_${rowNum}`);
+
+                          if (p && Number(p.quantity) > 0) {
+                            const cap = Number(p.capacityNominal) || Number(p.quantity) || 1000;
+                            const isPartial = p.status === "partial" || (cap > 0 && Number(p.quantity) < cap);
+
+                            return (
+                              <div
+                                key={`p-liq-${colLetter}-${rowNum}`}
+                                className="p-1.5 border-2 border-purple-950 bg-white rounded-lg flex flex-col justify-between min-h-[82px] text-left shadow-none page-break-avoid"
+                              >
+                                <div className="flex items-center justify-between border-b border-purple-200 pb-0.5">
+                                  <span className="bg-purple-900 text-white px-1.5 py-0.2 rounded font-mono font-black text-[10px] leading-tight">
+                                    B-{colLetter}{rowNum}
+                                  </span>
+                                  {isPartial && (
+                                    <span className="text-[8px] bg-amber-200 text-black px-1 rounded font-black uppercase leading-tight border border-purple-900">
+                                      {t("partialTag")}
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="text-[11px] sm:text-xs font-black uppercase text-purple-950 line-clamp-2 my-0.5 leading-tight tracking-tight">
+                                  {p.product}
+                                </div>
+                                <div className="flex items-center justify-between text-[9px] font-bold text-zinc-900 border-t border-purple-100 pt-0.5">
+                                  <span className="font-mono">L: {p.lot}</span>
+                                  <span className="font-mono font-black text-black">{Number(p.quantity).toLocaleString()} {p.unit || 'LT'}</span>
+                                </div>
+                              </div>
+                            );
+                          } else {
+                            return (
+                              <div
+                                key={`p-liq-${colLetter}-${rowNum}`}
+                                className="p-1.5 border-2 border-dashed border-purple-400 bg-purple-50/50 rounded-lg flex flex-col justify-between min-h-[82px] text-left page-break-avoid"
+                              >
+                                <div className="flex items-center justify-between text-[9px] font-bold text-purple-800">
+                                  <span className="font-mono font-black">B-{colLetter}{rowNum}</span>
+                                  <span className="text-[8px] uppercase font-black text-purple-700">{t("freeTag")}</span>
+                                </div>
+                                <div className="my-auto text-center py-0.5">
+                                  <span className="text-[9px] text-purple-700 uppercase font-black tracking-wider">{t("trayAvailable")}</span>
+                                </div>
+                                <div className="border border-dashed border-purple-400 rounded px-1 py-0.5 text-[8px] text-purple-950 font-bold bg-white text-center">
+                                  {t("countBox")}
+                                </div>
+                              </div>
+                            );
+                          }
+                        })}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* PIE DE PLANILLA DE RECUENTO FÍSICO */}
+            <div className="mt-5 pt-3 border-t-2 border-black flex items-center justify-between text-[10px] font-bold text-zinc-700 uppercase tracking-wider">
+              <span>{t("countingOfficer")}</span>
+              <span>{t("signatureApproval")}</span>
+              <span>{t("officialSheetFooter")}</span>
+            </div>
+          </div>
+
+          {/* ESTILOS CSS DE IMPRESIÓN NATIVA (@MEDIA PRINT) */}
+          <style>{`
+            @media print {
+              @page {
+                size: landscape;
+                margin: 4mm;
+              }
+              body {
+                background: white !important;
+                color: black !important;
+              }
+              body * {
+                visibility: hidden !important;
+              }
+              #printableWarehouseSheet, #printableWarehouseSheet * {
+                visibility: visible !important;
+              }
+              #printableWarehouseSheet {
+                position: absolute !important;
+                left: 0 !important;
+                top: 0 !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                min-width: 0 !important;
+                margin: 0 !important;
+                padding: 2mm !important;
+                background: white !important;
+                color: black !important;
+                z-index: 999999 !important;
+                overflow: visible !important;
+                box-shadow: none !important;
+                border: none !important;
+              }
+              .no-print {
+                display: none !important;
+              }
+              .page-break-avoid {
+                break-inside: avoid !important;
+                page-break-inside: avoid !important;
+              }
+            }
+          `}</style>
         </div>
       )}
 

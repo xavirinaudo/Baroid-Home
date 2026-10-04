@@ -829,6 +829,12 @@ const FluidCalculator = ({ isEditing, lang, unitMode, setUnitMode }) => {
     const lgs_mass = unitMode === 'field' ? LGS_ppb : Math.round((LGS_ppb * 2.853) * 100) / 100;
     const barite_mass = unitMode === 'field' ? HGS_ppb : Math.round((HGS_ppb * 2.853) * 100) / 100;
 
+    // Relación Aceite/Agua (OWR)
+    const totalLiquid = phi_NAF + phi_W;
+    const owr_oil = totalLiquid > 0 ? (phi_NAF / totalLiquid) * 100 : 0;
+    const owr_water = totalLiquid > 0 ? (phi_W / totalLiquid) * 100 : 0;
+    const owr = totalLiquid > 0 ? `${owr_oil.toFixed(1)} / ${owr_water.toFixed(1)}` : '0 / 0';
+
     return {
       invalid: false,
       cl_mgL: c_Cl_df,
@@ -848,7 +854,10 @@ const FluidCalculator = ({ isEditing, lang, unitMode, setUnitMode }) => {
       pctLgs: phi_LG,
       pctBarite: phi_WM,
       lgs_mass,
-      barite_mass
+      barite_mass,
+      owr,
+      owr_oil,
+      owr_water
     };
   };
 
@@ -1800,12 +1809,12 @@ const FluidCalculator = ({ isEditing, lang, unitMode, setUnitMode }) => {
               <h4 className="text-[14px] font-black text-halliburton-red uppercase tracking-widest mb-4 italic">{t.owrTitle}</h4>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">{t.owrVolOil}</label>
-                  <input type="number" value={owr.vOil} onChange={e => setOwr({ ...owr, vOil: e.target.value })} className="w-full input-style text-xl font-bold" />
-                </div>
-                <div>
                   <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">{t.owrVolWater}</label>
                   <input type="number" value={owr.vWater} onChange={e => setOwr({ ...owr, vWater: e.target.value })} className="w-full input-style text-xl font-bold" />
+                </div>
+                <div>
+                  <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2 block">{t.owrVolOil}</label>
+                  <input type="number" value={owr.vOil} onChange={e => setOwr({ ...owr, vOil: e.target.value })} className="w-full input-style text-xl font-bold" />
                 </div>
               </div>
               <div>
@@ -2149,7 +2158,7 @@ const FluidCalculator = ({ isEditing, lang, unitMode, setUnitMode }) => {
                   <div className="bg-zinc-50 dark:bg-slate-900/40 p-4 rounded-3xl border border-zinc-100 dark:border-zinc-800/50">
                     <div className="flex justify-between items-center mb-2">
                       <label className="text-[13px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest">
-                        {t.rheoPlasticVisc} <span className="text-halliburton-red">(VP)</span>
+                        {t.rheoPlasticVisc} <span className="text-halliburton-red">({lang === 'es' ? 'VP' : 'PV'})</span>
                       </label>
                       <span className="text-[10px] font-bold text-zinc-400">cP</span>
                     </div>
@@ -2301,6 +2310,59 @@ const FluidCalculator = ({ isEditing, lang, unitMode, setUnitMode }) => {
                     <span className="text-[8px] text-zinc-400 font-bold uppercase tracking-tight block mt-2">lb/100ft²·sⁿ</span>
                   </div>
                 </div>
+
+                {rheoInputMode === 'readings' && (() => {
+                  const t600 = parseFloat(rheoReadings.theta600) || 0;
+                  const t300 = parseFloat(rheoReadings.theta300) || 0;
+                  const t6 = parseFloat(rheoReadings.theta6) || 0;
+                  const t3 = parseFloat(rheoReadings.theta3) || 0;
+                  const calcVp = Math.max(0, t600 - t300);
+                  const calcYp = Math.max(0, t300 - calcVp);
+                  const calcTau0 = Math.max(0, 2 * t3 - t6);
+                  const formatVal = (v) => Number.isInteger(v) ? v : v.toFixed(1);
+
+                  return (
+                    <div className="pt-3 border-t border-zinc-200/60 dark:border-zinc-800/60 space-y-2">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-zinc-400 block">
+                        {t.rheoCalcParamsHeader || (lang === 'es' ? 'Parámetros Calculados' : 'Calculated Parameters')}
+                      </span>
+                      <div className="grid grid-cols-3 gap-2.5">
+                        <div className="bg-white dark:bg-slate-950 p-3 rounded-2xl border border-zinc-100 dark:border-zinc-800/50 shadow-sm flex flex-col justify-between">
+                          <div>
+                            <div className="flex justify-between items-center mb-0.5">
+                              <span className="text-[9px] text-zinc-400 font-black uppercase tracking-wider truncate" title={t.rheoPlasticVisc}>{t.rheoPlasticVisc}</span>
+                              <span className="text-[9px] font-black text-halliburton-red shrink-0">({lang === 'es' ? 'VP' : 'PV'})</span>
+                            </div>
+                            <h5 className="text-xl font-black italic text-zinc-800 dark:text-white mt-1">{formatVal(calcVp)}</h5>
+                          </div>
+                          <span className="text-[8px] text-zinc-400 font-bold uppercase tracking-tight block mt-1.5">cP</span>
+                        </div>
+
+                        <div className="bg-white dark:bg-slate-950 p-3 rounded-2xl border border-zinc-100 dark:border-zinc-800/50 shadow-sm flex flex-col justify-between">
+                          <div>
+                            <div className="flex justify-between items-center mb-0.5">
+                              <span className="text-[9px] text-zinc-400 font-black uppercase tracking-wider truncate" title={t.rheoYieldPoint}>{t.rheoYieldPoint}</span>
+                              <span className="text-[9px] font-black text-halliburton-red shrink-0">(YP)</span>
+                            </div>
+                            <h5 className="text-xl font-black italic text-zinc-800 dark:text-white mt-1">{formatVal(calcYp)}</h5>
+                          </div>
+                          <span className="text-[8px] text-zinc-400 font-bold uppercase tracking-tight block mt-1.5">lb/100ft²</span>
+                        </div>
+
+                        <div className="bg-white dark:bg-slate-950 p-3 rounded-2xl border border-zinc-100 dark:border-zinc-800/50 shadow-sm flex flex-col justify-between">
+                          <div>
+                            <div className="flex justify-between items-center mb-0.5">
+                              <span className="text-[9px] text-zinc-400 font-black uppercase tracking-wider truncate" title={t.rheoTrueYield}>{t.rheoTrueYield}</span>
+                              <span className="text-[9px] font-black text-halliburton-red shrink-0">(τ₀)</span>
+                            </div>
+                            <h5 className="text-xl font-black italic text-zinc-800 dark:text-white mt-1">{formatVal(calcTau0)}</h5>
+                          </div>
+                          <span className="text-[8px] text-zinc-400 font-bold uppercase tracking-tight block mt-1.5">lb/100ft²</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
             </div>
           )}
@@ -3050,6 +3112,7 @@ const FluidCalculator = ({ isEditing, lang, unitMode, setUnitMode }) => {
                     if (res.invalid) return;
                     copyToClipboard(
                       `ANÁLISIS LGS & WPS (ESTÁNDAR BAROID):\n` +
+                      `- Relación O/W: ${res.owr}\n` +
                       `- WPS (Salinidad): ${res.wps.toFixed(0)} ppm\n` +
                       `- Cloruros Lodo: ${res.cl_mgL.toFixed(0)} mg/L\n` +
                       `- Calcio Lodo: ${res.c_Ca_df.toFixed(0)} mg/L\n` +
@@ -3076,12 +3139,20 @@ const FluidCalculator = ({ isEditing, lang, unitMode, setUnitMode }) => {
                 </div>
               ) : (
                 <div className="space-y-8">
-                  {/* Main metric: Salinity */}
+                  {/* Main metric: Salinity & OWR */}
                   <div className="bg-gradient-to-br from-halliburton-red to-[#a30000] p-6 rounded-[2.5rem] shadow-xl relative overflow-hidden">
-                    <span className="text-[9px] font-black uppercase tracking-[0.3em] opacity-60">{lang === 'es' ? 'Salinidad Fase Acuosa (WPS)' : 'Water Phase Salinity (WPS)'}</span>
-                    <div className="flex items-baseline gap-2 mt-1">
-                      <h5 className="text-5xl font-black italic">{getLgsRetortResult().wps.toLocaleString(lang === 'es' ? 'es-AR' : 'en-US', { maximumFractionDigits: 0 })}</h5>
-                      <span className="text-lg font-black opacity-60 italic uppercase">PPM</span>
+                    <div className="flex justify-between items-start gap-4">
+                      <div>
+                        <span className="text-[9px] font-black uppercase tracking-[0.3em] opacity-60">{lang === 'es' ? 'Salinidad Fase Acuosa (WPS)' : 'Water Phase Salinity (WPS)'}</span>
+                        <div className="flex items-baseline gap-2 mt-1">
+                          <h5 className="text-5xl font-black italic">{getLgsRetortResult().wps.toLocaleString(lang === 'es' ? 'es-AR' : 'en-US', { maximumFractionDigits: 0 })}</h5>
+                          <span className="text-lg font-black opacity-60 italic uppercase">PPM</span>
+                        </div>
+                      </div>
+                      <div className="text-right bg-black/25 px-5 py-3 rounded-2xl border border-white/10 shrink-0">
+                        <span className="text-[9px] font-black uppercase tracking-widest text-white/70 block">{lang === 'es' ? 'Relación O/W' : 'O/W Ratio'}</span>
+                        <span className="text-2xl font-black italic text-white tracking-wide">{getLgsRetortResult().owr}</span>
+                      </div>
                     </div>
                     <div className="grid grid-cols-2 gap-2 mt-4 pt-4 border-t border-white/10 text-[9px] font-black uppercase tracking-wider text-white/80">
                       <div>{lang === 'es' ? 'NaCl Salmuera' : 'NaCl Brine'}: <span className="text-white font-bold">{getLgsRetortResult().w_NaCl.toFixed(2)} %p</span></div>
@@ -3128,8 +3199,9 @@ const FluidCalculator = ({ isEditing, lang, unitMode, setUnitMode }) => {
                   </div>
 
                   {/* Detailed physics metrics */}
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
                     {[
+                      { label: lang === 'es' ? 'Relación O/W' : 'O/W Ratio', val: getLgsRetortResult().owr, color: 'text-white' },
                       { label: 'ASG (Solids SG)', val: getLgsRetortResult().asg.toFixed(3), color: getLgsRetortResult().asg > 4.2 || getLgsRetortResult().asg < 2.5 ? 'text-yellow-400' : 'text-zinc-200' },
                       { label: lang === 'es' ? 'Dens. Salmuera' : 'Brine Density', val: getLgsRetortResult().rho_brine.toFixed(5) + ' SG', color: 'text-zinc-300' },
                       { label: lang === 'es' ? 'Vol. Sal Disuelta' : 'Dissolved Salt Vol', val: getLgsRetortResult().v_sal.toFixed(2) + '%', color: 'text-zinc-400' },
