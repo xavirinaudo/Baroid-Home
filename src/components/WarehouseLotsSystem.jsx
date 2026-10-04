@@ -1028,14 +1028,15 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
     showToast(t("palletCopied", { prod: pallet.product, lot: pallet.lot }), "info");
   };
 
-  // Eliminar / Vaciar Pallet
+  // Eliminar / Vaciar Pallet (Directo e instantáneo sin diálogos para máxima agilidad en campo)
   const handleDeletePallet = (pallet, e) => {
     if (e) e.stopPropagation();
-    if (confirm(t("confirmDeletePallet", { prod: pallet.product, lot: pallet.lot, pos: `${pallet.col}${pallet.row}` }))) {
-      const nextPallets = data.pallets.filter(p => p.id !== pallet.id);
-      persistData({ ...data, pallets: nextPallets });
-      showToast(t("palletDeleted", { pos: `${pallet.col}${pallet.row}` }), "warning");
-    }
+    if (!pallet) return;
+    const nextPallets = data.pallets.filter(p => p.id !== pallet.id);
+    persistData({ ...data, pallets: nextPallets });
+    if (selectedPallet?.id === pallet.id) setSelectedPallet(null);
+    if (copiedPallet?.id === pallet.id) setCopiedPallet(null);
+    showToast(t("palletDeleted", { pos: `${pallet.col}${pallet.row}` }), "warning");
   };
 
   // --- DRAG & DROP HANDLERS (Mover e Intercambiar Pallets) ---
@@ -1241,6 +1242,14 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
       } else if ((e.ctrlKey || e.metaKey) && e.key === 'c' && selectedPallet) {
         e.preventDefault();
         handleCopyPallet(selectedPallet);
+      } else if ((e.key === 'Delete' || e.key === 'Backspace') && selectedPallet) {
+        const targetTag = e.target?.tagName?.toLowerCase();
+        if (targetTag !== 'input' && targetTag !== 'textarea' && targetTag !== 'select') {
+          if (!showReceptionModal && !showPalletActionModal && !showNewSectorModal && !showDimensionsModal && !showPrintModal) {
+            e.preventDefault();
+            handleDeletePallet(selectedPallet);
+          }
+        }
       }
     };
     window.addEventListener("keydown", handleKeyDown);
@@ -2859,12 +2868,12 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
                 <button
                   type="button"
                   onClick={() => {
-                    if (confirm(t("confirmEmptyPallet", { pos: `${actionPallet.col}${actionPallet.row}` }))) {
-                      const nextPallets = data.pallets.filter(p => p.id !== actionPallet.id);
-                      persistData({ ...data, pallets: nextPallets });
-                      setShowPalletActionModal(false);
-                      showToast(t("palletDeleted", { pos: `${actionPallet.col}${actionPallet.row}` }), "warning");
-                    }
+                    const nextPallets = data.pallets.filter(p => p.id !== actionPallet.id);
+                    persistData({ ...data, pallets: nextPallets });
+                    setShowPalletActionModal(false);
+                    if (selectedPallet?.id === actionPallet.id) setSelectedPallet(null);
+                    if (copiedPallet?.id === actionPallet.id) setCopiedPallet(null);
+                    showToast(t("palletDeleted", { pos: `${actionPallet.col}${actionPallet.row}` }), "warning");
                   }}
                   className="px-3 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 rounded-xl text-xs font-black uppercase tracking-wider transition-colors shrink-0"
                   title={t("emptyToZeroBtn")}
