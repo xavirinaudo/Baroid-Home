@@ -1,6 +1,53 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import Icon from './Icon';
 
+// Catálogo Maestro Oficial de Productos BAROID
+const OFFICIAL_BAROID_CATALOG = [
+  // SÓLIDOS - Control de Filtrado, Alcalinidad, Viscosidad y Pérdida de Circulación
+  { name: "LIME FG", type: "solido", defaultPackage: "Bolsa 20 kg", unitWeight: 20, unit: "KG", color: "#1D4ED8" },
+  { name: "GELTONE® II", type: "solido", defaultPackage: "Bolsa 22.68 kg", unitWeight: 22.68, unit: "KG", color: "#15803D" },
+  { name: "BARABLOK™ 400 NA", type: "solido", defaultPackage: "Bolsa 25 kg", unitWeight: 25, unit: "KG", color: "#374151" },
+  { name: "Cloruro de Calcio (CaCl₂)", type: "solido", defaultPackage: "Bolsa 25 kg", unitWeight: 25, unit: "KG", color: "#C2410C" },
+  { name: "BARACARB®-DF FINE", type: "solido", defaultPackage: "Bolsa 25 kg", unitWeight: 25, unit: "KG", color: "#475569" },
+  { name: "BARACARB®-DF MEDIUM", type: "solido", defaultPackage: "Bolsa 25 kg", unitWeight: 25, unit: "KG", color: "#52525B" },
+  { name: "BARACARB®-DF COARSE", type: "solido", defaultPackage: "Bolsa 25 kg", unitWeight: 25, unit: "KG", color: "#64748B" },
+  { name: "BaraShield®-981", type: "solido", defaultPackage: "Bolsa 25 kg", unitWeight: 25, unit: "KG", color: "#059669" },
+  { name: "BaraShield®-982", type: "solido", defaultPackage: "Bolsa 25 kg", unitWeight: 25, unit: "KG", color: "#047857" },
+  { name: "BaraFLC®-903", type: "solido", defaultPackage: "Bolsa 25 kg", unitWeight: 25, unit: "KG", color: "#7C3AED" },
+  { name: "BaraSeal™-957", type: "solido", defaultPackage: "Bolsa 25 kg", unitWeight: 25, unit: "KG", color: "#0D9488" },
+  { name: "BDF™-965 FINE", type: "solido", defaultPackage: "Bolsa 25 kg", unitWeight: 25, unit: "KG", color: "#B45309" },
+  { name: "BDF™-965 MEDIUM", type: "solido", defaultPackage: "Bolsa 25 kg", unitWeight: 25, unit: "KG", color: "#92400E" },
+  { name: "STOPPIT™", type: "solido", defaultPackage: "Bolsa 25 kg", unitWeight: 25, unit: "KG", color: "#DC2626" },
+  { name: "OBTURANTE MEZCLA", type: "solido", defaultPackage: "Bolsa 25 kg", unitWeight: 25, unit: "KG", color: "#9A3412" },
+  { name: "BAROFIBRE®", type: "solido", defaultPackage: "Bolsa 11.34 kg", unitWeight: 11.34, unit: "KG", color: "#78716C" },
+  { name: "BARAZAN® D PLUS", type: "solido", defaultPackage: "Bolsa 25 kg", unitWeight: 25, unit: "KG", color: "#2563EB" },
+  { name: "CARBONOX®", type: "solido", defaultPackage: "Bolsa 22.68 kg", unitWeight: 22.68, unit: "KG", color: "#1E293B" },
+  { name: "PAC™-L", type: "solido", defaultPackage: "Bolsa 25 kg", unitWeight: 25, unit: "KG", color: "#0284C7" },
+  { name: "SODA ASH", type: "solido", defaultPackage: "Bolsa 25 kg", unitWeight: 25, unit: "KG", color: "#6366F1" },
+  { name: "SODA CÁUSTICA", type: "solido", defaultPackage: "Bolsa 25 kg", unitWeight: 25, unit: "KG", color: "#4338CA" },
+  { name: "Potassium Chloride (KCl)", type: "solido", defaultPackage: "Bolsa 25 kg", unitWeight: 25, unit: "KG", color: "#3B82F6" },
+  { name: "BARAVIS W-637", type: "solido", defaultPackage: "Bolsa 25 kg", unitWeight: 25, unit: "KG", color: "#10B981" },
+  { name: "Bentonita (Bolsón)", type: "solido", defaultPackage: "Big Bag 1000 kg", unitWeight: 1000, unit: "KG", color: "#71717A" },
+  { name: "BAROID® (Barita Bolsones)", type: "solido", defaultPackage: "Big Bag 1500 kg", unitWeight: 1500, unit: "KG", color: "#475569" },
+
+  // LÍQUIDOS - Emulsionantes, Humectantes y Acondicionadores OBM
+  { name: "INVERMUL®", type: "liquido", defaultPackage: "Tambor 208 L", unitWeight: 208, unit: "LT", color: "#6B21A8" },
+  { name: "INVERMUL® LA", type: "liquido", defaultPackage: "IBC Tote 1000 L", unitWeight: 1000, unit: "LT", color: "#7E22CE" },
+  { name: "EZ MUL® LA", type: "liquido", defaultPackage: "IBC Tote 1000 L", unitWeight: 1000, unit: "LT", color: "#BE185D" },
+  { name: "EZ MUL® NT", type: "liquido", defaultPackage: "Tambor 208 L", unitWeight: 208, unit: "LT", color: "#9D174D" },
+  { name: "LE SUPERMUL™", type: "liquido", defaultPackage: "IBC Tote 1000 L", unitWeight: 1000, unit: "LT", color: "#831843" },
+  { name: "DRILTREAT®", type: "liquido", defaultPackage: "IBC Tote 1000 L", unitWeight: 1000, unit: "LT", color: "#4338CA" },
+  { name: "RM-63™", type: "liquido", defaultPackage: "Tambor 208 L", unitWeight: 208, unit: "LT", color: "#0E7490" },
+  { name: "TAU-MOD®", type: "liquido", defaultPackage: "Balde 19 L", unitWeight: 19, unit: "LT", color: "#0369A1" },
+  { name: "CLAY GRABBER®", type: "liquido", defaultPackage: "Balde 19 L", unitWeight: 19, unit: "LT", color: "#0284C7" },
+  { name: "CLAY SYNC™ II", type: "liquido", defaultPackage: "Balde 19 L", unitWeight: 19, unit: "LT", color: "#0891B2" },
+  { name: "BARA-DEFOAM® HP", type: "liquido", defaultPackage: "Balde 19 L", unitWeight: 19, unit: "LT", color: "#059669" },
+  { name: "OMC® 3", type: "liquido", defaultPackage: "Tambor 208 L", unitWeight: 208, unit: "LT", color: "#065F46" },
+  { name: "THERMA-THIN YPF", type: "liquido", defaultPackage: "Tambor 208 L", unitWeight: 208, unit: "LT", color: "#155E75" },
+  { name: "XLR-RATE™", type: "liquido", defaultPackage: "Tambor 208 L", unitWeight: 208, unit: "LT", color: "#1E40AF" },
+  { name: "TS PLUS YPF", type: "liquido", defaultPackage: "Tambor 208 L", unitWeight: 208, unit: "LT", color: "#4F46E5" }
+];
+
 // Dataset Oficial Fallback de Planta LMP
 const DEFAULT_FALLBACK_STATE = {
   plant: "Planta LMP Baroid / YPF",
@@ -16,17 +63,7 @@ const DEFAULT_FALLBACK_STATE = {
     }
   ],
   activeSectorId: "principal",
-  productCatalog: [
-    { name: "LIME FG", type: "solido", defaultPackage: "Bolsa 20 kg", unitWeight: 20, unit: "KG", color: "#1D4ED8" },
-    { name: "GELTONE® II", type: "solido", defaultPackage: "Bolsa 22.68 kg", unitWeight: 22.68, unit: "KG", color: "#15803D" },
-    { name: "BARABLOK™ 400 NA", type: "solido", defaultPackage: "Bolsa 25 kg", unitWeight: 25, unit: "KG", color: "#374151" },
-    { name: "Cloruro de Calcio (CaCl₂)", type: "solido", defaultPackage: "Bolsa 25 kg", unitWeight: 25, unit: "KG", color: "#C2410C" },
-    { name: "RM-63™", type: "liquido", defaultPackage: "Tambor 208 L", unitWeight: 208, unit: "LT", color: "#0E7490" },
-    { name: "DRILTREAT®", type: "liquido", defaultPackage: "IBC Tote 1000 L", unitWeight: 1000, unit: "LT", color: "#4338CA" },
-    { name: "INVERMUL® LA", type: "liquido", defaultPackage: "IBC Tote 1000 L", unitWeight: 1000, unit: "LT", color: "#7E22CE" },
-    { name: "EZ MUL® LA", type: "liquido", defaultPackage: "IBC Tote 1000 L", unitWeight: 1000, unit: "LT", color: "#BE185D" },
-    { name: "BARACARB®-DF FINE", type: "solido", defaultPackage: "Bolsa 25 kg", unitWeight: 25, unit: "KG", color: "#475569" }
-  ],
+  productCatalog: OFFICIAL_BAROID_CATALOG,
   pallets: []
 };
 
@@ -36,17 +73,245 @@ const getShortProductName = (name) => {
   if (!name) return "";
   if (name.includes("Cloruro de Calcio") || name.includes("CaCl₂")) return "CaCl₂ Calcio";
   if (name.includes("BARABLOK")) return "BARABLOK™ 400";
-  if (name.includes("BARACARB")) return "BARACARB® FINE";
-  if (name.includes("INVERMUL")) return "INVERMUL® LA";
-  if (name.includes("EZ MUL")) return "EZ MUL® LA";
+  if (name.includes("BARACARB") && name.includes("FINE")) return "BARACARB® F";
+  if (name.includes("BARACARB") && name.includes("MEDIUM")) return "BARACARB® M";
+  if (name.includes("BARACARB") && name.includes("COARSE")) return "BARACARB® C";
+  if (name.includes("BaraShield") && name.includes("981")) return "BaraShield® 981";
+  if (name.includes("BaraShield") && name.includes("982")) return "BaraShield® 982";
+  if (name.includes("BaraFLC")) return "BaraFLC® 903";
+  if (name.includes("BaraSeal")) return "BaraSeal™ 957";
+  if (name.includes("BDF") && name.includes("FINE")) return "BDF™-965 F";
+  if (name.includes("BDF") && name.includes("MEDIUM")) return "BDF™-965 M";
+  if (name.includes("INVERMUL") && name.includes("LA")) return "INVERMUL® LA";
+  if (name.includes("INVERMUL")) return "INVERMUL®";
+  if (name.includes("EZ MUL") && name.includes("LA")) return "EZ MUL® LA";
+  if (name.includes("EZ MUL") && name.includes("NT")) return "EZ MUL® NT";
+  if (name.includes("SUPERMUL")) return "SUPERMUL™";
   if (name.includes("GELTONE")) return "GELTONE® II";
   if (name.includes("DRILTREAT")) return "DRILTREAT®";
   if (name.includes("RM-63")) return "RM-63™";
+  if (name.includes("TAU-MOD")) return "TAU-MOD®";
+  if (name.includes("CLAY GRABBER")) return "CLAY GRABBER®";
+  if (name.includes("CLAY SYNC")) return "CLAY SYNC™ II";
+  if (name.includes("BARA-DEFOAM")) return "DEFOAM® HP";
+  if (name.includes("OMC")) return "OMC® 3";
+  if (name.includes("STOPPIT")) return "STOPPIT™";
+  if (name.includes("BAROFIBRE")) return "BAROFIBRE®";
+  if (name.includes("BARAZAN")) return "BARAZAN® D+";
+  if (name.includes("CARBONOX")) return "CARBONOX®";
+  if (name.includes("BARAVIS")) return "BARAVIS W-637";
+  if (name.includes("BAROID") || name.includes("Barita")) return "BAROID® Barita";
+  if (name.includes("Bentonita")) return "Bentonita";
   if (name.includes("LIME")) return "LIME FG";
   return name;
 };
 
+// Diccionario de Traducción Oficial Español / Inglés
+const I18N = {
+  es: {
+    mapTitle: "Mapa de Zona de Productos",
+    mapSubtitle: "Monitoreo y control de lotes",
+    receivePallet: "Ingreso Pallet",
+    highlightPartials: "Resaltar Parciales",
+    showingPartials: "Mostrando Parciales",
+    partialsOnly: "Solo Parciales",
+    filter: "Filtro",
+    loadJson: "Cargar JSON",
+    backup: "Respaldar",
+    clear: "Vaciar",
+    undo: "Deshacer",
+    zoomTooltip: "Escala del almacén (Clic en % para 100%)",
+    zoomOut: "Reducir zoom (muestra más columnas y filas en pantalla)",
+    zoomIn: "Aumentar zoom",
+    newTab: "Nueva Pestaña",
+    orderCapacity: "Capacidad de Pedido",
+    free: "Libres",
+    orderAvailable: "Capacidad disponible para solicitar",
+    currentOccupancy: "Ocupación Actual",
+    solids: "Sólidos",
+    liquids: "Líquidos",
+    cleanWarehouseTitle: "Almacén Limpio (Sin Lotes Asignados)",
+    cleanWarehouseDesc: "El mapa está listo para operar. Puedes cargar tu inventario desde archivo JSON o ingresar pallets haciendo un clic en cualquier posición vacía.",
+    loadInventoryBtn: "Cargar Inventario (JSON)",
+    generalWarehouse: "Almacén General",
+    powdersClays: "Polvos y Arcillas",
+    drumsIbc: "Tambores 208 L y IBC 1.000 L",
+    rows: "Filas",
+    cols: "Cols",
+    addRow: "+ Fila",
+    addCol: "+ Col",
+    aisle: "PASILLO",
+    copy: "Copiar",
+    paste: "Pegar",
+    deleteEmpty: "Eliminar / Vaciar pallet a 0",
+    stockByLot: "Stock por Lote",
+    consolidated: "Acumulado",
+    downloadCsv: "Descargar archivo Excel CSV",
+    receiveModalTitle: "Ingreso de Pallet",
+    receptionWarehouse: "Recepción a Almacén",
+    position: "Posición",
+    chemicalProduct: "Producto Químico BAROID",
+    selectProduct: "-- Seleccionar Producto Baroid --",
+    customProductOption: "-- Otro Producto Personalizado / Custom --",
+    customProductName: "Nombre del Producto Personalizado",
+    customProductUnit: "Unidad (KG / LT)",
+    lotNumber: "Número de Lote",
+    lotPlaceholder: "Ej: CCP2604-09 o 2517K1",
+    packageCount: "Unidades (Bolsas/Totes)",
+    unitWeight: "Peso / Vol. Unitario",
+    totalToReceive: "Total a Ingresar",
+    confirmReception: "Confirmar Ingreso a Almacén",
+    cancel: "Cancelar",
+    consumeModalTitle: "Consumo de Pallet",
+    consumeLabel: "Cantidad Consumida para Receta",
+    deductBtn: "Descontar",
+    emptyToZero: "Vaciar a 0",
+    newTabModalTitle: "Nueva Pestaña de Almacén",
+    tabNameLabel: "Nombre del Sector / Pestaña",
+    tabNamePlaceholder: "Ej: Almacén Principal o Depósito Norte",
+    structureLabel: "Estructura del Almacén",
+    singleCanvas: "Lienzo Único (Área Libre / Mixta)",
+    singleCanvasDesc: "Un solo espacio unificado para cualquier tipo de producto (Predeterminado).",
+    dualArea: "Doble Área (2 Áreas: Sólidos y Líquidos)",
+    dualAreaDesc: "Separa la pestaña en dos sectores independientes (Sólidos arriba y Líquidos abajo).",
+    initialRows: "Filas Iniciales",
+    initialCols: "Cantidad de Columnas",
+    solidsRows: "Filas Área Sólidos",
+    solidsCols: "Columnas Área Sólidos",
+    liquidsRows: "Filas Área Líquidos",
+    liquidsCols: "Columnas Área Líquidos",
+    createTabBtn: "Crear Pestaña",
+    closeTab: "Cerrar / eliminar pestaña",
+    confirmDeleteTab: "¿Eliminar la pestaña \"{name}\" y sus pallets asignados?",
+    clipboardActive: "📋 Pallet copiado en portapapeles: {product} (Lote: {lot}). Haz clic en cualquier posición vacía para pegar.",
+    cancelCopy: "Cancelar",
+    undoSuccess: "Último movimiento deshecho.",
+    palletPasted: "✓ Pallet pegado en {pos} ({prod})",
+    palletSelected: "✓ Pallet seleccionado en {pos} ({prod}). Copiar: Ctrl+C | Consumir: Doble clic | Cancelar: Esc.",
+    palletCopied: "📋 Pallet copiado ({prod} L: {lot}). Haz clic en cualquier celda libre para pegar.",
+    palletDeleted: "✓ Pallet en {pos} vaciado a 0.",
+    filterPartialsOn: "✨ Resaltando {count} pallets parciales / remanentes.",
+    filterPartialsOff: "Filtro de parciales desactivado.",
+    noStockExport: "No hay pallets con stock en este sector para exportar.",
+    csvSuccess: "✓ Archivo Excel CSV descargado con éxito.",
+    noFreeSlots: "No hay espacio libre en este sector para recibir este producto.",
+    palletReceived: "✓ Pallet recibido en {pos} ({prod} L: {lot})",
+    stockDeducted: "✓ Saldo actualizado: {newQty} {unit} restantes.",
+    tabCreated: "✓ Pestaña \"{name}\" creada exitosamente.",
+    tabDeleted: "Pestaña \"{name}\" eliminada.",
+    rowAdded: "+1 Fila agregada",
+    colAdded: "+ Columna {col} agregada",
+    emptyConfirm: "¿Estás seguro de que deseas vaciar todos los lotes del almacén para comenzar desde cero? Podrás deshacer esta acción con Ctrl+Z.",
+    warehouseCleared: "🗑️ Almacén vaciado. Listo para nuevo inventario."
+  },
+  en: {
+    mapTitle: "Chemical Products Zone Map",
+    mapSubtitle: "Lot monitoring and control",
+    receivePallet: "Receive Pallet",
+    highlightPartials: "Highlight Partials",
+    showingPartials: "Showing Partials",
+    partialsOnly: "Partials Only",
+    filter: "Filter",
+    loadJson: "Load JSON",
+    backup: "Backup",
+    clear: "Clear",
+    undo: "Undo",
+    zoomTooltip: "Warehouse scale (Click % for 100%)",
+    zoomOut: "Zoom out (shows more columns and rows on screen)",
+    zoomIn: "Zoom in",
+    newTab: "New Tab",
+    orderCapacity: "Order Capacity",
+    free: "Free",
+    orderAvailable: "Available capacity to request",
+    currentOccupancy: "Current Occupancy",
+    solids: "Solids",
+    liquids: "Liquids",
+    cleanWarehouseTitle: "Clean Warehouse (No Assigned Lots)",
+    cleanWarehouseDesc: "The map is ready to operate. You can load your inventory from a JSON file or add pallets by clicking any empty slot.",
+    loadInventoryBtn: "Load Inventory (JSON)",
+    generalWarehouse: "General Warehouse",
+    powdersClays: "Powders and Clays",
+    drumsIbc: "208 L Drums & 1,000 L IBCs",
+    rows: "Rows",
+    cols: "Cols",
+    addRow: "+ Row",
+    addCol: "+ Col",
+    aisle: "AISLE",
+    copy: "Copy",
+    paste: "Paste",
+    deleteEmpty: "Delete / Empty pallet to 0",
+    stockByLot: "Stock by Lot",
+    consolidated: "Consolidated",
+    downloadCsv: "Download Excel CSV File",
+    receiveModalTitle: "Receive Pallet",
+    receptionWarehouse: "Warehouse Reception",
+    position: "Position",
+    chemicalProduct: "BAROID Chemical Product",
+    selectProduct: "-- Select Baroid Product --",
+    customProductOption: "-- Other Custom Product --",
+    customProductName: "Custom Product Name",
+    customProductUnit: "Unit (KG / LT)",
+    lotNumber: "Lot Number",
+    lotPlaceholder: "Ex: CCP2604-09 or 2517K1",
+    packageCount: "Package Count (Bags/Totes)",
+    unitWeight: "Unit Weight / Volume",
+    totalToReceive: "Total to Receive",
+    confirmReception: "Confirm Warehouse Reception",
+    cancel: "Cancel",
+    consumeModalTitle: "Pallet Consumption",
+    consumeLabel: "Consumed Quantity for Recipe",
+    deductBtn: "Deduct",
+    emptyToZero: "Empty to 0",
+    newTabModalTitle: "New Warehouse Tab",
+    tabNameLabel: "Sector / Tab Name",
+    tabNamePlaceholder: "Ex: Main Warehouse or North Yard",
+    structureLabel: "Warehouse Layout Structure",
+    singleCanvas: "Single Canvas (Free / Mixed Area)",
+    singleCanvasDesc: "A single unified open space for all chemical products (Default).",
+    dualArea: "Dual Area (2 Areas: Solids and Liquids)",
+    dualAreaDesc: "Splits the tab into two independent sectors (Solids on top, Liquids below).",
+    initialRows: "Initial Rows",
+    initialCols: "Number of Columns",
+    solidsRows: "Solids Area Rows",
+    solidsCols: "Solids Area Columns",
+    liquidsRows: "Liquids Area Rows",
+    liquidsCols: "Liquids Area Columns",
+    createTabBtn: "Create Tab",
+    closeTab: "Close / delete tab",
+    confirmDeleteTab: "Delete tab \"{name}\" and its assigned pallets?",
+    clipboardActive: "📋 Pallet copied to clipboard: {product} (Lot: {lot}). Click any empty slot to paste.",
+    cancelCopy: "Cancel",
+    undoSuccess: "Last movement undone.",
+    palletPasted: "✓ Pallet pasted at {pos} ({prod})",
+    palletSelected: "✓ Pallet selected at {pos} ({prod}). Copy: Ctrl+C | Consume: Double click | Cancel: Esc.",
+    palletCopied: "📋 Pallet copied ({prod} Lot: {lot}). Click any free slot to paste.",
+    palletDeleted: "✓ Pallet at {pos} emptied to 0.",
+    filterPartialsOn: "✨ Highlighting {count} partial / remnant pallets.",
+    filterPartialsOff: "Partial filter disabled.",
+    noStockExport: "No pallets with stock in this sector to export.",
+    csvSuccess: "✓ Excel CSV file downloaded successfully.",
+    noFreeSlots: "No free space in this sector to receive this product.",
+    palletReceived: "✓ Pallet received at {pos} ({prod} Lot: {lot})",
+    stockDeducted: "✓ Balance updated: {newQty} {unit} remaining.",
+    tabCreated: "✓ Tab \"{name}\" successfully created.",
+    tabDeleted: "Tab \"{name}\" deleted.",
+    rowAdded: "+1 Row added",
+    colAdded: "+ Column {col} added",
+    emptyConfirm: "Are you sure you want to empty all lots in this warehouse to start from scratch? You can undo with Ctrl+Z.",
+    warehouseCleared: "🗑️ Warehouse cleared. Ready for fresh inventory."
+  }
+};
+
 const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDarkMode }) => {
+  // Helper de traducción i18n
+  const t = (key, params = {}) => {
+    let str = I18N[lang]?.[key] || I18N['es'][key] || key;
+    Object.keys(params).forEach(k => {
+      str = str.replace(`{${k}}`, params[k]);
+    });
+    return str;
+  };
+
   // 1. Estado persistente con Dual-Ring Vault
   const [data, setData] = useState(() => {
     let saved = localStorage.getItem("lmp_warehouse_state");
@@ -57,21 +322,29 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
       try {
         const parsed = JSON.parse(saved);
         if (parsed) {
-          // Filtrar cualquier pestaña no deseada (ej. Equipo 1211) y asegurar "Zona de Productos Químicos" de 4x12
+          // Filtrar cualquier pestaña no deseada (ej. Equipo 1211) y asegurar tipo y dimensiones correctas
           if (Array.isArray(parsed.sectors)) {
             parsed.sectors = parsed.sectors
               .filter(s => !s.name?.toLowerCase().includes("1211") && !s.id?.toLowerCase().includes("1211"))
               .map(s => {
-                if (s.id === "principal" || s.name?.toLowerCase().includes("nave principal")) {
+                const isPrincipal = (s.id === "principal" || s.name?.toLowerCase().includes("nave principal") || s.name?.toLowerCase().includes("productos"));
+                const hasLiquidPallets = parsed.pallets && Array.isArray(parsed.pallets) && parsed.pallets.some(p => (p.sectorId || "principal") === s.id && p.zone === "liquidos");
+                const isDual = s.type === "dual" || hasLiquidPallets;
+
+                if (isPrincipal) {
                   return {
                     ...s,
+                    id: "principal",
                     name: "Zona de Productos Químicos",
-                    type: "mixto",
-                    rows: (s.rows && s.type !== "dual") ? s.rows : 4,
-                    columns: (s.columns && s.columns.length === 12 && s.type !== "dual") ? s.columns : ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"]
+                    type: isDual ? "dual" : (s.type || "mixto"),
+                    rows: isDual ? (s.rows && s.rows >= 6 ? s.rows : 6) : (s.rows || 4),
+                    columns: s.columns && s.columns.length > 0 ? s.columns : (isDual ? ["A", "B", "C", "E", "G", "H", "J", "K", "L", "M"] : ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"])
                   };
                 }
-                return s;
+                return {
+                  ...s,
+                  type: isDual ? "dual" : (s.type || "mixto")
+                };
               });
             if (parsed.sectors.length === 0) {
               parsed.sectors = DEFAULT_FALLBACK_STATE.sectors;
@@ -81,6 +354,12 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
           }
           if (parsed.pallets && Array.isArray(parsed.pallets)) {
             parsed.pallets = parsed.pallets.filter(p => !p.sectorId?.toLowerCase().includes("1211"));
+          }
+          if (!parsed.warehouseDimensions) {
+            parsed.warehouseDimensions = {
+              solidos: { rows: 6, columns: ["A", "B", "C", "E", "G", "H", "J", "K", "L", "M"] },
+              liquidos: { rows: 6, columns: ["B", "C", "E", "H", "J", "K", "L", "M"] }
+            };
           }
           return parsed;
         }
@@ -95,6 +374,7 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
   const [selectedPallet, setSelectedPallet] = useState(null);
   const [copiedPallet, setCopiedPallet] = useState(null);
   const [activeFilter, setActiveFilter] = useState(null); // { type: 'lot' | 'product' | 'partial', value: string }
+  const [searchQuery, setSearchQuery] = useState("");
   const [zoomLevel, setZoomLevel] = useState(1);
   const [undoStack, setUndoStack] = useState([]);
   const [toastMsg, setToastMsg] = useState(null);
@@ -104,8 +384,60 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
   const [receptionTarget, setReceptionTarget] = useState(null);
   const [showPalletActionModal, setShowPalletActionModal] = useState(false);
   const [actionPallet, setActionPallet] = useState(null);
+  const [stockEntryMode, setStockEntryMode] = useState("direct"); // "direct" (KG/LT) | "packages" (Bolsas/Unidades)
+  const [remainingInputQty, setRemainingInputQty] = useState(0);
+  const [remainingBagsCount, setRemainingBagsCount] = useState(0);
+  const [remainingBagWeight, setRemainingBagWeight] = useState(25);
   const [showDimensionsModal, setShowDimensionsModal] = useState(false);
   const [showNewSectorModal, setShowNewSectorModal] = useState(false);
+
+  // Estado para modal de Nueva Pestaña (Lienzo Único vs Doble Área)
+  const [newTabStructure, setNewTabStructure] = useState('single'); // 'single' | 'dual'
+  const [newTabRows, setNewTabRows] = useState(4);
+  const [newTabCols, setNewTabCols] = useState(12);
+  const [newTabSolidsRows, setNewTabSolidsRows] = useState(6);
+  const [newTabSolidsCols, setNewTabSolidsCols] = useState(10);
+  const [newTabLiquidsRows, setNewTabLiquidsRows] = useState(6);
+  const [newTabLiquidsCols, setNewTabLiquidsCols] = useState(8);
+
+  // Estado para modal de Recepción con Catálogo Oficial Baroid
+  const [receptionSelectedProd, setReceptionSelectedProd] = useState(OFFICIAL_BAROID_CATALOG[0].name);
+  const [receptionUnits, setReceptionUnits] = useState(50);
+  const [receptionUnitWeight, setReceptionUnitWeight] = useState(25);
+  const [isCustomProduct, setIsCustomProduct] = useState(false);
+  const [customProdName, setCustomProdName] = useState("");
+  const [customProdUnit, setCustomProdUnit] = useState("KG");
+
+  // Mapas Hash O(1) para eliminar lag en renderizado de celdas y hover
+  const palletsMap = useMemo(() => {
+    const map = new Map();
+    if (!data.pallets) return map;
+    for (let i = 0; i < data.pallets.length; i++) {
+      const p = data.pallets[i];
+      const sId = p.sectorId || "principal";
+      if (sId === activeSectorId && Number(p.quantity) > 0) {
+        // Clave por zona específica
+        map.set(`${p.zone || 'mixto'}_${p.col}_${p.row}`, p);
+        // Clave genérica por columna y fila
+        map.set(`${p.col}_${p.row}`, p);
+      }
+    }
+    return map;
+  }, [data.pallets, activeSectorId]);
+
+  const productCatalogMap = useMemo(() => {
+    const map = new Map();
+    const catalog = data.productCatalog?.length ? data.productCatalog : OFFICIAL_BAROID_CATALOG;
+    for (let i = 0; i < catalog.length; i++) {
+      map.set(catalog[i].name, catalog[i]);
+    }
+    return map;
+  }, [data.productCatalog]);
+
+  // Dimensiones físicas de cada pallet calculadas con el zoom (relación de aspecto perfecta 98x80)
+  const cardWidth = Math.round(98 * zoomLevel);
+  const cardHeight = Math.round(80 * zoomLevel);
+  const aisleWidth = Math.max(10, Math.round(16 * zoomLevel));
 
   // Refs de scroll horizontal
   const solidsScrollRef = useRef(null);
@@ -151,7 +483,7 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
       localStorage.setItem("lmp_warehouse_state", serialized);
       localStorage.setItem("lmp_warehouse_state_vault", serialized);
       localStorage.setItem("baroid_warehouse_backup_persistent", serialized);
-      showToast("Último movimiento deshecho.", "warning");
+      showToast(t("undoSuccess"), "warning");
     } catch (e) {
       console.error("Undo error:", e);
     }
@@ -192,11 +524,22 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
           };
         });
 
+        const hasLiquids = normalizedPallets.some(p => p.zone === "liquidos");
+        let importedSectors = imported.sectors || data.sectors;
+        if (hasLiquids && Array.isArray(importedSectors)) {
+          importedSectors = importedSectors.map(s => {
+            if (s.id === "principal" || s.name?.toLowerCase().includes("nave principal") || s.name?.toLowerCase().includes("productos")) {
+              return { ...s, type: "dual" };
+            }
+            return s;
+          });
+        }
+
         const nextData = {
           ...data,
           ...imported,
           pallets: normalizedPallets,
-          sectors: imported.sectors || data.sectors,
+          sectors: importedSectors,
           productCatalog: imported.productCatalog || data.productCatalog,
           warehouseDimensions: imported.warehouseDimensions || data.warehouseDimensions
         };
@@ -239,16 +582,23 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
     }
   };
 
-  // Sector actual
+  // Sector actual con auto-detección dual defensiva
   const currentSector = useMemo(() => {
-    return (data.sectors && data.sectors.find(s => s.id === activeSectorId)) || data.sectors[0] || {
+    let sec = (data.sectors && data.sectors.find(s => s.id === activeSectorId)) || data.sectors?.[0] || {
       id: "principal",
       name: "Zona de Productos Químicos",
       type: "mixto",
       rows: 4,
       columns: ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"]
     };
-  }, [data.sectors, activeSectorId]);
+
+    // Auto-detección: Si el sector tiene pallets en 'liquidos', debe operar en modo dual
+    const hasLiquids = data.pallets && data.pallets.some(p => (p.sectorId || "principal") === sec.id && p.zone === "liquidos");
+    if (hasLiquids && sec.type !== "dual") {
+      sec = { ...sec, type: "dual" };
+    }
+    return sec;
+  }, [data.sectors, data.pallets, activeSectorId]);
 
   // KPIs
   const { totalSlots, occupiedCount, freeSlots, occPct, freeSolids, freeLiquids } = useMemo(() => {
@@ -264,7 +614,7 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
       sSlots = (sDims.rows || 6) * (sDims.columns?.length || 10);
       lSlots = (lDims.rows || 6) * (lDims.columns?.length || 8);
       tSlots = sSlots + lSlots;
-      sOccupied = data.pallets.filter(p => (p.sectorId || "principal") === currentSector.id && p.zone === "solidos" && p.quantity > 0).length;
+      sOccupied = data.pallets.filter(p => (p.sectorId || "principal") === currentSector.id && p.zone !== "liquidos" && p.quantity > 0).length;
       lOccupied = data.pallets.filter(p => (p.sectorId || "principal") === currentSector.id && p.zone === "liquidos" && p.quantity > 0).length;
     } else {
       const nRows = currentSector.rows || 4;
@@ -304,23 +654,36 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
   };
 
   // Eliminar Sector Personalizado
+  // Eliminar Sector Personalizado
   const handleDeleteSector = (sectorId) => {
     if (sectorId === "principal") return;
     const sec = data.sectors.find(s => s.id === sectorId);
-    if (!window.confirm(`¿Eliminar la pestaña "${sec?.name || sectorId}" y sus pallets asignados?`)) return;
+    if (!window.confirm(t("confirmDeleteTab", { name: sec?.name || sectorId }))) return;
     const nextSectors = data.sectors.filter(s => s.id !== sectorId);
     const nextPallets = data.pallets.filter(p => (p.sectorId || "principal") !== sectorId);
     persistData({ ...data, sectors: nextSectors, pallets: nextPallets });
     if (activeSectorId === sectorId) {
       setActiveSectorId("principal");
     }
-    showToast(`Pestaña "${sec?.name || ''}" eliminada`, "info");
+    showToast(t("tabDeleted", { name: sec?.name || '' }), "info");
   };
 
-  // Selección de Pallet
+  // Abrir Modal de Recepción / Ingreso
+  const openReception = (target = null) => {
+    setReceptionTarget(target);
+    setIsCustomProduct(false);
+    setCustomProdName("");
+    const firstProd = OFFICIAL_BAROID_CATALOG[0];
+    setReceptionSelectedProd(firstProd.name);
+    setReceptionUnits(firstProd.defaultPackage?.includes("Big Bag") ? 1 : (firstProd.defaultPackage?.includes("Tambor") ? 4 : 50));
+    setReceptionUnitWeight(firstProd.unitWeight || 25);
+    setShowReceptionModal(true);
+  };
+
+  // Selección de Pallet o Clic en Celda Vacía
   const handlePalletClick = (pallet, zone, col, row) => {
     if (!pallet) {
-      // 1 Clic en Celda Vacía -> Abrir Recepción Inmediata
+      // Clic en Celda Vacía
       if (copiedPallet) {
         // Pegar de portapapeles
         const newPallet = {
@@ -334,23 +697,35 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
         const nextPallets = data.pallets.filter(p => !(p.zone === zone && p.col === col && p.row === row && (p.sectorId || "principal") === activeSectorId));
         nextPallets.push(newPallet);
         persistData({ ...data, pallets: nextPallets });
-        showToast(`✓ Pallet pegado en ${col}${row} (${newPallet.product})`, "success");
+        showToast(t("palletPasted", { pos: `${col}${row}`, prod: newPallet.product }), "success");
       } else {
-        setReceptionTarget({ zone, col, row, sectorId: activeSectorId });
-        setShowReceptionModal(true);
+        // Abrir recepción inmediata
+        openReception({ zone, col, row, sectorId: activeSectorId });
       }
       return;
     }
 
-    // 1 Clic en Pallet Ocupado -> Seleccionar (para Ctrl+C / Supr)
+    // Clic en Pallet Ocupado -> Seleccionar (para Ctrl+C / Supr)
     setSelectedPallet(pallet);
-    showToast(`✓ Pallet seleccionado en ${col}${row} (${pallet.product}). Copiar: Ctrl+C | Consumir: Doble clic.`, "info");
+    showToast(t("palletSelected", { pos: `${col}${row}`, prod: pallet.product }), "info");
   };
 
-  // Doble Clic en Pallet Ocupado -> Abrir Modal de Consumo
+  // Doble Clic en Pallet Ocupado -> Abrir Modal para Indicar Stock Restante
   const handlePalletDblClick = (pallet) => {
     if (!pallet) return;
     setActionPallet(pallet);
+    setStockEntryMode("direct");
+    setRemainingInputQty(pallet.quantity);
+    let wt = 25;
+    if (pallet.packageDetails) {
+      const match = pallet.packageDetails.match(/x\s*([\d.]+)/);
+      if (match) wt = parseFloat(match[1]);
+    } else {
+      const def = productCatalogMap.get(pallet.product);
+      if (def?.unitWeight) wt = def.unitWeight;
+    }
+    setRemainingBagWeight(wt || 25);
+    setRemainingBagsCount(Math.round(pallet.quantity / (wt || 25)));
     setShowPalletActionModal(true);
   };
 
@@ -358,16 +733,16 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
   const handleCopyPallet = (pallet, e) => {
     if (e) e.stopPropagation();
     setCopiedPallet(pallet);
-    showToast(`📋 Pallet copiado (${pallet.product} L: ${pallet.lot}). Haz clic en cualquier celda libre para pegar.`, "info");
+    showToast(t("palletCopied", { prod: pallet.product, lot: pallet.lot }), "info");
   };
 
   // Eliminar / Vaciar Pallet
   const handleDeletePallet = (pallet, e) => {
     if (e) e.stopPropagation();
-    if (confirm(`¿Vaciar / eliminar pallet de ${pallet.product} (Lote: ${pallet.lot}) en ${pallet.col}${pallet.row}?`)) {
+    if (confirm(`¿${t("deleteEmpty")} ${pallet.product} (${t("lotNumber")}: ${pallet.lot}) en ${pallet.col}${pallet.row}?`)) {
       const nextPallets = data.pallets.filter(p => p.id !== pallet.id);
       persistData({ ...data, pallets: nextPallets });
-      showToast(`✓ Pallet en ${pallet.col}${pallet.row} vaciado a 0.`, "warning");
+      showToast(t("palletDeleted", { pos: `${pallet.col}${pallet.row}` }), "warning");
     }
   };
 
@@ -375,21 +750,37 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
   const togglePartialFilter = () => {
     if (activeFilter && activeFilter.type === "partial") {
       setActiveFilter(null);
-      showToast("Filtro de parciales desactivado.", "info");
+      showToast(t("filterPartialsOff"), "info");
     } else {
       setActiveFilter({ type: "partial", value: "partial" });
       const partialsCount = data.pallets.filter(p => {
         const isPart = p.status === "partial" || (p.capacityNominal && Number(p.quantity) < Number(p.capacityNominal));
         return (p.sectorId || "principal") === activeSectorId && isPart;
       }).length;
-      showToast(`✨ Resaltando ${partialsCount} pallets parciales / remanentes.`, "info");
+      showToast(t("filterPartialsOn", { count: partialsCount }), "info");
     }
   };
 
-  // Atajos de teclado
+  // Atajos de teclado (Escape para cerrar modales o limpiar búsqueda, Ctrl+Z deshacer, Ctrl+C copiar)
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+      if (e.key === 'Escape') {
+        if (searchQuery) setSearchQuery("");
+        if (showReceptionModal) setShowReceptionModal(false);
+        if (showPalletActionModal) setShowPalletActionModal(false);
+        if (showNewSectorModal) setShowNewSectorModal(false);
+        if (showDimensionsModal) setShowDimensionsModal(false);
+        if (copiedPallet) {
+          setCopiedPallet(null);
+          showToast(t("cancelCopy"), "info");
+        }
+        if (selectedPallet) {
+          setSelectedPallet(null);
+        }
+        if (activeFilter) {
+          setActiveFilter(null);
+        }
+      } else if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
         e.preventDefault();
         undoLastAction();
       } else if ((e.ctrlKey || e.metaKey) && e.key === 'c' && selectedPallet) {
@@ -399,7 +790,18 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [selectedPallet, undoStack, data]);
+  }, [selectedPallet, copiedPallet, showReceptionModal, showPalletActionModal, showNewSectorModal, showDimensionsModal, undoStack, data, lang, searchQuery, activeFilter]);
+
+  // Búsqueda reactiva de lotes y productos en el almacén
+  const searchMatches = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return [];
+    return data.pallets.filter(p =>
+      (p.sectorId || "principal") === activeSectorId &&
+      Number(p.quantity) > 0 &&
+      (p.lot?.toLowerCase().includes(q) || p.product?.toLowerCase().includes(q))
+    );
+  }, [data.pallets, activeSectorId, searchQuery]);
 
   // Resumen acumulado por producto y lote
   const stockSummary = useMemo(() => {
@@ -424,7 +826,7 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
   const exportCsv = () => {
     const activePallets = data.pallets.filter(p => Number(p.quantity) > 0 && (p.sectorId || "principal") === activeSectorId);
     if (activePallets.length === 0) {
-      showToast("No hay pallets con stock en este sector para exportar.", "warning");
+      showToast(t("noStockExport"), "warning");
       return;
     }
     const rows = [];
@@ -450,18 +852,14 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
     link.href = url;
     link.download = `Stock_Lotes_${currentSector.name.replace(/\s+/g, '_')}_${new Date().toISOString().slice(0,10)}.csv`;
     link.click();
-    showToast("✓ Archivo Excel CSV descargado con éxito.", "success");
+    showToast(t("csvSuccess"), "success");
   };
 
-  // Render Pallet Card Individual
+  // Render Pallet Card Individual con HashMap O(1) de alto rendimiento
   const renderPalletCard = (zone, col, row) => {
-    const pallet = data.pallets.find(p =>
-      (p.sectorId || "principal") === activeSectorId &&
-      (currentSector.type !== "dual" || p.zone === zone) &&
-      p.col === col &&
-      p.row === row &&
-      p.quantity > 0
-    );
+    // Búsqueda ultra-rápida O(1) sin recorrer el array completo
+    const lookupKey = currentSector.type === "dual" ? `${zone}_${col}_${row}` : `${col}_${row}`;
+    const pallet = palletsMap.get(lookupKey) || palletsMap.get(`${zone}_${col}_${row}`);
 
     const isSelected = selectedPallet && selectedPallet.id === pallet?.id;
     const isCopied = copiedPallet && copiedPallet.id === pallet?.id;
@@ -471,16 +869,17 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
         <div
           key={`${zone}-${col}-${row}`}
           onClick={() => handlePalletClick(null, zone, col, row)}
-          className={`w-[98px] min-w-[98px] max-w-[98px] h-[80px] min-h-[80px] max-h-[80px] rounded-xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-all ${
+          style={{ width: `${cardWidth}px`, height: `${cardHeight}px`, minWidth: `${cardWidth}px`, maxWidth: `${cardWidth}px`, minHeight: `${cardHeight}px`, maxHeight: `${cardHeight}px` }}
+          className={`rounded-xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-all select-none ${
             copiedPallet
               ? 'bg-blue-50/70 dark:bg-blue-950/30 border-blue-400 dark:border-blue-600 animate-pulse hover:bg-blue-100 hover:scale-105'
               : 'bg-slate-50/80 dark:bg-slate-800/20 border-slate-200 dark:border-slate-800 hover:border-halliburton-red hover:bg-red-50/10 text-slate-400 dark:text-slate-500'
           }`}
-          title={copiedPallet ? `Pegar pallet copiado en ${col}${row}` : `Clic: Ingresar pallet en ${col}${row}`}
+          title={copiedPallet ? `${t("paste")} (${col}${row})` : `+ ${col}${row} &bull; ${t("receivePallet")}`}
         >
           {copiedPallet ? (
             <span className="text-[10px] font-black text-blue-600 dark:text-blue-400 flex items-center gap-1 uppercase tracking-wider">
-              <Icon name="copy" size={12} /> Pegar {col}{row}
+              <Icon name="copy" size={12} /> {t("paste")} {col}{row}
             </span>
           ) : (
             <span className="text-xs font-black tracking-wider text-slate-400 dark:text-slate-600">
@@ -495,11 +894,20 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
     const isPartial = pallet.status === "partial" || (cap > 0 && Number(pallet.quantity) < cap);
     const pct = cap > 0 ? Math.min(100, Math.round((Number(pallet.quantity) / cap) * 100)) : 100;
 
-    // Lógica de resaltado y atenuación en escala de grises
+    // Lógica de resaltado por búsqueda instantánea o por filtros
     let isDimmed = false;
     let isHighlighted = false;
 
-    if (activeFilter) {
+    const cleanSearch = searchQuery.trim().toLowerCase();
+    if (cleanSearch.length > 0) {
+      const matchLot = pallet.lot?.toLowerCase().includes(cleanSearch);
+      const matchProd = pallet.product?.toLowerCase().includes(cleanSearch);
+      if (matchLot || matchProd) {
+        isHighlighted = true;
+      } else {
+        isDimmed = true;
+      }
+    } else if (activeFilter) {
       if (activeFilter.type === "partial") {
         if (isPartial) isHighlighted = true;
         else isDimmed = true;
@@ -512,7 +920,7 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
       }
     }
 
-    const prodDef = data.productCatalog.find(p => p.name === pallet.product);
+    const prodDef = productCatalogMap.get(pallet.product);
     const bgColor = prodDef ? prodDef.color : "#991B1B";
     const shortName = getShortProductName(pallet.product);
 
@@ -521,20 +929,28 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
         key={pallet.id}
         onClick={() => handlePalletClick(pallet, zone, col, row)}
         onDoubleClick={() => handlePalletDblClick(pallet)}
-        style={{ backgroundColor: bgColor }}
-        className={`w-[98px] min-w-[98px] max-w-[98px] h-[80px] min-h-[80px] max-h-[80px] rounded-xl relative p-1 pt-3.5 flex flex-col items-center justify-center cursor-pointer select-none transition-all overflow-hidden ${
+        style={{
+          backgroundColor: bgColor,
+          width: `${cardWidth}px`,
+          height: `${cardHeight}px`,
+          minWidth: `${cardWidth}px`,
+          maxWidth: `${cardWidth}px`,
+          minHeight: `${cardHeight}px`,
+          maxHeight: `${cardHeight}px`
+        }}
+        className={`rounded-xl relative p-1 pt-3.5 flex flex-col items-center justify-center cursor-pointer select-none transition-all overflow-hidden ${
           isSelected ? 'ring-4 ring-sky-400 ring-offset-2 z-20 shadow-xl scale-105' : 'shadow-md hover:scale-102 hover:shadow-lg'
         } ${isPartial ? 'border-2 border-dashed border-amber-400 shadow-[inset_0_0_10px_rgba(245,158,11,0.3)]' : 'border border-white/20'} ${
           isDimmed ? 'opacity-20 grayscale contrast-75 scale-95' : ''
         } ${isHighlighted ? 'ring-4 ring-amber-400 ring-offset-2 scale-105 z-30 shadow-2xl animate-pulse' : ''}`}
-        title={`${pallet.product} | Lote: ${pallet.lot} | Cantidad: ${pallet.quantity} ${pallet.unit}${isPartial ? ` (PARCIAL: ${pct}%)` : ''} | Posición: ${col}${row}`}
+        title={`${pallet.product} | ${t("filter") === "Filter" ? "Lot" : "Lote"}: ${pallet.lot} | ${pallet.quantity} ${pallet.unit}${isPartial ? ` (PARCIAL: ${pct}%)` : ''} | Pos: ${col}${row}`}
       >
         {/* Botón Copiar (Esquina Sup. Izquierda) */}
         <button
           type="button"
           onClick={(e) => handleCopyPallet(pallet, e)}
           className="absolute top-1 left-1 w-[18px] h-[18px] rounded-md bg-slate-900/60 backdrop-blur-sm border border-white/40 text-white flex items-center justify-center opacity-80 hover:opacity-100 hover:bg-blue-600 hover:scale-110 transition-all z-10"
-          title="Copiar pallet (Ctrl+C)"
+          title={`${t("copy")} (Ctrl+C)`}
         >
           <Icon name="copy" size={10} />
         </button>
@@ -544,7 +960,7 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
           type="button"
           onClick={(e) => handleDeletePallet(pallet, e)}
           className="absolute top-1 right-1 w-[18px] h-[18px] rounded-md bg-red-600 border border-white/60 text-white flex items-center justify-center opacity-85 hover:opacity-100 hover:bg-red-700 hover:scale-110 transition-all z-10 shadow-sm"
-          title="Eliminar / Vaciar pallet a 0"
+          title={t("deleteEmpty")}
         >
           <Icon name="x" size={11} />
         </button>
@@ -626,22 +1042,22 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
           <div className="flex items-center gap-2.5">
             <div className="w-1.5 h-5 bg-halliburton-red rounded-full"></div>
             <h2 className="text-xl lg:text-2xl font-black uppercase italic leading-none tracking-tight text-zinc-800 dark:text-white">
-              Mapa de Zona de Productos
+              {t("mapTitle")}
             </h2>
           </div>
           <p className="text-[10px] font-bold text-zinc-400 pl-4 uppercase tracking-wider mt-0.5">
-            Monitoreo y control de lotes &bull; {currentSector.name}
+            {t("mapSubtitle")} &bull; {currentSector.name}
           </p>
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
           {/* Botón Ingreso Pallet */}
           <button
-            onClick={() => { setReceptionTarget(null); setShowReceptionModal(true); }}
+            onClick={() => openReception(null)}
             className="flex items-center gap-2 px-4 py-2 bg-halliburton-red hover:bg-red-700 text-white rounded-xl text-xs font-black uppercase tracking-wider shadow-md transition-all active:scale-95"
           >
             <Icon name="plus-circle" size={14} />
-            <span>Ingreso Pallet</span>
+            <span>{t("receivePallet")}</span>
           </button>
 
           {/* Botón Resaltar Parciales / Remanentes */}
@@ -655,14 +1071,54 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
             title="Resaltar únicamente pallets con saldo parcial y atenuar completos en escala de grises"
           >
             <Icon name="sparkles" size={14} />
-            <span>{activeFilter?.type === "partial" ? "Mostrando Parciales" : "Resaltar Parciales"}</span>
+            <span>{activeFilter?.type === "partial" ? t("showingPartials") : t("highlightPartials")}</span>
           </button>
+
+          {/* Buscador Instantáneo de Lote / Producto */}
+          <div className="relative flex items-center">
+            <Icon name="search" size={13} className="absolute left-3 text-zinc-400 pointer-events-none" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder={lang === 'es' ? "Buscar lote o producto..." : "Search lot or product..."}
+              className="pl-8 pr-7 py-2 bg-zinc-100 hover:bg-zinc-200/70 dark:bg-slate-800 dark:hover:bg-slate-700/70 focus:bg-white dark:focus:bg-slate-900 border border-zinc-200 dark:border-zinc-700 rounded-xl text-xs font-bold text-zinc-800 dark:text-white outline-none focus:ring-2 focus:ring-halliburton-red transition-all w-44 sm:w-56 shadow-inner"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery("")}
+                className="absolute right-2.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-white text-xs font-black cursor-pointer"
+                title="Limpiar búsqueda (Esc)"
+              >
+                &times;
+              </button>
+            )}
+          </div>
+
+          {/* Badge con Ubicaciones Encontradas */}
+          {searchQuery && (
+            <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black transition-all ${
+              searchMatches.length > 0
+                ? 'bg-amber-500/15 border border-amber-500/40 text-amber-600 dark:text-amber-400 shadow-sm'
+                : 'bg-zinc-100 dark:bg-slate-800 text-zinc-400'
+            }`}>
+              {searchMatches.length > 0 ? (
+                <>
+                  <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span>
+                  <span>📍 {searchMatches.length} en: {searchMatches.map(m => `${m.col}${m.row}`).slice(0, 4).join(', ')}{searchMatches.length > 4 ? '...' : ''}</span>
+                </>
+              ) : (
+                <span>❌ Sin coincidencias</span>
+              )}
+            </div>
+          )}
 
           {/* Badge de Filtro Activo */}
           {activeFilter && (
             <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-500/15 border border-amber-500/40 rounded-xl text-xs font-black text-amber-500">
               <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span>
-              <span>{activeFilter.type === "partial" ? "Solo Parciales" : `Filtro: ${activeFilter.value}`}</span>
+              <span>{activeFilter.type === "partial" ? t("partialsOnly") : `${t("filter")}: ${activeFilter.value}`}</span>
               <button onClick={() => setActiveFilter(null)} className="ml-1 text-zinc-400 hover:text-white">&times;</button>
             </div>
           )}
@@ -681,7 +1137,7 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
             title="Cargar inventario desde archivo JSON en este equipo"
           >
             <Icon name="upload" size={14} className="text-halliburton-red" />
-            <span>Cargar JSON</span>
+            <span>{t("loadJson")}</span>
           </button>
 
           {/* Respaldar JSON */}
@@ -691,7 +1147,7 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
             title="Descargar copia de seguridad completa del inventario (JSON)"
           >
             <Icon name="download" size={14} />
-            <span className="hidden sm:inline">Respaldar</span>
+            <span className="hidden sm:inline">{t("backup")}</span>
           </button>
 
           {/* Vaciar Almacén */}
@@ -702,7 +1158,7 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
               title="Vaciar todos los lotes para comenzar de cero"
             >
               <Icon name="trash-2" size={13} />
-              <span className="hidden xl:inline text-[11px]">Vaciar</span>
+              <span className="hidden xl:inline text-[11px]">{t("clear")}</span>
             </button>
           )}
 
@@ -714,15 +1170,15 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
             title="Deshacer último movimiento (Ctrl+Z)"
           >
             <Icon name="rotate-ccw" size={14} />
-            <span>Deshacer</span>
+            <span>{t("undo")}</span>
           </button>
 
-          {/* Zoom */}
-          <div className="flex items-center bg-zinc-100 dark:bg-slate-800/80 rounded-xl p-1 border border-zinc-200 dark:border-zinc-700" title="Escala del almacén (Clic en % para 100%)">
+          {/* Zoom con botones de escala */}
+          <div className="flex items-center bg-zinc-100 dark:bg-slate-800/80 rounded-xl p-1 border border-zinc-200 dark:border-zinc-700" title={t("zoomTooltip")}>
             <button
               onClick={() => setZoomLevel(prev => Math.max(0.60, Math.round((prev - 0.05) * 100) / 100))}
               className="p-1 text-zinc-500 hover:text-zinc-800 dark:hover:text-white transition-colors"
-              title="Reducir zoom (muestra más columnas y filas en pantalla)"
+              title={t("zoomOut")}
             >
               <Icon name="minus" size={12} />
             </button>
@@ -736,7 +1192,7 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
             <button
               onClick={() => setZoomLevel(prev => Math.min(1.30, Math.round((prev + 0.05) * 100) / 100))}
               className="p-1 text-zinc-500 hover:text-zinc-800 dark:hover:text-white transition-colors"
-              title="Aumentar zoom"
+              title={t("zoomIn")}
             >
               <Icon name="plus" size={12} />
             </button>
@@ -794,7 +1250,7 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
                       handleDeleteSector(sec.id);
                     }}
                     className="ml-1 opacity-60 hover:opacity-100 hover:text-red-300 font-black cursor-pointer text-sm leading-none"
-                    title={`Cerrar / eliminar pestaña "${sec.name}"`}
+                    title={`${t("closeTab")} "${sec.name}"`}
                   >
                     &times;
                   </span>
@@ -809,7 +1265,7 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
           className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-100 hover:bg-zinc-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-zinc-700 dark:text-zinc-300 rounded-xl text-xs font-black uppercase tracking-wider shrink-0 transition-all"
         >
           <Icon name="plus" size={14} className="text-halliburton-red" />
-          <span>Nueva Pestaña</span>
+          <span>{t("newTab")}</span>
         </button>
       </div>
 
@@ -822,9 +1278,9 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
               <Icon name="package-plus" size={20} />
             </div>
             <div>
-              <span className="text-[9px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400 block">Capacidad de Pedido</span>
+              <span className="text-[9px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400 block">{t("orderCapacity")}</span>
               <div className="text-xl font-black italic tracking-tight text-emerald-500 leading-tight">
-                {freeSlots} Libres
+                {freeSlots} {t("free")}
               </div>
             </div>
           </div>
@@ -833,7 +1289,7 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
               <div className="bg-emerald-500 h-full rounded-full transition-all duration-500" style={{ width: `${totalSlots > 0 ? (freeSlots / totalSlots) * 100 : 0}%` }}></div>
             </div>
             <div className="text-[9px] text-zinc-400 font-bold mt-1 text-right">
-              Capacidad disponible para solicitar
+              {t("orderAvailable")}
             </div>
           </div>
         </div>
@@ -845,7 +1301,7 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
               <Icon name="layers" size={20} />
             </div>
             <div>
-              <span className="text-[9px] font-black uppercase tracking-widest text-zinc-400 block">Ocupación Actual</span>
+              <span className="text-[9px] font-black uppercase tracking-widest text-zinc-400 block">{t("currentOccupancy")}</span>
               <div className="flex items-baseline gap-2">
                 <span className="text-xl font-black italic tracking-tight text-zinc-800 dark:text-white leading-tight">
                   {occupiedCount} / {totalSlots}
@@ -856,8 +1312,8 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
           </div>
           {currentSector.type === "dual" && (
             <div className="flex items-center gap-2 text-[10px] font-bold text-zinc-400 shrink-0">
-              <span className="px-2 py-0.5 rounded-lg bg-blue-500/10 text-blue-500 font-black">Sólidos: <strong className="text-zinc-700 dark:text-zinc-200">{freeSolids} Libres</strong></span>
-              <span className="px-2 py-0.5 rounded-lg bg-purple-500/10 text-purple-500 font-black">Líquidos: <strong className="text-zinc-700 dark:text-zinc-200">{freeLiquids} Libres</strong></span>
+              <span className="px-2 py-0.5 rounded-lg bg-blue-500/10 text-blue-500 font-black">{t("solids")}: <strong className="text-zinc-700 dark:text-zinc-200">{freeSolids} {t("free")}</strong></span>
+              <span className="px-2 py-0.5 rounded-lg bg-purple-500/10 text-purple-500 font-black">{t("liquids")}: <strong className="text-zinc-700 dark:text-zinc-200">{freeLiquids} {t("free")}</strong></span>
             </div>
           )}
         </div>
@@ -878,10 +1334,10 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
                 </div>
                 <div>
                   <h4 className="text-xs font-black uppercase tracking-tight text-zinc-800 dark:text-zinc-200">
-                    Almacén Limpio (Sin Lotes Asignados)
+                    {t("cleanWarehouseTitle")}
                   </h4>
                   <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
-                    El mapa está listo para operar. Puedes cargar tu inventario desde archivo JSON o ingresar pallets haciendo un clic en cualquier posición vacía.
+                    {t("cleanWarehouseDesc")}
                   </p>
                 </div>
               </div>
@@ -891,22 +1347,22 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
                   className="flex items-center gap-2 px-4 py-2 bg-halliburton-red hover:bg-red-700 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-md active:scale-95"
                 >
                   <Icon name="upload" size={14} />
-                  <span>Cargar Inventario (JSON)</span>
+                  <span>{t("loadInventoryBtn")}</span>
                 </button>
               </div>
             </div>
           )}
 
-          {/* ZONA DE PRODUCTOS QUÍMICOS (GRILLA PRINCIPAL) */}
+          {/* ZONA PRINCIPAL / SÓLIDOS (Lienzo Único o Sector Sólidos en Doble Área) */}
           {(currentSector.type === "dual" || currentSector.type === "solidos" || currentSector.type === "mixto") && (
             <div className="p-4 lg:p-5 rounded-3xl border border-zinc-200 dark:border-zinc-800/80 bg-white dark:bg-slate-900/60 shadow-sm flex flex-col">
               <div className="flex items-center justify-between mb-3 pb-2.5 border-b border-zinc-100 dark:border-zinc-800">
                 <div className="flex items-center gap-2.5">
                   <span className="px-3 py-0.5 rounded-lg bg-blue-500/10 text-blue-500 font-black text-xs uppercase tracking-wider">
-                    {currentSector.type === "dual" ? "ZONA SÓLIDOS" : currentSector.name.toUpperCase()}
+                    {currentSector.type === "dual" ? t("solids").toUpperCase() : currentSector.name.toUpperCase()}
                   </span>
                   <span className="text-xs font-semibold text-zinc-400">
-                    {currentSector.type === "dual" ? "Polvos y Arcillas" : "Almacén General"} ({sDims.rows} Filas &bull; {sDims.columns.length} Cols)
+                    {currentSector.type === "dual" ? t("powdersClays") : t("generalWarehouse")} ({sDims.rows} {t("rows")} &bull; {sDims.columns.length} {t("cols")})
                   </span>
                 </div>
 
@@ -942,11 +1398,11 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
                         if (s) s.rows = Math.min(20, (s.rows || 4) + 1);
                       }
                       persistData(next);
-                      showToast("+1 Fila agregada", "success");
+                      showToast(t("rowAdded"), "success");
                     }}
                     className="px-2.5 py-1.5 rounded-lg bg-zinc-100 dark:bg-slate-800 hover:bg-zinc-200 dark:hover:bg-slate-700 text-zinc-700 dark:text-zinc-200 text-[10px] font-black uppercase tracking-wider transition-all"
                   >
-                    + Fila
+                    {t("addRow")}
                   </button>
 
                   {/* + Col */}
@@ -969,12 +1425,12 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
                         targetCols.push(nextLetter);
                         targetCols.sort();
                         persistData(next);
-                        showToast(`+ Columna ${nextLetter} agregada`, "success");
+                        showToast(t("colAdded", { col: nextLetter }), "success");
                       }
                     }}
                     className="px-2.5 py-1.5 rounded-lg bg-zinc-100 dark:bg-slate-800 hover:bg-zinc-200 dark:hover:bg-slate-700 text-zinc-700 dark:text-zinc-200 text-[10px] font-black uppercase tracking-wider transition-all"
                   >
-                    + Col
+                    {t("addCol")}
                   </button>
                 </div>
               </div>
@@ -997,19 +1453,21 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
                 >
                   <div
                     className="flex gap-2 items-stretch py-1 min-w-max transition-all duration-150"
-                    style={{ zoom: zoomLevel }}
                   >
                     {sDims.columns.map((colLetter, cIdx) => (
                       <React.Fragment key={`sol-col-${colLetter}`}>
                         {cIdx > 0 && (
                           <div
-                            className="w-[16px] min-w-[16px] max-w-[16px] rounded-lg bg-slate-100/70 dark:bg-slate-800/40 border border-dashed border-slate-200 dark:border-slate-800 flex items-center justify-center text-[8px] font-black text-slate-400 select-none tracking-widest shrink-0"
-                            style={{ writingMode: 'vertical-rl' }}
+                            style={{ width: `${aisleWidth}px`, minWidth: `${aisleWidth}px`, maxWidth: `${aisleWidth}px`, writingMode: 'vertical-rl' }}
+                            className="rounded-lg bg-slate-100/70 dark:bg-slate-800/40 border border-dashed border-slate-200 dark:border-slate-800 flex items-center justify-center text-[8px] font-black text-slate-400 select-none tracking-widest shrink-0"
                           >
-                            PASILLO
+                            {t("aisle")}
                           </div>
                         )}
-                        <div className="w-[98px] min-w-[98px] max-w-[98px] flex flex-col gap-1.5 shrink-0">
+                        <div
+                          style={{ width: `${cardWidth}px`, minWidth: `${cardWidth}px`, maxWidth: `${cardWidth}px` }}
+                          className="flex flex-col gap-1.5 shrink-0"
+                        >
                           {Array.from({ length: sDims.rows }, (_, rIdx) => rIdx + 1).map(rowNum =>
                             renderPalletCard(currentSector.type === "dual" ? "solidos" : "mixto", colLetter, rowNum)
                           )}
@@ -1032,16 +1490,16 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
             </div>
           )}
 
-          {/* ZONA LÍQUIDOS */}
-          {(currentSector.id === "principal" || currentSector.type === "liquidos") && (
+          {/* ZONA LÍQUIDOS (Solo si el sector es de tipo Doble Área "dual" o "liquidos") */}
+          {(currentSector.type === "dual" || currentSector.type === "liquidos") && (
             <div className="p-4 lg:p-5 rounded-3xl border border-zinc-200 dark:border-zinc-800/80 bg-white dark:bg-slate-900/60 shadow-sm flex flex-col">
               <div className="flex items-center justify-between mb-3 pb-2.5 border-b border-zinc-100 dark:border-zinc-800">
                 <div className="flex items-center gap-2.5">
                   <span className="px-3 py-0.5 rounded-lg bg-purple-500/10 text-purple-500 font-black text-xs uppercase tracking-wider">
-                    {currentSector.id === "principal" ? "ZONA LÍQUIDOS" : currentSector.name.toUpperCase()}
+                    {t("liquids").toUpperCase()}
                   </span>
                   <span className="text-xs font-semibold text-zinc-400">
-                    Tambores 208 L y IBC 1.000 L ({lDims.rows} Filas &bull; {lDims.columns.length} Cols)
+                    {t("drumsIbc")} ({lDims.rows} {t("rows")} &bull; {lDims.columns.length} {t("cols")})
                   </span>
                 </div>
 
@@ -1069,36 +1527,47 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
                   <button
                     onClick={() => {
                       const next = { ...data };
-                      if (currentSector.id === "principal") {
+                      if (currentSector.type === "dual") {
+                        if (!next.warehouseDimensions) next.warehouseDimensions = { liquidos: { rows: 6, columns: ["A","B","C","D"] } };
                         next.warehouseDimensions.liquidos.rows = Math.min(20, (next.warehouseDimensions.liquidos.rows || 6) + 1);
                       } else {
                         const s = next.sectors.find(x => x.id === currentSector.id);
                         if (s) s.rows = Math.min(20, (s.rows || 6) + 1);
                       }
                       persistData(next);
-                      showToast("+1 Fila agregada a Líquidos", "success");
+                      showToast(t("rowAdded"), "success");
                     }}
                     className="px-2.5 py-1.5 rounded-lg bg-zinc-100 dark:bg-slate-800 hover:bg-zinc-200 dark:hover:bg-slate-700 text-zinc-700 dark:text-zinc-200 text-[10px] font-black uppercase tracking-wider transition-all"
                   >
-                    + Fila
+                    {t("addRow")}
                   </button>
 
                   {/* + Col */}
                   <button
                     onClick={() => {
                       const next = { ...data };
-                      const targetCols = currentSector.id === "principal"
-                        ? next.warehouseDimensions.liquidos.columns
-                        : next.sectors.find(x => x.id === currentSector.id).columns;
-                      const nextLetter = ALL_ALPHABET.find(l => !targetCols.includes(l)) || "Z";
-                      targetCols.push(nextLetter);
-                      targetCols.sort();
-                      persistData(next);
-                      showToast(`+ Columna ${nextLetter} agregada a Líquidos`, "success");
+                      let targetCols;
+                      if (currentSector.type === "dual") {
+                        if (!next.warehouseDimensions) next.warehouseDimensions = { liquidos: { rows: 6, columns: ["A","B","C","D"] } };
+                        targetCols = next.warehouseDimensions.liquidos.columns;
+                      } else {
+                        const s = next.sectors.find(x => x.id === currentSector.id);
+                        if (s) {
+                          if (!s.columns) s.columns = ["A","B","C","D","E","F","G","H"];
+                          targetCols = s.columns;
+                        }
+                      }
+                      if (targetCols) {
+                        const nextLetter = ALL_ALPHABET.find(l => !targetCols.includes(l)) || "Z";
+                        targetCols.push(nextLetter);
+                        targetCols.sort();
+                        persistData(next);
+                        showToast(t("colAdded", { col: nextLetter }), "success");
+                      }
                     }}
                     className="px-2.5 py-1.5 rounded-lg bg-zinc-100 dark:bg-slate-800 hover:bg-zinc-200 dark:hover:bg-slate-700 text-zinc-700 dark:text-zinc-200 text-[10px] font-black uppercase tracking-wider transition-all"
                   >
-                    + Col
+                    {t("addCol")}
                   </button>
                 </div>
               </div>
@@ -1121,19 +1590,21 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
                 >
                   <div
                     className="flex gap-2 items-stretch py-1 min-w-max transition-all duration-150"
-                    style={{ zoom: zoomLevel }}
                   >
                     {lDims.columns.map((colLetter, cIdx) => (
                       <React.Fragment key={`liq-col-${colLetter}`}>
                         {cIdx > 0 && (
                           <div
-                            className="w-[16px] min-w-[16px] max-w-[16px] rounded-lg bg-slate-100/70 dark:bg-slate-800/40 border border-dashed border-slate-200 dark:border-slate-800 flex items-center justify-center text-[8px] font-black text-slate-400 select-none tracking-widest shrink-0"
-                            style={{ writingMode: 'vertical-rl' }}
+                            style={{ width: `${aisleWidth}px`, minWidth: `${aisleWidth}px`, maxWidth: `${aisleWidth}px`, writingMode: 'vertical-rl' }}
+                            className="rounded-lg bg-slate-100/70 dark:bg-slate-800/40 border border-dashed border-slate-200 dark:border-slate-800 flex items-center justify-center text-[8px] font-black text-slate-400 select-none tracking-widest shrink-0"
                           >
-                            PASILLO
+                            {t("aisle")}
                           </div>
                         )}
-                        <div className="w-[98px] min-w-[98px] max-w-[98px] flex flex-col gap-1.5 shrink-0">
+                        <div
+                          style={{ width: `${cardWidth}px`, minWidth: `${cardWidth}px`, maxWidth: `${cardWidth}px` }}
+                          className="flex flex-col gap-1.5 shrink-0"
+                        >
                           {Array.from({ length: lDims.rows }, (_, rIdx) => rIdx + 1).map(rowNum =>
                             renderPalletCard("liquidos", colLetter, rowNum)
                           )}
@@ -1159,107 +1630,154 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
         </div>
 
         {/* Columna Derecha: Acordeón de Stock por Producto y Lote */}
-        <div className="xl:col-span-4 2xl:col-span-3 min-w-[280px]">
+        <div className="xl:col-span-4 2xl:col-span-3 min-w-[300px]">
           <div className="p-3.5 rounded-2xl border border-zinc-200 dark:border-zinc-800/80 bg-white dark:bg-slate-900/60 shadow-sm">
-            <div className="flex items-center justify-between mb-2.5 pb-2 border-b border-zinc-100 dark:border-zinc-800">
+            <div className="flex items-center justify-between mb-3 pb-2.5 border-b border-zinc-100 dark:border-zinc-800">
               <div>
-                <h3 className="text-xs font-black uppercase tracking-tight text-zinc-800 dark:text-white">
-                  Stock por Lote
+                <h3 className="text-sm font-black uppercase tracking-tight text-zinc-800 dark:text-white flex items-center gap-1.5">
+                  <Icon name="layers" size={15} className="text-halliburton-red" />
+                  <span>{t("stockByLot")}</span>
                 </h3>
-                <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest block">Acumulado</span>
+                <span className="text-[9.5px] font-bold text-zinc-400 uppercase tracking-widest block">{t("consolidated")} &bull; {stockSummary.length} {lang === 'es' ? 'Productos' : 'Products'}</span>
               </div>
-              <button
-                onClick={exportCsv}
-                className="p-1.5 rounded-lg bg-zinc-100 dark:bg-slate-800 hover:bg-zinc-200 text-zinc-600 dark:text-zinc-300 transition-colors"
-                title="Descargar archivo Excel CSV"
-              >
-                <Icon name="download" size={14} />
-              </button>
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={exportCsv}
+                  className="p-1.5 px-2 rounded-lg bg-zinc-100 hover:bg-zinc-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-zinc-600 dark:text-zinc-200 transition-colors flex items-center gap-1.5 text-xs font-black uppercase shadow-sm"
+                  title={t("downloadCsv")}
+                >
+                  <Icon name="download" size={14} />
+                  <span className="hidden sm:inline">CSV</span>
+                </button>
+              </div>
             </div>
 
             {/* Lista Acordeón - Flujo natural sin scrollbar interna lenta */}
-            <div className="space-y-1.5">
-              {stockSummary.map(prod => (
-                <div key={prod.name} className="border border-zinc-100 dark:border-zinc-800 rounded-xl overflow-hidden bg-zinc-50/50 dark:bg-slate-800/20">
-                  <div
-                    onClick={() => setActiveFilter(prev => prev?.value === prod.name ? null : { type: 'product', value: prod.name })}
-                    className={`p-2 px-2.5 flex justify-between items-center cursor-pointer border-l-4 border-halliburton-red transition-colors gap-2 ${
-                      activeFilter?.value === prod.name ? 'bg-red-50 dark:bg-red-950/20' : 'hover:bg-zinc-100/50 dark:hover:bg-slate-800/40'
-                    }`}
-                  >
-                    <span className="text-[11px] font-black uppercase tracking-tight text-zinc-800 dark:text-zinc-200 truncate flex-1" title={prod.name}>
-                      {getShortProductName(prod.name)}
-                    </span>
-                    <span className="text-[10.5px] font-mono font-black text-zinc-700 dark:text-zinc-300 shrink-0 whitespace-nowrap">
-                      {prod.totalQty.toLocaleString("es-AR")} {prod.unit}
-                    </span>
-                  </div>
-
-                  <div className="p-1.5 px-2 space-y-1">
-                    {Object.keys(prod.lots).sort().map(lotNum => (
-                      <div
-                        key={lotNum}
-                        onClick={() => setActiveFilter(prev => prev?.value === lotNum ? null : { type: 'lot', value: lotNum })}
-                        className={`flex justify-between items-center gap-2 px-2.5 py-1.5 rounded-lg text-[10px] cursor-pointer transition-colors ${
-                          activeFilter?.value === lotNum
-                            ? 'bg-halliburton-red text-white font-bold'
-                            : 'bg-white dark:bg-slate-800/40 text-zinc-600 dark:text-zinc-400 hover:bg-red-50/50'
-                        }`}
-                      >
-                        <span className="font-bold truncate" title={`Lote: ${lotNum}`}>L: {lotNum}</span>
-                        <span className="font-mono font-black shrink-0 whitespace-nowrap">{prod.lots[lotNum].toLocaleString("es-AR")} {prod.unit}</span>
+            <div className="space-y-2">
+              {stockSummary.map(prod => {
+                const prodDef = productCatalogMap.get(prod.name);
+                const prodColor = prodDef?.color || "#991B1B";
+                const isSelectedProd = activeFilter?.value === prod.name;
+                return (
+                  <div key={prod.name} className="border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden bg-zinc-50/70 dark:bg-slate-800/30 transition-all shadow-sm">
+                    <div
+                      onClick={() => setActiveFilter(prev => prev?.value === prod.name ? null : { type: 'product', value: prod.name })}
+                      className={`p-2.5 px-3 flex justify-between items-center cursor-pointer border-l-4 transition-colors gap-2.5 ${
+                        isSelectedProd ? 'bg-red-50 dark:bg-red-950/25 border-halliburton-red' : 'hover:bg-zinc-100/80 dark:hover:bg-slate-800/50'
+                      }`}
+                      style={{ borderLeftColor: isSelectedProd ? '#DC2626' : prodColor }}
+                    >
+                      <div className="flex items-center gap-2 min-w-0 flex-1">
+                        <span className="w-2.5 h-2.5 rounded-full shrink-0 shadow-sm" style={{ backgroundColor: prodColor }}></span>
+                        <span className="text-xs sm:text-[13px] font-black uppercase tracking-tight text-zinc-900 dark:text-zinc-100 truncate" title={prod.name}>
+                          {getShortProductName(prod.name)}
+                        </span>
                       </div>
-                    ))}
+                      <span className="text-xs sm:text-sm font-black font-mono text-zinc-900 dark:text-emerald-400 bg-zinc-200/80 dark:bg-zinc-800/90 px-2 py-0.5 rounded-lg shrink-0 tracking-tight shadow-inner">
+                        {prod.totalQty.toLocaleString("es-AR")} <span className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400">{prod.unit}</span>
+                      </span>
+                    </div>
+
+                    <div className="p-1.5 px-2.5 space-y-1 bg-white/50 dark:bg-slate-900/40 border-t border-zinc-100 dark:border-zinc-800/60">
+                      {Object.keys(prod.lots).sort().map(lotNum => {
+                        const isSelectedLot = activeFilter?.value === lotNum;
+                        return (
+                          <div
+                            key={lotNum}
+                            onClick={() => setActiveFilter(prev => prev?.value === lotNum ? null : { type: 'lot', value: lotNum })}
+                            className={`flex justify-between items-center gap-2 px-2.5 py-1.5 rounded-lg cursor-pointer transition-colors ${
+                              isSelectedLot
+                                ? 'bg-halliburton-red text-white font-black shadow-sm'
+                                : 'bg-white dark:bg-slate-800/50 text-zinc-700 dark:text-zinc-300 hover:bg-red-50 dark:hover:bg-slate-700/60'
+                            }`}
+                          >
+                            <span className="text-xs font-bold truncate flex items-center gap-1" title={`Lote: ${lotNum}`}>
+                              <span className={isSelectedLot ? 'text-white/80' : 'text-zinc-400'}>L:</span>
+                              <span>{lotNum}</span>
+                            </span>
+                            <span className={`text-xs sm:text-[12.5px] font-mono font-black shrink-0 whitespace-nowrap px-1.5 py-0.5 rounded ${
+                              isSelectedLot ? 'bg-white/20 text-white' : 'text-zinc-900 dark:text-zinc-100'
+                            }`}>
+                              {prod.lots[lotNum].toLocaleString("es-AR")} {prod.unit}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
 
       </div>
 
-      {/* MODAL: INGRESO RÁPIDO DE PALLET (1 CLIC EN ESPACIO VACÍO) */}
+      {/* MODAL: INGRESO RÁPIDO DE PALLET (1 CLIC EN ESPACIO VACÍO O BOTÓN SUPERIOR) */}
       {showReceptionModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white dark:bg-slate-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in"
+          onClick={(e) => { if (e.target === e.currentTarget) setShowReceptionModal(false); }}
+        >
+          <div className="bg-white dark:bg-slate-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-zinc-100 dark:border-zinc-800">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-xl bg-halliburton-red text-white flex items-center justify-center">
                   <Icon name="plus" size={16} />
                 </div>
                 <div>
-                  <h3 className="text-base font-black uppercase tracking-tight text-zinc-800 dark:text-white">Ingreso de Pallet</h3>
+                  <h3 className="text-base font-black uppercase tracking-tight text-zinc-800 dark:text-white">
+                    {t("receiveModalTitle")}
+                  </h3>
                   <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
-                    {receptionTarget ? `Posición ${receptionTarget.col}${receptionTarget.row} (${receptionTarget.zone.toUpperCase()})` : "Recepción a Almacén"}
+                    {receptionTarget ? `${t("position")} ${receptionTarget.col}${receptionTarget.row} (${receptionTarget.zone.toUpperCase()})` : t("receptionWarehouse")}
                   </span>
                 </div>
               </div>
-              <button onClick={() => setShowReceptionModal(false)} className="text-zinc-400 hover:text-white">&times;</button>
+              <button
+                onClick={() => setShowReceptionModal(false)}
+                className="w-8 h-8 rounded-xl bg-zinc-100 dark:bg-slate-800 hover:bg-zinc-200 text-zinc-400 hover:text-zinc-800 dark:hover:text-white flex items-center justify-center transition-colors"
+                title={t("cancel")}
+              >
+                <Icon name="x" size={16} />
+              </button>
             </div>
 
             <form
               onSubmit={(e) => {
                 e.preventDefault();
-                const form = e.target;
-                const prodName = form.product.value;
-                const lot = form.lot.value.trim().toUpperCase();
-                const units = Number(form.units.value) || 1;
-                const unitWeight = Number(form.unitWeight.value) || 25;
-                const prod = data.productCatalog.find(p => p.name === prodName) || data.productCatalog[0];
+                let prodName = "";
+                let unit = "KG";
+                let prodDef = null;
+
+                if (isCustomProduct) {
+                  prodName = customProdName.trim() || "Producto Químico";
+                  unit = customProdUnit.trim().toUpperCase() || "KG";
+                } else {
+                  prodDef = productCatalogMap.get(receptionSelectedProd) || OFFICIAL_BAROID_CATALOG[0];
+                  prodName = prodDef.name;
+                  unit = prodDef.unit;
+                }
+
+                const lot = e.target.lot.value.trim().toUpperCase();
+                const units = Number(receptionUnits) || 1;
+                const unitWeight = Number(receptionUnitWeight) || 25;
                 const totalQty = units * unitWeight;
 
-                let targetZone = receptionTarget?.zone || (currentSector.type === "dual" ? (prod.type === "solido" ? "solidos" : "liquidos") : "mixto");
+                let targetZone = receptionTarget?.zone || (currentSector.type === "dual" ? (prodDef?.type === "liquido" ? "liquidos" : "solidos") : "mixto");
                 let targetCol = receptionTarget?.col;
                 let targetRow = receptionTarget?.row;
 
                 if (!targetCol) {
                   // Buscar primer espacio vacío disponible
-                  const dims = currentSector.type === "dual" ? data.warehouseDimensions[targetZone] : currentSector;
+                  const dims = currentSector.type === "dual"
+                    ? (targetZone === "liquidos" ? lDims : sDims)
+                    : sDims;
                   for (let r = 1; r <= (dims?.rows || 4); r++) {
-                    for (const c of (dims?.columns || ["A","B","C","D","E","F","G","H","I","J","K","L"])) {
-                      const exists = data.pallets.some(p => (p.sectorId || "principal") === activeSectorId && (currentSector.type !== "dual" || p.zone === targetZone) && p.col === c && p.row === r && p.quantity > 0);
-                      if (!exists) {
+                    for (const c of (dims?.columns || [])) {
+                      const key = currentSector.type === "dual" ? `${targetZone}_${c}_${r}` : `${c}_${r}`;
+                      if (!palletsMap.has(key)) {
                         targetCol = c;
                         targetRow = r;
                         break;
@@ -1270,7 +1788,7 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
                 }
 
                 if (!targetCol) {
-                  showToast("No hay espacio libre en este sector para recibir este producto.", "error");
+                  showToast(t("noFreeSlots"), "error");
                   return;
                 }
 
@@ -1283,8 +1801,8 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
                   product: prodName,
                   lot: lot,
                   quantity: totalQty,
-                  unit: prod.unit,
-                  packageDetails: `${units} x ${unitWeight} ${prod.unit}`,
+                  unit: unit,
+                  packageDetails: `${units} x ${unitWeight} ${unit}`,
                   unitsCount: units,
                   capacityNominal: totalQty,
                   status: "full"
@@ -1294,117 +1812,399 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
                 nextPallets.push(newPallet);
                 persistData({ ...data, pallets: nextPallets });
                 setShowReceptionModal(false);
-                showToast(`✓ Pallet recibido en ${targetCol}${targetRow} (${prodName} L: ${lot})`, "success");
+                showToast(t("palletReceived", { pos: `${targetCol}${targetRow}`, prod: prodName, lot: lot }), "success");
               }}
-              className="space-y-3"
+              className="space-y-3.5"
             >
+              {/* Selector de Producto Químico Oficial BAROID */}
               <div>
-                <label className="text-[10px] font-black uppercase tracking-wider text-zinc-400 block mb-1">Producto Químico</label>
-                <select name="product" className="w-full p-2.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-slate-800 text-xs font-bold text-zinc-800 dark:text-white outline-none">
-                  {data.productCatalog.map(p => (
-                    <option key={p.name} value={p.name}>{p.name} ({p.unit})</option>
-                  ))}
+                <label className="text-[10px] font-black uppercase tracking-wider text-zinc-500 dark:text-zinc-400 block mb-1">
+                  {t("chemicalProduct")}
+                </label>
+                <select
+                  value={isCustomProduct ? "__CUSTOM__" : receptionSelectedProd}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val === "__CUSTOM__") {
+                      setIsCustomProduct(true);
+                      setReceptionSelectedProd("__CUSTOM__");
+                    } else {
+                      setIsCustomProduct(false);
+                      setReceptionSelectedProd(val);
+                      const def = productCatalogMap.get(val);
+                      if (def) {
+                        setReceptionUnitWeight(def.unitWeight || 25);
+                        let uCount = 50;
+                        if (def.defaultPackage?.includes("Big Bag")) uCount = 1;
+                        else if (def.defaultPackage?.includes("Tambor")) uCount = 4;
+                        else if (def.defaultPackage?.includes("IBC")) uCount = 1;
+                        else if (def.defaultPackage?.includes("Balde")) uCount = 32;
+                        setReceptionUnits(uCount);
+                      }
+                    }
+                  }}
+                  className="w-full p-2.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-slate-800 text-xs font-bold text-zinc-800 dark:text-white outline-none focus:ring-2 focus:ring-halliburton-red"
+                >
+                  <optgroup label={t("solids")}>
+                    {OFFICIAL_BAROID_CATALOG.filter(p => p.type === "solido").map(p => (
+                      <option key={p.name} value={p.name}>{p.name} ({p.defaultPackage})</option>
+                    ))}
+                  </optgroup>
+                  <optgroup label={t("liquids")}>
+                    {OFFICIAL_BAROID_CATALOG.filter(p => p.type === "liquido").map(p => (
+                      <option key={p.name} value={p.name}>{p.name} ({p.defaultPackage})</option>
+                    ))}
+                  </optgroup>
+                  <option value="__CUSTOM__">{t("customProductOption")}</option>
                 </select>
               </div>
 
+              {/* Campos condicionales si es producto personalizado */}
+              {isCustomProduct && (
+                <div className="grid grid-cols-3 gap-2 p-3 bg-zinc-50 dark:bg-slate-800/50 rounded-2xl border border-zinc-200 dark:border-zinc-700 animate-fade-in">
+                  <div className="col-span-2">
+                    <label className="text-[9px] font-black uppercase tracking-wider text-zinc-400 block mb-1">
+                      {t("customProductName")}
+                    </label>
+                    <input
+                      required
+                      value={customProdName}
+                      onChange={(e) => setCustomProdName(e.target.value)}
+                      placeholder="Ej: Biocida Especial o Aditivo X"
+                      className="w-full p-2 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-slate-900 text-xs font-bold text-zinc-800 dark:text-white outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[9px] font-black uppercase tracking-wider text-zinc-400 block mb-1">
+                      {t("customProductUnit")}
+                    </label>
+                    <select
+                      value={customProdUnit}
+                      onChange={(e) => setCustomProdUnit(e.target.value)}
+                      className="w-full p-2 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-slate-900 text-xs font-bold text-zinc-800 dark:text-white outline-none"
+                    >
+                      <option value="KG">KG</option>
+                      <option value="LT">LT</option>
+                      <option value="TN">TN</option>
+                      <option value="BBL">BBL</option>
+                    </select>
+                  </div>
+                </div>
+              )}
+
+              {/* Número de Lote */}
               <div>
-                <label className="text-[10px] font-black uppercase tracking-wider text-zinc-400 block mb-1">Número de Lote</label>
+                <label className="text-[10px] font-black uppercase tracking-wider text-zinc-500 dark:text-zinc-400 block mb-1">
+                  {t("lotNumber")}
+                </label>
                 <input
                   name="lot"
                   required
-                  placeholder="Ej: CCP2604-09 o 2517K1"
-                  className="w-full p-2.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-slate-800 text-xs font-bold text-zinc-800 dark:text-white outline-none uppercase font-mono"
+                  placeholder={t("lotPlaceholder")}
+                  className="w-full p-2.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-slate-800 text-xs font-bold text-zinc-800 dark:text-white outline-none uppercase font-mono tracking-wider focus:ring-2 focus:ring-halliburton-red"
                 />
               </div>
 
+              {/* Cantidades y peso unitario */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-[10px] font-black uppercase tracking-wider text-zinc-400 block mb-1">Unidades (Bolsas/Totes)</label>
-                  <input name="units" type="number" defaultValue="50" min="1" className="w-full p-2.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-slate-800 text-xs font-bold text-zinc-800 dark:text-white outline-none" />
+                  <label className="text-[10px] font-black uppercase tracking-wider text-zinc-500 dark:text-zinc-400 block mb-1">
+                    {t("packageCount")}
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={receptionUnits}
+                    onChange={(e) => setReceptionUnits(Number(e.target.value))}
+                    className="w-full p-2.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-slate-800 text-xs font-bold text-zinc-800 dark:text-white outline-none focus:ring-2 focus:ring-halliburton-red font-mono"
+                  />
                 </div>
                 <div>
-                  <label className="text-[10px] font-black uppercase tracking-wider text-zinc-400 block mb-1">Peso Unitario</label>
-                  <input name="unitWeight" type="number" defaultValue="25" min="1" className="w-full p-2.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-slate-800 text-xs font-bold text-zinc-800 dark:text-white outline-none" />
+                  <label className="text-[10px] font-black uppercase tracking-wider text-zinc-500 dark:text-zinc-400 block mb-1">
+                    {t("unitWeight")} ({isCustomProduct ? customProdUnit : (productCatalogMap.get(receptionSelectedProd)?.unit || "KG")})
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0.1"
+                    value={receptionUnitWeight}
+                    onChange={(e) => setReceptionUnitWeight(Number(e.target.value))}
+                    className="w-full p-2.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-slate-800 text-xs font-bold text-zinc-800 dark:text-white outline-none focus:ring-2 focus:ring-halliburton-red font-mono"
+                  />
                 </div>
               </div>
 
-              <button
-                type="submit"
-                className="w-full py-3 bg-halliburton-red hover:bg-red-700 text-white rounded-xl text-xs font-black uppercase tracking-wider shadow-md transition-all mt-4"
-              >
-                Confirmar Ingreso a Almacén
-              </button>
+              {/* Resumen Total a Ingresar */}
+              <div className="p-3 bg-zinc-50 dark:bg-slate-800/40 rounded-2xl flex items-center justify-between">
+                <span className="text-[11px] font-bold text-zinc-500">
+                  {t("totalToReceive")}:
+                </span>
+                <span className="text-sm font-black font-mono text-zinc-800 dark:text-white">
+                  {(receptionUnits * receptionUnitWeight).toLocaleString("es-AR")} {isCustomProduct ? customProdUnit : (productCatalogMap.get(receptionSelectedProd)?.unit || "KG")}
+                </span>
+              </div>
+
+              {/* Botones de Acción */}
+              <div className="flex gap-2.5 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowReceptionModal(false)}
+                  className="flex-1 py-3 bg-zinc-100 hover:bg-zinc-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-zinc-700 dark:text-zinc-200 rounded-xl text-xs font-black uppercase tracking-wider transition-all"
+                >
+                  {t("cancel")} (Esc)
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 py-3 bg-halliburton-red hover:bg-red-700 text-white rounded-xl text-xs font-black uppercase tracking-wider shadow-md transition-all active:scale-95"
+                >
+                  {t("confirmReception")}
+                </button>
+              </div>
             </form>
           </div>
         </div>
       )}
 
-      {/* MODAL: CONSUMO / ACCIÓN DE PALLET (DOBLE CLIC) */}
+      {/* MODAL: INDICAR STOCK RESTANTE (DOBLE CLIC EN PALLET) */}
       {showPalletActionModal && actionPallet && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white dark:bg-slate-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl max-w-sm w-full p-6 shadow-2xl space-y-4">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in"
+          onClick={(e) => { if (e.target === e.currentTarget) setShowPalletActionModal(false); }}
+        >
+          <div className="bg-white dark:bg-slate-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-zinc-100 dark:border-zinc-800">
-              <div>
-                <h3 className="text-base font-black uppercase tracking-tight text-zinc-800 dark:text-white">{actionPallet.product}</h3>
-                <span className="text-[10px] font-bold text-amber-500 font-mono">Posición {actionPallet.col}{actionPallet.row} &bull; Lote: {actionPallet.lot}</span>
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-halliburton-red text-white flex items-center justify-center font-bold">
+                  <Icon name="package" size={16} />
+                </div>
+                <div>
+                  <h3 className="text-sm sm:text-base font-black uppercase tracking-tight text-zinc-800 dark:text-white truncate max-w-[240px]">
+                    {actionPallet.product}
+                  </h3>
+                  <span className="text-[10px] font-bold text-amber-500 font-mono block">
+                    Posición {actionPallet.col}{actionPallet.row} &bull; Lote: {actionPallet.lot}
+                  </span>
+                </div>
               </div>
-              <button onClick={() => setShowPalletActionModal(false)} className="text-zinc-400 hover:text-white">&times;</button>
+              <button
+                type="button"
+                onClick={() => setShowPalletActionModal(false)}
+                className="w-8 h-8 rounded-xl bg-zinc-100 dark:bg-slate-800 hover:bg-zinc-200 text-zinc-400 hover:text-white flex items-center justify-center transition-colors"
+                title="Cerrar (Esc)"
+              >
+                <Icon name="x" size={16} />
+              </button>
             </div>
 
-            <div className="p-3 bg-zinc-50 dark:bg-slate-800/40 rounded-2xl flex justify-between items-center">
-              <span className="text-xs font-bold text-zinc-500">Stock Actual:</span>
-              <span className="text-sm font-black font-mono text-zinc-800 dark:text-white">{actionPallet.quantity} {actionPallet.unit}</span>
+            {/* Tarjeta de Stock Actual */}
+            <div className="p-3 bg-zinc-50 dark:bg-slate-800/40 rounded-2xl flex justify-between items-center border border-zinc-100 dark:border-zinc-800">
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-wider text-zinc-400 block">Stock Registrado Actual</span>
+                <span className="text-base font-black font-mono text-zinc-800 dark:text-white">
+                  {Number(actionPallet.quantity).toLocaleString("es-AR")} {actionPallet.unit}
+                </span>
+              </div>
+              <span className="text-[10px] font-bold text-zinc-400 bg-zinc-100 dark:bg-slate-800 px-2 py-1 rounded-lg">
+                Cap. Nominal: {actionPallet.capacityNominal || actionPallet.quantity} {actionPallet.unit}
+              </span>
+            </div>
+
+            {/* Selector de Modo de Indicación: Directo KG/LT vs Bolsas/Envases */}
+            <div className="grid grid-cols-2 gap-1.5 p-1 bg-zinc-100 dark:bg-slate-800 rounded-xl">
+              <button
+                type="button"
+                onClick={() => setStockEntryMode("direct")}
+                className={`py-1.5 px-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all ${
+                  stockEntryMode === "direct"
+                    ? 'bg-white dark:bg-slate-900 text-zinc-900 dark:text-white shadow-sm'
+                    : 'text-zinc-500 hover:text-zinc-800 dark:hover:text-white'
+                }`}
+              >
+                {actionPallet.unit} (Directo)
+              </button>
+              <button
+                type="button"
+                onClick={() => setStockEntryMode("packages")}
+                className={`py-1.5 px-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all ${
+                  stockEntryMode === "packages"
+                    ? 'bg-white dark:bg-slate-900 text-zinc-900 dark:text-white shadow-sm'
+                    : 'text-zinc-500 hover:text-zinc-800 dark:hover:text-white'
+                }`}
+              >
+                Por Bolsas / Envases
+              </button>
             </div>
 
             <form
               onSubmit={(e) => {
                 e.preventDefault();
-                const consumed = Number(e.target.consumed.value) || 0;
-                const newQty = Math.max(0, Number(actionPallet.quantity) - consumed);
-                let nextPallets;
-                if (newQty <= 0) {
-                  nextPallets = data.pallets.filter(p => p.id !== actionPallet.id);
-                  showToast(`✓ Pallet consumido totalmente. Espacio ${actionPallet.col}${actionPallet.row} liberado.`, "warning");
+                let finalQty = 0;
+                if (stockEntryMode === "direct") {
+                  finalQty = Math.max(0, parseFloat(remainingInputQty) || 0);
                 } else {
-                  nextPallets = data.pallets.map(p => p.id === actionPallet.id ? { ...p, quantity: newQty, status: "partial" } : p);
-                  showToast(`✓ Saldo actualizado: ${newQty} ${actionPallet.unit} restantes.`, "success");
+                  finalQty = Math.max(0, (parseFloat(remainingBagsCount) || 0) * (parseFloat(remainingBagWeight) || 0));
+                }
+
+                let nextPallets;
+                if (finalQty <= 0) {
+                  nextPallets = data.pallets.filter(p => p.id !== actionPallet.id);
+                  showToast(`✓ Pallet vaciado totalmente. Espacio ${actionPallet.col}${actionPallet.row} liberado.`, "warning");
+                } else {
+                  const cap = Number(actionPallet.capacityNominal) || Number(actionPallet.quantity);
+                  const isPart = finalQty < cap;
+                  nextPallets = data.pallets.map(p =>
+                    p.id === actionPallet.id
+                      ? { ...p, quantity: finalQty, status: isPart ? "partial" : "full" }
+                      : p
+                  );
+                  showToast(`✓ Stock actualizado: quedan ${finalQty.toLocaleString("es-AR")} ${actionPallet.unit}.`, "success");
                 }
                 persistData({ ...data, pallets: nextPallets });
                 setShowPalletActionModal(false);
               }}
-              className="space-y-3"
+              className="space-y-3.5"
             >
-              <div>
-                <label className="text-[10px] font-black uppercase tracking-wider text-zinc-400 block mb-1">Cantidad Consumida para Receta ({actionPallet.unit})</label>
-                <input
-                  name="consumed"
-                  type="number"
-                  min="1"
-                  max={actionPallet.quantity}
-                  defaultValue={actionPallet.quantity <= 100 ? actionPallet.quantity : 100}
-                  required
-                  className="w-full p-2.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-slate-800 text-xs font-bold text-zinc-800 dark:text-white outline-none"
-                />
-              </div>
+              {/* Modo 1: Directo en KG o Litros */}
+              {stockEntryMode === "direct" ? (
+                <div>
+                  <div className="flex justify-between items-center mb-1">
+                    <label className="text-[10px] font-black uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                      ¿Cuánto queda del producto? ({actionPallet.unit})
+                    </label>
+                  </div>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      step="any"
+                      min="0"
+                      value={remainingInputQty}
+                      onChange={(e) => setRemainingInputQty(e.target.value)}
+                      required
+                      className="w-full p-2.5 pr-12 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-slate-800 text-sm font-black font-mono text-zinc-900 dark:text-white outline-none focus:ring-2 focus:ring-halliburton-red"
+                      placeholder={`Ej: ${actionPallet.quantity}`}
+                      autoFocus
+                    />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-black text-zinc-400">
+                      {actionPallet.unit}
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                /* Modo 2: Por Bolsas / Unidades y Peso por Bolsa */
+                <div className="space-y-2.5">
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="text-[9.5px] font-black uppercase tracking-wider text-zinc-500 dark:text-zinc-400 block mb-1">
+                        Bolsas / Envases que quedan
+                      </label>
+                      <input
+                        type="number"
+                        step="any"
+                        min="0"
+                        value={remainingBagsCount}
+                        onChange={(e) => {
+                          const bags = parseFloat(e.target.value) || 0;
+                          setRemainingBagsCount(e.target.value);
+                          setRemainingInputQty(bags * (parseFloat(remainingBagWeight) || 0));
+                        }}
+                        required
+                        className="w-full p-2.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-slate-800 text-sm font-black font-mono text-zinc-900 dark:text-white outline-none focus:ring-2 focus:ring-halliburton-red"
+                        placeholder="Ej: 20"
+                        autoFocus
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[9.5px] font-black uppercase tracking-wider text-zinc-500 dark:text-zinc-400 block mb-1">
+                        Peso por Bolsa ({actionPallet.unit})
+                      </label>
+                      <input
+                        type="number"
+                        step="any"
+                        min="0.1"
+                        value={remainingBagWeight}
+                        onChange={(e) => {
+                          const wt = parseFloat(e.target.value) || 0;
+                          setRemainingBagWeight(e.target.value);
+                          setRemainingInputQty((parseFloat(remainingBagsCount) || 0) * wt);
+                        }}
+                        required
+                        className="w-full p-2.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-slate-800 text-sm font-black font-mono text-zinc-900 dark:text-white outline-none focus:ring-2 focus:ring-halliburton-red"
+                        placeholder="Ej: 25"
+                      />
+                    </div>
+                  </div>
+                  <div className="p-2.5 bg-zinc-50 dark:bg-slate-800/50 rounded-xl flex items-center justify-between text-xs">
+                    <span className="font-bold text-zinc-500">Cálculo resultante:</span>
+                    <strong className="font-mono font-black text-zinc-900 dark:text-emerald-400 text-sm">
+                      {((parseFloat(remainingBagsCount) || 0) * (parseFloat(remainingBagWeight) || 0)).toLocaleString("es-AR")} {actionPallet.unit}
+                    </strong>
+                  </div>
+                </div>
+              )}
 
+              {/* Feedback en tiempo real del Consumo Calculado para la Receta */}
+              {(() => {
+                const currentVal = parseFloat(stockEntryMode === "direct" ? remainingInputQty : ((parseFloat(remainingBagsCount) || 0) * (parseFloat(remainingBagWeight) || 0))) || 0;
+                const diff = Number(actionPallet.quantity) - currentVal;
+                if (currentVal <= 0) {
+                  return (
+                    <div className="p-2.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-400 text-xs font-bold flex items-center gap-2">
+                      <Icon name="trash-2" size={14} />
+                      <span>El pallet quedará en 0 y la posición {actionPallet.col}{actionPallet.row} se liberará.</span>
+                    </div>
+                  );
+                }
+                if (diff > 0) {
+                  return (
+                    <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs font-bold flex items-center justify-between">
+                      <span>Consumo para receta: <strong>{diff.toLocaleString("es-AR")} {actionPallet.unit}</strong></span>
+                      <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-emerald-500/20">Quedan: {currentVal.toLocaleString("es-AR")} {actionPallet.unit}</span>
+                    </div>
+                  );
+                }
+                if (diff < 0) {
+                  return (
+                    <div className="p-2.5 rounded-xl bg-blue-500/10 border border-blue-500/30 text-blue-600 dark:text-blue-400 text-xs font-bold">
+                      Ajuste de inventario en alza: +{Math.abs(diff).toLocaleString("es-AR")} {actionPallet.unit}.
+                    </div>
+                  );
+                }
+                return (
+                  <div className="p-2 rounded-xl bg-zinc-100 dark:bg-slate-800 text-zinc-500 text-[11px] text-center font-semibold">
+                    Sin cambios en el stock del pallet.
+                  </div>
+                );
+              })()}
+
+              {/* Botones de Acción */}
               <div className="flex gap-2 pt-2">
                 <button
                   type="button"
                   onClick={() => {
-                    const nextPallets = data.pallets.filter(p => p.id !== actionPallet.id);
-                    persistData({ ...data, pallets: nextPallets });
-                    setShowPalletActionModal(false);
-                    showToast(`✓ Pallet en ${actionPallet.col}${actionPallet.row} vaciado a 0.`, "warning");
+                    if (confirm(`¿Vaciar totalmente el pallet en ${actionPallet.col}${actionPallet.row}?`)) {
+                      const nextPallets = data.pallets.filter(p => p.id !== actionPallet.id);
+                      persistData({ ...data, pallets: nextPallets });
+                      setShowPalletActionModal(false);
+                      showToast(t("palletDeleted", { pos: `${actionPallet.col}${actionPallet.row}` }), "warning");
+                    }
                   }}
-                  className="flex-1 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 rounded-xl text-xs font-black uppercase tracking-wider"
+                  className="px-3 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 rounded-xl text-xs font-black uppercase tracking-wider transition-colors shrink-0"
+                  title="Vaciar pallet a 0 y liberar celda"
                 >
                   Vaciar a 0
                 </button>
                 <button
-                  type="submit"
-                  className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black uppercase tracking-wider shadow-md"
+                  type="button"
+                  onClick={() => setShowPalletActionModal(false)}
+                  className="flex-1 py-2.5 bg-zinc-100 hover:bg-zinc-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-zinc-700 dark:text-zinc-200 rounded-xl text-xs font-black uppercase tracking-wider transition-colors"
                 >
-                  Descontar
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 py-2.5 bg-halliburton-red hover:bg-red-700 text-white rounded-xl text-xs font-black uppercase tracking-wider shadow-md transition-all active:scale-95"
+                >
+                  Guardar
                 </button>
               </div>
             </form>
@@ -1412,64 +2212,257 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
         </div>
       )}
 
-      {/* MODAL: NUEVA PESTAÑA CON SELECTOR DE ABECEDARIO */}
+      {/* MODAL: NUEVA PESTAÑA (LIENZO ÚNICO VS DOBLE ÁREA SÓLIDOS Y LÍQUIDOS) */}
       {showNewSectorModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white dark:bg-slate-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in"
+          onClick={(e) => { if (e.target === e.currentTarget) setShowNewSectorModal(false); }}
+        >
+          <div className="bg-white dark:bg-slate-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-zinc-100 dark:border-zinc-800">
-              <h3 className="text-base font-black uppercase tracking-tight text-zinc-800 dark:text-white">Nueva Pestaña de Almacén</h3>
-              <button onClick={() => setShowNewSectorModal(false)} className="text-zinc-400 hover:text-white">&times;</button>
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-halliburton-red text-white flex items-center justify-center font-bold">
+                  <Icon name="plus" size={16} />
+                </div>
+                <div>
+                  <h3 className="text-base font-black uppercase tracking-tight text-zinc-800 dark:text-white">
+                    {t("newTabModalTitle")}
+                  </h3>
+                  <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
+                    {t("structureLabel")}
+                  </span>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowNewSectorModal(false)}
+                className="w-8 h-8 rounded-xl bg-zinc-100 dark:bg-slate-800 hover:bg-zinc-200 text-zinc-400 hover:text-white flex items-center justify-center"
+              >
+                <Icon name="x" size={16} />
+              </button>
             </div>
 
             <form
               onSubmit={(e) => {
                 e.preventDefault();
                 const name = e.target.sectorName.value.trim();
-                const type = e.target.sectorType.value;
-                const rows = Number(e.target.sectorRows.value) || 6;
                 if (!name) return;
                 const newId = `sec_${Date.now()}`;
-                const newSector = {
-                  id: newId,
-                  name: name,
-                  type: type,
-                  rows: rows,
-                  columns: ["A", "B", "C", "D", "E", "F"]
-                };
+                let newSector;
+
+                if (newTabStructure === 'dual') {
+                  const sC = Math.min(26, Math.max(1, Number(newTabSolidsCols) || 10));
+                  const lC = Math.min(26, Math.max(1, Number(newTabLiquidsCols) || 8));
+                  newSector = {
+                    id: newId,
+                    name: name,
+                    type: "dual",
+                    warehouseDimensions: {
+                      solidos: {
+                        rows: Math.min(20, Math.max(1, Number(newTabSolidsRows) || 6)),
+                        columns: ALL_ALPHABET.slice(0, sC)
+                      },
+                      liquidos: {
+                        rows: Math.min(20, Math.max(1, Number(newTabLiquidsRows) || 6)),
+                        columns: ALL_ALPHABET.slice(0, lC)
+                      }
+                    }
+                  };
+                } else {
+                  const cCount = Math.min(26, Math.max(1, Number(newTabCols) || 12));
+                  newSector = {
+                    id: newId,
+                    name: name,
+                    type: "mixto",
+                    rows: Math.min(20, Math.max(1, Number(newTabRows) || 4)),
+                    columns: ALL_ALPHABET.slice(0, cCount)
+                  };
+                }
+
                 const nextSectors = [...data.sectors, newSector];
                 persistData({ ...data, sectors: nextSectors });
                 setActiveSectorId(newId);
                 setShowNewSectorModal(false);
-                showToast(`✓ Sector "${name}" creado exitosamente.`, "success");
+                showToast(t("tabCreated", { name }), "success");
               }}
-              className="space-y-3"
+              className="space-y-4"
             >
+              {/* Nombre de la pestaña */}
               <div>
-                <label className="text-[10px] font-black uppercase tracking-wider text-zinc-400 block mb-1">Nombre del Sector / Pestaña</label>
-                <input name="sectorName" required placeholder="Ej: Patio Salmueras o Depósito Norte" className="w-full p-2.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-slate-800 text-xs font-bold text-zinc-800 dark:text-white outline-none" />
+                <label className="text-[10px] font-black uppercase tracking-wider text-zinc-500 dark:text-zinc-400 block mb-1">
+                  {t("tabNameLabel")}
+                </label>
+                <input
+                  name="sectorName"
+                  required
+                  placeholder={t("tabNamePlaceholder")}
+                  className="w-full p-2.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-slate-800 text-xs font-bold text-zinc-800 dark:text-white outline-none focus:ring-2 focus:ring-halliburton-red"
+                />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-[10px] font-black uppercase tracking-wider text-zinc-400 block mb-1">Tipo de Material</label>
-                  <select name="sectorType" className="w-full p-2.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-slate-800 text-xs font-bold text-zinc-800 dark:text-white outline-none">
-                    <option value="solidos">Sólidos</option>
-                    <option value="liquidos">Líquidos</option>
-                    <option value="mixto">Mixto</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="text-[10px] font-black uppercase tracking-wider text-zinc-400 block mb-1">Filas Iniciales</label>
-                  <input name="sectorRows" type="number" defaultValue="6" min="1" max="20" className="w-full p-2.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-slate-800 text-xs font-bold text-zinc-800 dark:text-white outline-none" />
+              {/* Selector de Estructura: Lienzo Único vs Doble Área */}
+              <div>
+                <label className="text-[10px] font-black uppercase tracking-wider text-zinc-500 dark:text-zinc-400 block mb-2">
+                  {t("structureLabel")}
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  {/* Opción 1: Lienzo Único (Predeterminado) */}
+                  <div
+                    onClick={() => setNewTabStructure('single')}
+                    className={`p-3 rounded-2xl border-2 cursor-pointer transition-all ${
+                      newTabStructure === 'single'
+                        ? 'border-halliburton-red bg-red-50/20 dark:bg-red-950/20'
+                        : 'border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-slate-800/20 hover:border-zinc-300'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 mb-1">
+                      <div className={`w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center ${
+                        newTabStructure === 'single' ? 'border-halliburton-red' : 'border-zinc-400'
+                      }`}>
+                        {newTabStructure === 'single' && <div className="w-1.5 h-1.5 rounded-full bg-halliburton-red" />}
+                      </div>
+                      <span className="text-xs font-black uppercase text-zinc-800 dark:text-white">
+                        {t("singleCanvas")}
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-zinc-400 pl-5">
+                      {t("singleCanvasDesc")}
+                    </p>
+                  </div>
+
+                  {/* Opción 2: Doble Área (Sólidos y Líquidos) */}
+                  <div
+                    onClick={() => setNewTabStructure('dual')}
+                    className={`p-3 rounded-2xl border-2 cursor-pointer transition-all ${
+                      newTabStructure === 'dual'
+                        ? 'border-halliburton-red bg-red-50/20 dark:bg-red-950/20'
+                        : 'border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-slate-800/20 hover:border-zinc-300'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 mb-1">
+                      <div className={`w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center ${
+                        newTabStructure === 'dual' ? 'border-halliburton-red' : 'border-zinc-400'
+                      }`}>
+                        {newTabStructure === 'dual' && <div className="w-1.5 h-1.5 rounded-full bg-halliburton-red" />}
+                      </div>
+                      <span className="text-xs font-black uppercase text-zinc-800 dark:text-white">
+                        {t("dualArea")}
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-zinc-400 pl-5">
+                      {t("dualAreaDesc")}
+                    </p>
+                  </div>
                 </div>
               </div>
 
-              <button
-                type="submit"
-                className="w-full py-3 bg-halliburton-red hover:bg-red-700 text-white rounded-xl text-xs font-black uppercase tracking-wider shadow-md transition-all mt-3"
-              >
-                Crear Pestaña con Inventario Independiente
-              </button>
+              {/* Dimensiones según la estructura seleccionada */}
+              {newTabStructure === 'single' ? (
+                <div className="grid grid-cols-2 gap-3 p-3 bg-zinc-50 dark:bg-slate-800/40 rounded-2xl border border-zinc-200 dark:border-zinc-700 animate-fade-in">
+                  <div>
+                    <label className="text-[10px] font-black uppercase tracking-wider text-zinc-500 dark:text-zinc-400 block mb-1">
+                      {t("initialRows")}
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      max="20"
+                      value={newTabRows}
+                      onChange={(e) => setNewTabRows(Number(e.target.value))}
+                      className="w-full p-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-slate-900 text-xs font-bold text-zinc-800 dark:text-white outline-none font-mono"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black uppercase tracking-wider text-zinc-500 dark:text-zinc-400 block mb-1">
+                      {t("initialCols")} (A - {ALL_ALPHABET[Math.min(25, newTabCols - 1)]})
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      max="26"
+                      value={newTabCols}
+                      onChange={(e) => setNewTabCols(Number(e.target.value))}
+                      className="w-full p-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-slate-900 text-xs font-bold text-zinc-800 dark:text-white outline-none font-mono"
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-3 p-3 bg-zinc-50 dark:bg-slate-800/40 rounded-2xl border border-zinc-200 dark:border-zinc-700 animate-fade-in">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-[9px] font-black uppercase tracking-wider text-blue-500 block mb-1">
+                        {t("solidsRows")}
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="20"
+                        value={newTabSolidsRows}
+                        onChange={(e) => setNewTabSolidsRows(Number(e.target.value))}
+                        className="w-full p-2 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-slate-900 text-xs font-bold font-mono"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[9px] font-black uppercase tracking-wider text-blue-500 block mb-1">
+                        {t("solidsCols")} (A - {ALL_ALPHABET[Math.min(25, newTabSolidsCols - 1)]})
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="26"
+                        value={newTabSolidsCols}
+                        onChange={(e) => setNewTabSolidsCols(Number(e.target.value))}
+                        className="w-full p-2 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-slate-900 text-xs font-bold font-mono"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-[9px] font-black uppercase tracking-wider text-purple-500 block mb-1">
+                        {t("liquidsRows")}
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="20"
+                        value={newTabLiquidsRows}
+                        onChange={(e) => setNewTabLiquidsRows(Number(e.target.value))}
+                        className="w-full p-2 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-slate-900 text-xs font-bold font-mono"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[9px] font-black uppercase tracking-wider text-purple-500 block mb-1">
+                        {t("liquidsCols")} (A - {ALL_ALPHABET[Math.min(25, newTabLiquidsCols - 1)]})
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="26"
+                        value={newTabLiquidsCols}
+                        onChange={(e) => setNewTabLiquidsCols(Number(e.target.value))}
+                        className="w-full p-2 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-slate-900 text-xs font-bold font-mono"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Botones */}
+              <div className="flex gap-2.5 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowNewSectorModal(false)}
+                  className="flex-1 py-3 bg-zinc-100 hover:bg-zinc-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-zinc-700 dark:text-zinc-200 rounded-xl text-xs font-black uppercase tracking-wider transition-all"
+                >
+                  {t("cancel")} (Esc)
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 py-3 bg-halliburton-red hover:bg-red-700 text-white rounded-xl text-xs font-black uppercase tracking-wider shadow-md transition-all active:scale-95"
+                >
+                  {t("createTabBtn")}
+                </button>
+              </div>
             </form>
           </div>
         </div>
