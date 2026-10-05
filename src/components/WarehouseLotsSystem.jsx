@@ -542,7 +542,14 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
         }
 
         if (Array.isArray(bestCandidate.pallets)) {
-          bestCandidate.pallets = bestCandidate.pallets.filter(p => p && !(p.sectorId || "").toLowerCase().includes("1211"));
+          bestCandidate.pallets = bestCandidate.pallets
+            .filter(p => p && !(p.sectorId || "").toLowerCase().includes("1211"))
+            .map(p => ({
+              ...p,
+              col: String(p.col || p.column || '').trim().toUpperCase(),
+              column: String(p.col || p.column || '').trim().toUpperCase(),
+              row: Number(p.row)
+            }));
         } else {
           bestCandidate.pallets = [];
         }
@@ -676,18 +683,20 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
       const p = data.pallets[i];
       if (!p || (p.sectorId || "principal") !== sId || Number(p.quantity) <= 0) continue;
 
-      const pCol = String(p.col || '').trim().toUpperCase();
+      const pCol = String(p.col || p.column || '').trim().toUpperCase();
       const pRow = Number(p.row);
 
       if (isDual) {
         const isLiq = p.zone === "liquidos" || p.zone === "liquido";
         const zKey = isLiq ? "liquidos" : "solidos";
         map.set(`${zKey}_${pCol}_${pRow}`, p);
+        map.set(`${p.zone}_${pCol}_${pRow}`, p);
       } else {
         // En sector de lienzo único (mixto): indexar por coordenadas de celda
         map.set(`${pCol}_${pRow}`, p);
         map.set(`mixto_${pCol}_${pRow}`, p);
         map.set(`solidos_${pCol}_${pRow}`, p);
+        map.set(`${p.zone}_${pCol}_${pRow}`, p);
       }
     }
     return map;
@@ -942,44 +951,19 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
       const jsPdfClass = (typeof window !== "undefined" && (window.jspdf?.jsPDF || window.jsPDF)) || (typeof jspdf !== "undefined" && jspdf?.jsPDF);
 
       if (h2c && jsPdfClass) {
-        // 1. Clonar en un wrapper aislado para eliminar scroll, márgenes y asegurar renderizado perfecto (mismo método que el index original)
-        const wrapper = document.createElement("div");
-        wrapper.id = "pdfExportWrapper";
-        wrapper.style.position = "fixed";
-        wrapper.style.top = "-9999px";
-        wrapper.style.left = "-9999px";
-        wrapper.style.width = "1200px";
-        wrapper.style.background = "#FFFFFF";
-        wrapper.style.padding = "10px";
-        wrapper.style.boxSizing = "border-box";
-        wrapper.style.fontFamily = "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
-        wrapper.style.color = "#000000";
-        wrapper.style.zIndex = "99999";
-
-        const clone = origElement.cloneNode(true);
-        clone.style.width = "100%";
-        clone.style.maxWidth = "100%";
-        clone.style.boxShadow = "none";
-        clone.style.border = "none";
-        clone.style.margin = "0";
-        clone.style.padding = "0";
-
-        wrapper.appendChild(clone);
-        document.body.appendChild(wrapper);
-
-        // Esperar un ciclo para que el navegador resuelva fuentes y estilos del clon
-        await new Promise(resolve => setTimeout(resolve, 100));
-
-        const canvas = await h2c(wrapper, {
-          scale: 2, // 2x provee nitidez perfecta sin distorsión
+        // Capturar directamente el elemento visible de la vista preliminar con escala 3x para nitidez cristalina
+        const canvas = await h2c(origElement, {
+          scale: 3, // 3x ultra nitidez para máxima legibilidad de lotes y texto
           useCORS: true,
           backgroundColor: '#ffffff',
-          logging: false
+          logging: false,
+          scrollX: 0,
+          scrollY: 0,
+          windowWidth: origElement.scrollWidth,
+          windowHeight: origElement.scrollHeight
         });
 
-        document.body.removeChild(wrapper);
-
-        // 2. Generación jsPDF con ajuste proporcional estricto (mismo método que app.js del index)
+        // Generación jsPDF con ajuste proporcional estricto en 1 sola página A4 landscape
         const pdf = new jsPdfClass({
           orientation: 'landscape',
           unit: 'mm',
@@ -1008,7 +992,7 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
           offsetY = margin + ((usableHeight - renderHeight) / 2);
         }
 
-        pdf.addImage(canvas.toDataURL("image/png"), "PNG", offsetX, offsetY, renderWidth, renderHeight);
+        pdf.addImage(canvas.toDataURL("image/png", 1.0), "PNG", offsetX, offsetY, renderWidth, renderHeight);
         pdf.save(filename);
 
         if (isDark) document.documentElement.classList.add('dark');
@@ -1024,62 +1008,6 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
       console.error("PDF generation error:", err);
       window.print();
     }
-  };
-
-  // Descargar Captura PNG Directa de Alta Resolución (Screenshot)
-  const handleDownloadImage = async () => {
-    const origElement = document.getElementById("printableWarehouseSheet");
-    if (!origElement) return;
-
-    showToast(lang === 'es' ? "Generando captura de pantalla..." : "Generating screenshot...", "info");
-
-    try {
-      const h2c = (typeof window !== "undefined" && window.html2canvas) || (typeof html2canvas !== "undefined" && html2canvas);
-      if (h2c) {
-        const wrapper = document.createElement("div");
-        wrapper.id = "imgExportWrapper";
-        wrapper.style.position = "fixed";
-        wrapper.style.top = "-9999px";
-        wrapper.style.left = "-9999px";
-        wrapper.style.width = "1200px";
-        wrapper.style.background = "#FFFFFF";
-        wrapper.style.padding = "10px";
-        wrapper.style.boxSizing = "border-box";
-        wrapper.style.fontFamily = "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
-        wrapper.style.color = "#000000";
-        wrapper.style.zIndex = "99999";
-
-        const clone = origElement.cloneNode(true);
-        clone.style.width = "100%";
-        clone.style.boxShadow = "none";
-        clone.style.border = "none";
-        clone.style.margin = "0";
-
-        wrapper.appendChild(clone);
-        document.body.appendChild(wrapper);
-        await new Promise(resolve => setTimeout(resolve, 100));
-
-        const canvas = await h2c(wrapper, {
-          scale: 2,
-          useCORS: true,
-          backgroundColor: '#ffffff',
-          logging: false
-        });
-        document.body.removeChild(wrapper);
-
-        const link = document.createElement("a");
-        link.download = `${lang === 'es' ? 'Diagrama_Zona_Productos' : 'Chemical_Products_Zone_Diagram'}_${currentSector.name.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.png`;
-        link.href = canvas.toDataURL("image/png");
-        link.click();
-        showToast(lang === 'es' ? "✓ Captura PNG descargada con éxito." : "✓ PNG Screenshot downloaded.", "success");
-      }
-    } catch (err) {
-      console.error("Image generation error:", err);
-    }
-  };
-
-  const handleNativePrint = () => {
-    window.print();
   };
 
   // KPIs
@@ -1744,57 +1672,57 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
     let gapClass = "gap-1";
 
     if (totalRows <= 4) {
-      cardH = 88;
-      titlePx = 12.5;
-      lotPx = 15;
-      qtyPx = 12;
-      titleSize = "text-[12px]";
-      lotSize = "text-[15px]";
-      qtySize = "text-[12px]";
+      cardH = 115;
+      titlePx = 13.5;
+      lotPx = 16.5;
+      qtyPx = 13;
+      titleSize = "text-[13px]";
+      lotSize = "text-[16px]";
+      qtySize = "text-[13px]";
       gapClass = "gap-1.5";
     } else if (totalRows <= 6) {
-      cardH = 72;
-      titlePx = 11.5;
-      lotPx = 13.5;
-      qtyPx = 11;
-      titleSize = "text-[11px]";
-      lotSize = "text-[13px]";
-      qtySize = "text-[10.5px]";
+      cardH = 86;
+      titlePx = 12;
+      lotPx = 14.5;
+      qtyPx = 11.5;
+      titleSize = "text-[12px]";
+      lotSize = "text-[14.5px]";
+      qtySize = "text-[11.5px]";
       gapClass = "gap-1";
     } else if (totalRows <= 8) {
-      cardH = 62;
+      cardH = 72;
+      titlePx = 11;
+      lotPx = 13.5;
+      qtyPx = 10.5;
+      titleSize = "text-[11px]";
+      lotSize = "text-[13.5px]";
+      qtySize = "text-[10.5px]";
+      gapClass = "gap-1";
+    } else if (totalRows <= 10) {
+      cardH = 64;
       titlePx = 10.5;
       lotPx = 12.5;
       qtyPx = 10;
-      titleSize = "text-[10px]";
-      lotSize = "text-[12px]";
+      titleSize = "text-[10.5px]";
+      lotSize = "text-[12.5px]";
       qtySize = "text-[10px]";
-      gapClass = "gap-1";
-    } else if (totalRows <= 10) {
-      cardH = 54;
+      gapClass = "gap-0.5";
+    } else if (totalRows <= 12) {
+      cardH = 58;
       titlePx = 10;
       lotPx = 12;
       qtyPx = 9.5;
-      titleSize = "text-[9.5px]";
-      lotSize = "text-[11.5px]";
+      titleSize = "text-[10px]";
+      lotSize = "text-[12px]";
       qtySize = "text-[9.5px]";
       gapClass = "gap-0.5";
-    } else if (totalRows <= 12) {
-      cardH = 50;
-      titlePx = 9.5;
-      lotPx = 11.5;
-      qtyPx = 9;
+    } else {
+      cardH = Math.max(48, Math.floor(580 / totalRows));
+      titlePx = 9;
+      lotPx = 11;
+      qtyPx = 8.5;
       titleSize = "text-[9px]";
       lotSize = "text-[11px]";
-      qtySize = "text-[9px]";
-      gapClass = "gap-0.5";
-    } else {
-      cardH = Math.max(44, Math.floor(520 / totalRows));
-      titlePx = 8.5;
-      lotPx = 10.5;
-      qtyPx = 8.5;
-      titleSize = "text-[8.5px]";
-      lotSize = "text-[10.5px]";
       qtySize = "text-[8.5px]";
       gapClass = "gap-0.5";
     }
@@ -3387,38 +3315,21 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
               </div>
             </div>
 
-            <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center gap-2.5 flex-wrap">
               <button
                 type="button"
                 onClick={handleDownloadPdf}
-                className="flex items-center gap-2 px-4 py-2.5 bg-zinc-800 hover:bg-black dark:bg-slate-800 dark:hover:bg-slate-700 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-sm active:scale-95 cursor-pointer"
+                className="flex items-center gap-2 px-5 py-2.5 bg-halliburton-red hover:bg-red-700 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-md hover:scale-105 active:scale-95 cursor-pointer"
                 title={t("downloadPdfBtn")}
               >
-                <Icon name="download" size={15} />
+                <Icon name="download" size={16} />
                 <span>{t("downloadPdfBtn")}</span>
               </button>
               <button
                 type="button"
-                onClick={handleDownloadImage}
-                className="flex items-center gap-2 px-3.5 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-sm active:scale-95 cursor-pointer"
-                title={lang === 'es' ? "Descargar captura directa en imagen PNG de alta resolución" : "Download high-res PNG screenshot"}
-              >
-                <Icon name="camera" size={15} />
-                <span>{lang === 'es' ? 'Captura PNG' : 'PNG Image'}</span>
-              </button>
-              <button
-                type="button"
-                onClick={handleNativePrint}
-                className="flex items-center gap-2 px-4 py-2.5 bg-halliburton-red hover:bg-red-700 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-md active:scale-95 cursor-pointer"
-                title={t("printSavePdfBtn")}
-              >
-                <Icon name="printer" size={15} />
-                <span>{t("printSavePdfBtn")}</span>
-              </button>
-              <button
-                type="button"
                 onClick={() => setShowPrintModal(false)}
-                className="px-3.5 py-2.5 bg-zinc-100 hover:bg-zinc-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-zinc-700 dark:text-zinc-200 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer"
+                className="px-4 py-2.5 bg-zinc-100 hover:bg-zinc-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-zinc-700 dark:text-zinc-200 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer"
+                title={t("closeModal")}
               >
                 {t("closeModal")}
               </button>
@@ -3496,40 +3407,40 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
                                   minHeight: `${printMetrics.cardH}px`,
                                   maxHeight: `${printMetrics.cardH}px`
                                 }}
-                                className="rounded-lg p-1 border-2 flex flex-col justify-center items-center text-center shadow-none overflow-hidden select-none page-break-avoid"
+                                className="rounded-lg px-1 py-0.5 border-2 flex flex-col justify-around items-center text-center shadow-none select-none page-break-avoid overflow-hidden"
                               >
-                                {/* Línea 1: Nombre de producto (bien visible, negro y destacado) */}
-                                <div className="w-full shrink-0 overflow-hidden leading-tight mb-0.5 text-center">
+                                {/* Línea 1: Nombre de producto (negro pleno, negrita extrema) */}
+                                <div className="w-full text-center overflow-hidden leading-none">
                                   <span
-                                    style={{ fontSize: `${printMetrics.titlePx}px`, lineHeight: 1.15 }}
-                                    className={`${printMetrics.titleSize} font-black uppercase text-black block truncate tracking-normal`}
+                                    style={{ fontSize: `${printMetrics.titlePx}px`, lineHeight: 1.15, color: '#000000', fontWeight: 900 }}
+                                    className="font-black uppercase block truncate tracking-tight text-black"
                                   >
                                     {shortName}
                                   </span>
                                 </div>
 
-                                {/* Línea 2: Lote (más grande) */}
-                                <div className="w-full shrink-0 overflow-hidden leading-tight mb-0.5 text-center">
+                                {/* Línea 2: Lote (destacado y grande) */}
+                                <div className="w-full text-center overflow-hidden leading-none">
                                   <span
-                                    style={{ fontSize: `${printMetrics.lotPx}px`, lineHeight: 1.15 }}
-                                    className={`${printMetrics.lotSize} font-bold text-zinc-950 block truncate tracking-normal`}
+                                    style={{ fontSize: `${printMetrics.lotPx}px`, lineHeight: 1.15, color: '#09090b', fontWeight: 800 }}
+                                    className="font-black block truncate tracking-tight text-zinc-950"
                                   >
                                     L: {p.lot}
                                   </span>
                                 </div>
 
                                 {/* Línea 3: Cantidad y parcial */}
-                                <div className="w-full shrink-0 flex items-center justify-center gap-1 leading-tight overflow-hidden text-center">
+                                <div className="w-full flex items-center justify-center gap-1 text-center overflow-hidden leading-none">
                                   <span
-                                    style={{ fontSize: `${printMetrics.qtyPx}px`, lineHeight: 1.15 }}
-                                    className={`${printMetrics.qtySize} font-bold text-zinc-800 truncate tracking-normal`}
+                                    style={{ fontSize: `${printMetrics.qtyPx}px`, lineHeight: 1.15, color: '#18181b', fontWeight: 700 }}
+                                    className="font-bold truncate tracking-tight text-zinc-800"
                                   >
                                     {Number(p.quantity).toLocaleString("es-AR")} {p.unit || 'KG'}
                                   </span>
                                   {isPartial && (
                                     <span
-                                      style={{ fontSize: `${Math.max(7, printMetrics.qtyPx - 1)}px` }}
-                                      className="bg-amber-400 text-slate-950 font-black px-1 py-0.2 rounded leading-none shrink-0"
+                                      style={{ fontSize: `${Math.max(7, printMetrics.qtyPx - 1.5)}px` }}
+                                      className="bg-amber-400 text-slate-950 font-black px-1 rounded leading-none shrink-0"
                                     >
                                       ⚠️ {pct}%
                                     </span>
@@ -3600,40 +3511,40 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
                                   minHeight: `${printMetrics.cardH}px`,
                                   maxHeight: `${printMetrics.cardH}px`
                                 }}
-                                className="rounded-lg p-1 border-2 flex flex-col justify-center items-center text-center shadow-none overflow-hidden select-none page-break-avoid"
+                                className="rounded-lg px-1 py-0.5 border-2 flex flex-col justify-around items-center text-center shadow-none select-none page-break-avoid overflow-hidden"
                               >
                                 {/* Línea 1: Nombre de producto (bien visible, negro y destacado) */}
-                                <div className="w-full shrink-0 overflow-hidden leading-tight mb-0.5 text-center">
+                                <div className="w-full text-center overflow-hidden leading-none">
                                   <span
-                                    style={{ fontSize: `${printMetrics.titlePx}px`, lineHeight: 1.15 }}
-                                    className={`${printMetrics.titleSize} font-black uppercase text-black block truncate tracking-normal`}
+                                    style={{ fontSize: `${printMetrics.titlePx}px`, lineHeight: 1.15, color: '#000000', fontWeight: 900 }}
+                                    className="font-black uppercase block truncate tracking-tight text-black"
                                   >
                                     {shortName}
                                   </span>
                                 </div>
 
                                 {/* Línea 2: Lote (más grande) */}
-                                <div className="w-full shrink-0 overflow-hidden leading-tight mb-0.5 text-center">
+                                <div className="w-full text-center overflow-hidden leading-none">
                                   <span
-                                    style={{ fontSize: `${printMetrics.lotPx}px`, lineHeight: 1.15 }}
-                                    className={`${printMetrics.lotSize} font-bold text-zinc-950 block truncate tracking-normal`}
+                                    style={{ fontSize: `${printMetrics.lotPx}px`, lineHeight: 1.15, color: '#09090b', fontWeight: 800 }}
+                                    className="font-black block truncate tracking-tight text-zinc-950"
                                   >
                                     L: {p.lot}
                                   </span>
                                 </div>
 
                                 {/* Línea 3: Cantidad y parcial */}
-                                <div className="w-full shrink-0 flex items-center justify-center gap-1 leading-tight overflow-hidden text-center">
+                                <div className="w-full flex items-center justify-center gap-1 text-center overflow-hidden leading-none">
                                   <span
-                                    style={{ fontSize: `${printMetrics.qtyPx}px`, lineHeight: 1.15 }}
-                                    className={`${printMetrics.qtySize} font-bold text-zinc-800 truncate tracking-normal`}
+                                    style={{ fontSize: `${printMetrics.qtyPx}px`, lineHeight: 1.15, color: '#18181b', fontWeight: 700 }}
+                                    className="font-bold truncate tracking-tight text-zinc-800"
                                   >
                                     {Number(p.quantity).toLocaleString("es-AR")} {p.unit || 'LT'}
                                   </span>
                                   {isPartial && (
                                     <span
-                                      style={{ fontSize: `${Math.max(7, printMetrics.qtyPx - 1)}px` }}
-                                      className="bg-amber-400 text-slate-950 font-black px-1 py-0.2 rounded leading-none shrink-0"
+                                      style={{ fontSize: `${Math.max(7, printMetrics.qtyPx - 1.5)}px` }}
+                                      className="bg-amber-400 text-slate-950 font-black px-1 rounded leading-none shrink-0"
                                     >
                                       ⚠️ {pct}%
                                     </span>
