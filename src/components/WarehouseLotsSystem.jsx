@@ -76,42 +76,68 @@ const ALL_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
 const getShortProductName = (name) => {
   if (!name) return "";
-  if (name.includes("Cloruro de Calcio") || name.includes("CaCl₂")) return "CaCl₂ Calcio";
-  if (name.includes("BARABLOK")) return "BARABLOK™ 400";
-  if (name.includes("BARACARB") && name.includes("FINE")) return "BARACARB® F";
-  if (name.includes("BARACARB") && name.includes("MEDIUM")) return "BARACARB® M";
-  if (name.includes("BARACARB") && name.includes("COARSE")) return "BARACARB® C";
-  if (name.includes("BaraShield") && name.includes("981")) return "BaraShield® 981";
-  if (name.includes("BaraShield") && name.includes("982")) return "BaraShield® 982";
-  if (name.includes("BaraFLC")) return "BaraFLC® 903";
-  if (name.includes("BaraSeal")) return "BaraSeal™ 957";
-  if (name.includes("BDF") && name.includes("FINE")) return "BDF™-965 F";
-  if (name.includes("BDF") && name.includes("MEDIUM")) return "BDF™-965 M";
-  if (name.includes("INVERMUL") && name.includes("LA")) return "INVERMUL® LA";
-  if (name.includes("INVERMUL")) return "INVERMUL®";
-  if (name.includes("EZ MUL") && name.includes("LA")) return "EZ MUL® LA";
-  if (name.includes("EZ MUL") && name.includes("NT")) return "EZ MUL® NT";
-  if (name.includes("SUPERMUL")) return "SUPERMUL™";
-  if (name.includes("GELTONE")) return "GELTONE® II";
-  if (name.includes("DRILTREAT")) return "DRILTREAT®";
-  if (name.includes("RM-63")) return "RM-63™";
-  if (name.includes("TAU-MOD")) return "TAU-MOD®";
-  if (name.includes("CLAY GRABBER")) return "CLAY GRABBER®";
-  if (name.includes("CLAY SYNC")) return "CLAY SYNC™ II";
-  if (name.includes("BARA-DEFOAM")) return "DEFOAM® HP";
-  if (name.includes("OMC")) return "OMC® 3";
-  if (name.includes("STOPPIT")) return "STOPPIT™";
-  if (name.includes("BAROFIBRE")) return "BAROFIBRE®";
-  if (name.includes("BARAZAN")) return "BARAZAN® D+";
-  if (name.includes("CARBONOX")) return "CARBONOX®";
-  if (name.includes("BARAVIS")) return "BARAVIS W-637";
-  if (name.includes("BAROID") || name.includes("Barita")) return "BAROID® Barita";
-  if (name.includes("Bentonita")) return "Bentonita";
-  if (name.includes("LIME")) return "LIME FG";
+  const u = name.toUpperCase().trim();
+  if (u.includes("CLORURO") || u.includes("CALCIO") || u.includes("CACL")) return "CaCl2 (Calcio)";
+  if (u.includes("BARABLOK")) return "BARABLOK 400";
+  if (u.includes("BARACARB") && u.includes("FINE")) return "BARACARB-DF (F)";
+  if (u.includes("BARACARB") && u.includes("MEDIUM")) return "BARACARB-DF (M)";
+  if (u.includes("BARACARB") && u.includes("COARSE")) return "BARACARB-DF (C)";
+  if (u.includes("BARACARB")) return "BARACARB-DF";
+  if (u.includes("BARASHIELD") && u.includes("981")) return "BaraShield 981";
+  if (u.includes("BARASHIELD") && u.includes("982")) return "BaraShield 982";
+  if (u.includes("BARAFLC")) return "BaraFLC 903";
+  if (u.includes("BARASEAL")) return "BaraSeal 957";
+  if (u.includes("BDF") && u.includes("FINE")) return "BDF-965 (F)";
+  if (u.includes("BDF") && u.includes("MEDIUM")) return "BDF-965 (M)";
+  if (u.includes("BDF")) return "BDF-965";
+  if (u.includes("INVERMUL") && u.includes("LA")) return "INVERMUL LA";
+  if (u.includes("INVERMUL")) return "INVERMUL";
+  if ((u.includes("EZ MUL") && u.includes("LA")) || (u.includes("EZMUL") && u.includes("LA"))) return "EZ MUL LA";
+  if ((u.includes("EZ MUL") && u.includes("NT")) || (u.includes("EZMUL") && u.includes("NT"))) return "EZ MUL NT";
+  if (u.includes("EZ MUL") || u.includes("EZMUL")) return "EZ MUL";
+  if (u.includes("SUPERMUL")) return "SUPERMUL";
+  if (u.includes("GELTONE")) return "GELTONE II";
+  if (u.includes("DRILTREAT")) return "DRILTREAT";
+  if (u.includes("RM-63") || u.includes("RM 63")) return "RM-63";
+  if (u.includes("TAU-MOD") || u.includes("TAUMOD")) return "TAU-MOD";
+  if (u.includes("CLAY GRABBER")) return "CLAY GRABBER";
+  if (u.includes("CLAY SYNC")) return "CLAY SYNC II";
+  if (u.includes("DEFOAM")) return "DEFOAM HP";
+  if (u.includes("OMC")) return "OMC 3";
+  if (u.includes("STOPPIT")) return "STOPPIT";
+  if (u.includes("BAROFIBRE")) return "BAROFIBRE";
+  if (u.includes("BARAZAN")) return "BARAZAN D+";
+  if (u.includes("CARBONOX")) return "CARBONOX";
+  if (u.includes("BARAVIS")) return "BARAVIS W-637";
+  if (u.includes("BAROID") || u.includes("BARITA")) return "BAROID Barita";
+  if (u.includes("BENTONITA")) return "Bentonita";
+  if (u.includes("LIME")) return "LIME FG";
+  if (name.length > 16) return name.substring(0, 15) + "…";
   return name;
 };
 
-// Conversor a RGBA con opacidad tenue (12-16%) para ahorrar tinta en impresión física y facilitar lectura
+// Conversor a RGB nativo para jsPDF
+const hexToRgb = (hex) => {
+  if (!hex || typeof hex !== 'string') return { r: 153, g: 27, b: 27 };
+  let clean = hex.replace('#', '');
+  if (clean.length === 3) clean = clean.split('').map(c => c + c).join('');
+  return {
+    r: parseInt(clean.substring(0, 2), 16) || 0,
+    g: parseInt(clean.substring(2, 4), 16) || 0,
+    b: parseInt(clean.substring(4, 6), 16) || 0
+  };
+};
+
+const hexToRgbTint = (hex, alpha = 0.12) => {
+  const rgb = hexToRgb(hex);
+  return {
+    r: Math.round(255 + (rgb.r - 255) * alpha),
+    g: Math.round(255 + (rgb.g - 255) * alpha),
+    b: Math.round(255 + (rgb.b - 255) * alpha)
+  };
+};
+
+// Conversor a RGBA con opacidad tenue (12-16%) para DOM y CSS
 const hexToRgba = (hex, alpha = 0.14) => {
   if (!hex || typeof hex !== 'string') return `rgba(153, 27, 27, ${alpha})`;
   let clean = hex.replace('#', '');
@@ -934,80 +960,409 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
     }
   };
 
-  // Descargar Planilla Diagrama de Zona de Productos en PDF (1 Sola Página A4 Apaisado - Captura Fiel de la Vista Preliminar)
-  const handleDownloadPdf = async () => {
-    const origElement = document.getElementById("printableWarehouseSheet");
-    if (!origElement) return;
-
-    showToast(t("generatingPdfToast"), "info");
-
-    const isDark = document.documentElement.classList.contains('dark');
-    if (isDark) document.documentElement.classList.remove('dark');
-
-    const filename = `${lang === 'es' ? 'Diagrama_Zona_Productos' : 'Chemical_Products_Zone_Diagram'}_${currentSector.name.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
-
+  // Helper centralizado para generar el documento PDF vectorial nativo (A4 Apaisado - 1 sola página, ultra nítido y legible)
+  const generatePdfBlob = async () => {
     try {
-      const h2c = (typeof window !== "undefined" && window.html2canvas) || (typeof html2canvas !== "undefined" && html2canvas);
-      const jsPdfClass = (typeof window !== "undefined" && (window.jspdf?.jsPDF || window.jsPDF)) || (typeof jspdf !== "undefined" && jspdf?.jsPDF);
-
-      if (h2c && jsPdfClass) {
-        // Capturar directamente el elemento visible de la vista preliminar con escala 3x para nitidez cristalina
-        const canvas = await h2c(origElement, {
-          scale: 3, // 3x ultra nitidez para máxima legibilidad de lotes y texto
-          useCORS: true,
-          backgroundColor: '#ffffff',
-          logging: false,
-          scrollX: 0,
-          scrollY: 0,
-          windowWidth: origElement.scrollWidth,
-          windowHeight: origElement.scrollHeight
-        });
-
-        // Generación jsPDF con ajuste proporcional estricto en 1 sola página A4 landscape
-        const pdf = new jsPdfClass({
-          orientation: 'landscape',
-          unit: 'mm',
-          format: 'a4'
-        });
-
-        const pageWidth = 297;
-        const pageHeight = 210;
-        const margin = 5;
-        const usableWidth = pageWidth - (margin * 2);
-        const usableHeight = pageHeight - (margin * 2);
-
-        const imgWidth = usableWidth;
-        const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-        let renderHeight = imgHeight;
-        let renderWidth = imgWidth;
-        let offsetX = margin;
-        let offsetY = margin;
-
-        if (imgHeight > usableHeight) {
-          renderHeight = usableHeight;
-          renderWidth = (canvas.width * renderHeight) / canvas.height;
-          offsetX = margin + ((usableWidth - renderWidth) / 2);
-        } else {
-          offsetY = margin + ((usableHeight - renderHeight) / 2);
+      const getJsPDF = () => {
+        if (typeof window !== "undefined") {
+          if (window.jspdf?.jsPDF) return window.jspdf.jsPDF;
+          if (window.jsPDF) return window.jsPDF;
         }
+        if (typeof jsPDF !== "undefined") return jsPDF;
+        return null;
+      };
 
-        pdf.addImage(canvas.toDataURL("image/png", 1.0), "PNG", offsetX, offsetY, renderWidth, renderHeight);
-        pdf.save(filename);
-
-        if (isDark) document.documentElement.classList.add('dark');
-        showToast(t("pdfSuccessToast"), "success");
-        return;
+      const JsPdfClass = getJsPDF();
+      if (!JsPdfClass) {
+        console.error("jsPDF library not loaded");
+        return null;
       }
 
-      // Fallback: diálogo nativo de impresión
-      window.print();
-      if (isDark) document.documentElement.classList.add('dark');
+      const doc = new JsPdfClass({
+        orientation: 'landscape',
+        unit: 'mm',
+        format: 'a4'
+      });
+
+      const pageWidth = 297;
+      const pageHeight = 210;
+      const marginX = 7;
+      const marginTop = 6;
+      const usableWidth = pageWidth - (marginX * 2); // 283 mm
+
+      const now = new Date();
+      const dateStr = now.toLocaleDateString(lang === 'es' ? 'es-AR' : 'en-US');
+      const timeStr = now.toLocaleTimeString(lang === 'es' ? 'es-AR' : 'en-US', { hour: '2-digit', minute: '2-digit' });
+
+      // 1. ENCABEZADO
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(15);
+      doc.setTextColor(0, 0, 0);
+      const titleText = lang === 'es' ? "DIAGRAMA DE ZONA DE PRODUCTOS - LMP" : "CHEMICAL PRODUCTS ZONE DIAGRAM - LMP";
+      doc.text(titleText, marginX, marginTop + 5);
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(7.5);
+      doc.setTextColor(70, 70, 70);
+      const subHeader = `SECTOR: ${currentSector.name.toUpperCase()}   •   ${t("officialCountingSheet")}`;
+      doc.text(subHeader, marginX, marginTop + 9);
+
+      // Metadatos derecha
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(8);
+      doc.setTextColor(0, 0, 0);
+      doc.text(`${t("issued").toUpperCase()}: ${dateStr} - ${timeStr} hs`, pageWidth - marginX, marginTop + 5, { align: 'right' });
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7.5);
+      doc.setTextColor(70, 70, 70);
+      doc.text(`${t("occupancy").toUpperCase()}: ${occupiedCount} / ${totalSlots} (${occPct}%)  •  ${t("free").toUpperCase()}: ${freeSlots}`, pageWidth - marginX, marginTop + 9, { align: 'right' });
+
+      // Línea divisoria encabezado
+      doc.setDrawColor(0, 0, 0);
+      doc.setLineWidth(0.6);
+      doc.line(marginX, marginTop + 11.5, pageWidth - marginX, marginTop + 11.5);
+
+      let currentY = marginTop + 14;
+
+      const isDual = currentSector.type === "dual";
+
+      if (isDual) {
+        const sCols = sDims.columns;
+        const sRows = sDims.rows;
+        const lCols = lDims.columns;
+        const lRows = lDims.rows;
+
+        const cardHeight = 12.5; // mm
+        const gap = 1.6;
+
+        // --- SECTOR SÓLIDOS ---
+        doc.setFillColor(240, 240, 242);
+        doc.setDrawColor(180, 180, 185);
+        doc.setLineWidth(0.3);
+        doc.roundedRect(marginX, currentY, 32, 4.5, 1, 1, 'FD');
+
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(7);
+        doc.setTextColor(0, 0, 0);
+        doc.text(t("solidsZone"), marginX + 16, currentY + 3.2, { align: 'center' });
+
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(6.5);
+        doc.setTextColor(100, 100, 100);
+        doc.text(`${sRows} ${t("rows").toUpperCase()}  •  ${sCols.length} ${t("cols").toUpperCase()}`, pageWidth - marginX, currentY + 3.2, { align: 'right' });
+
+        doc.setDrawColor(200, 200, 205);
+        doc.setLineWidth(0.2);
+        doc.line(marginX + 33, currentY + 2.25, pageWidth - marginX - 28, currentY + 2.25);
+
+        currentY += 6;
+
+        const sColWidth = (usableWidth - (sCols.length - 1) * gap) / sCols.length;
+
+        for (let cIdx = 0; cIdx < sCols.length; cIdx++) {
+          const colLetter = sCols[cIdx];
+          const cellX = marginX + cIdx * (sColWidth + gap);
+
+          for (let r = 1; r <= sRows; r++) {
+            const cellY = currentY + (r - 1) * (cardHeight + gap);
+            const p = getPalletAt("solidos", colLetter, r);
+
+            if (p && Number(p.quantity) > 0) {
+              const cap = Number(p.capacityNominal) || Number(p.quantity) || 1000;
+              const isPartial = p.status === "partial" || (cap > 0 && Number(p.quantity) < cap);
+              const pct = cap > 0 ? Math.min(100, Math.round((Number(p.quantity) / cap) * 100)) : 100;
+              const prodDef = productCatalogMap.get(p.product);
+              const prodColor = prodDef ? prodDef.color : "#991B1B";
+              const borderRgb = hexToRgb(prodColor);
+              const bgRgb = hexToRgbTint(prodColor, 0.12);
+              const shortName = getShortProductName(p.product);
+
+              doc.setFillColor(bgRgb.r, bgRgb.g, bgRgb.b);
+              doc.setDrawColor(borderRgb.r, borderRgb.g, borderRgb.b);
+              doc.setLineWidth(0.45);
+              doc.roundedRect(cellX, cellY, sColWidth, cardHeight, 1.5, 1.5, 'FD');
+
+              // Línea 1: Producto
+              doc.setFont('helvetica', 'bold');
+              doc.setFontSize(7.5);
+              doc.setTextColor(0, 0, 0);
+              doc.text(shortName, cellX + sColWidth / 2, cellY + 3.4, { align: 'center' });
+
+              // Línea 2: Lote
+              doc.setFont('helvetica', 'bold');
+              doc.setFontSize(8.5);
+              doc.setTextColor(10, 10, 10);
+              doc.text(`L: ${p.lot}`, cellX + sColWidth / 2, cellY + 7.2, { align: 'center' });
+
+              // Línea 3: Cantidad y badge
+              doc.setFont('helvetica', 'bold');
+              doc.setFontSize(7);
+              doc.setTextColor(30, 30, 30);
+              const qtyStr = `${Number(p.quantity).toLocaleString("es-AR")} ${p.unit || 'KG'}`;
+
+              if (isPartial) {
+                doc.text(qtyStr, cellX + (sColWidth / 2) - 3.8, cellY + 10.8, { align: 'center' });
+                doc.setFillColor(251, 191, 36);
+                doc.setDrawColor(245, 158, 11);
+                doc.setLineWidth(0.15);
+                doc.roundedRect(cellX + sColWidth - 8.2, cellY + 8.5, 7.5, 3.2, 0.8, 0.8, 'FD');
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(5.5);
+                doc.setTextColor(0, 0, 0);
+                doc.text(`${pct}%`, cellX + sColWidth - 4.45, cellY + 10.8, { align: 'center' });
+              } else {
+                doc.text(qtyStr, cellX + sColWidth / 2, cellY + 10.8, { align: 'center' });
+              }
+            } else {
+              doc.setDrawColor(180, 180, 185);
+              doc.setLineWidth(0.3);
+              doc.setLineDashPattern([1.2, 1.2], 0);
+              doc.roundedRect(cellX, cellY, sColWidth, cardHeight, 1.5, 1.5, 'D');
+              doc.setLineDashPattern([], 0);
+            }
+          }
+        }
+
+        currentY += sRows * (cardHeight + gap) + 3;
+
+        // --- SECTOR LÍQUIDOS ---
+        doc.setFillColor(250, 245, 255);
+        doc.setDrawColor(216, 180, 254);
+        doc.setLineWidth(0.3);
+        doc.roundedRect(marginX, currentY, 52, 4.5, 1, 1, 'FD');
+
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(7);
+        doc.setTextColor(88, 28, 135);
+        doc.text(t("liquidsZoneTrays"), marginX + 26, currentY + 3.2, { align: 'center' });
+
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(6.5);
+        doc.setTextColor(126, 34, 206);
+        doc.text(`${lRows} ${t("rows").toUpperCase()}  •  ${lCols.length} ${t("cols").toUpperCase()}`, pageWidth - marginX, currentY + 3.2, { align: 'right' });
+
+        doc.setDrawColor(233, 213, 255);
+        doc.setLineWidth(0.2);
+        doc.line(marginX + 53, currentY + 2.25, pageWidth - marginX - 28, currentY + 2.25);
+
+        currentY += 6;
+
+        const lColWidth = (usableWidth - (lCols.length - 1) * gap) / lCols.length;
+
+        for (let cIdx = 0; cIdx < lCols.length; cIdx++) {
+          const colLetter = lCols[cIdx];
+          const cellX = marginX + cIdx * (lColWidth + gap);
+
+          for (let r = 1; r <= lRows; r++) {
+            const cellY = currentY + (r - 1) * (cardHeight + gap);
+            const p = getPalletAt("liquidos", colLetter, r);
+
+            if (p && Number(p.quantity) > 0) {
+              const cap = Number(p.capacityNominal) || Number(p.quantity) || 1000;
+              const isPartial = p.status === "partial" || (cap > 0 && Number(p.quantity) < cap);
+              const pct = cap > 0 ? Math.min(100, Math.round((Number(p.quantity) / cap) * 100)) : 100;
+              const prodDef = productCatalogMap.get(p.product);
+              const prodColor = prodDef ? prodDef.color : "#7E22CE";
+              const borderRgb = hexToRgb(prodColor);
+              const bgRgb = hexToRgbTint(prodColor, 0.12);
+              const shortName = getShortProductName(p.product);
+
+              doc.setFillColor(bgRgb.r, bgRgb.g, bgRgb.b);
+              doc.setDrawColor(borderRgb.r, borderRgb.g, borderRgb.b);
+              doc.setLineWidth(0.45);
+              doc.roundedRect(cellX, cellY, lColWidth, cardHeight, 1.5, 1.5, 'FD');
+
+              doc.setFont('helvetica', 'bold');
+              doc.setFontSize(7.5);
+              doc.setTextColor(0, 0, 0);
+              doc.text(shortName, cellX + lColWidth / 2, cellY + 3.4, { align: 'center' });
+
+              doc.setFont('helvetica', 'bold');
+              doc.setFontSize(8.5);
+              doc.setTextColor(10, 10, 10);
+              doc.text(`L: ${p.lot}`, cellX + lColWidth / 2, cellY + 7.2, { align: 'center' });
+
+              doc.setFont('helvetica', 'bold');
+              doc.setFontSize(7);
+              doc.setTextColor(30, 30, 30);
+              const qtyStr = `${Number(p.quantity).toLocaleString("es-AR")} ${p.unit || 'LT'}`;
+
+              if (isPartial) {
+                doc.text(qtyStr, cellX + (lColWidth / 2) - 4.5, cellY + 10.8, { align: 'center' });
+                doc.setFillColor(251, 191, 36);
+                doc.setDrawColor(245, 158, 11);
+                doc.setLineWidth(0.15);
+                doc.roundedRect(cellX + lColWidth - 9.5, cellY + 8.5, 8.5, 3.2, 0.8, 0.8, 'FD');
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(5.5);
+                doc.setTextColor(0, 0, 0);
+                doc.text(`${pct}%`, cellX + lColWidth - 5.25, cellY + 10.8, { align: 'center' });
+              } else {
+                doc.text(qtyStr, cellX + lColWidth / 2, cellY + 10.8, { align: 'center' });
+              }
+            } else {
+              doc.setDrawColor(180, 180, 185);
+              doc.setLineWidth(0.3);
+              doc.setLineDashPattern([1.2, 1.2], 0);
+              doc.roundedRect(cellX, cellY, lColWidth, cardHeight, 1.5, 1.5, 'D');
+              doc.setLineDashPattern([], 0);
+            }
+          }
+        }
+      } else {
+        // Sector Único (mixto / solidos / liquidos)
+        const cols = sDims.columns;
+        const rows = sDims.rows;
+        const gap = 1.8;
+        const colWidth = (usableWidth - (cols.length - 1) * gap) / cols.length;
+        const maxAvailHeight = pageHeight - currentY - 18;
+        const cardHeight = Math.min(22, Math.max(12.5, (maxAvailHeight - (rows - 1) * gap) / rows));
+
+        // Banner Sector
+        doc.setFillColor(240, 240, 242);
+        doc.setDrawColor(180, 180, 185);
+        doc.setLineWidth(0.3);
+        doc.roundedRect(marginX, currentY, 40, 4.5, 1, 1, 'FD');
+
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(7);
+        doc.setTextColor(0, 0, 0);
+        doc.text(currentSector.name.toUpperCase(), marginX + 20, currentY + 3.2, { align: 'center' });
+
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(6.5);
+        doc.setTextColor(100, 100, 100);
+        doc.text(`${rows} ${t("rows").toUpperCase()}  •  ${cols.length} ${t("cols").toUpperCase()}`, pageWidth - marginX, currentY + 3.2, { align: 'right' });
+
+        doc.setDrawColor(200, 200, 205);
+        doc.setLineWidth(0.2);
+        doc.line(marginX + 41, currentY + 2.25, pageWidth - marginX - 28, currentY + 2.25);
+
+        currentY += 6;
+
+        for (let cIdx = 0; cIdx < cols.length; cIdx++) {
+          const colLetter = cols[cIdx];
+          const cellX = marginX + cIdx * (colWidth + gap);
+
+          for (let r = 1; r <= rows; r++) {
+            const cellY = currentY + (r - 1) * (cardHeight + gap);
+            const p = getPalletAt("mixto", colLetter, r);
+
+            if (p && Number(p.quantity) > 0) {
+              const cap = Number(p.capacityNominal) || Number(p.quantity) || 1000;
+              const isPartial = p.status === "partial" || (cap > 0 && Number(p.quantity) < cap);
+              const pct = cap > 0 ? Math.min(100, Math.round((Number(p.quantity) / cap) * 100)) : 100;
+              const prodDef = productCatalogMap.get(p.product);
+              const prodColor = prodDef ? prodDef.color : "#991B1B";
+              const borderRgb = hexToRgb(prodColor);
+              const bgRgb = hexToRgbTint(prodColor, 0.12);
+              const shortName = getShortProductName(p.product);
+
+              doc.setFillColor(bgRgb.r, bgRgb.g, bgRgb.b);
+              doc.setDrawColor(borderRgb.r, borderRgb.g, borderRgb.b);
+              doc.setLineWidth(0.45);
+              doc.roundedRect(cellX, cellY, colWidth, cardHeight, 1.5, 1.5, 'FD');
+
+              // Line 1
+              doc.setFont('helvetica', 'bold');
+              doc.setFontSize(Math.min(8, cardHeight * 0.55));
+              doc.setTextColor(0, 0, 0);
+              doc.text(shortName, cellX + colWidth / 2, cellY + cardHeight * 0.28, { align: 'center' });
+
+              // Line 2
+              doc.setFont('helvetica', 'bold');
+              doc.setFontSize(Math.min(9, cardHeight * 0.65));
+              doc.setTextColor(10, 10, 10);
+              doc.text(`L: ${p.lot}`, cellX + colWidth / 2, cellY + cardHeight * 0.58, { align: 'center' });
+
+              // Line 3
+              doc.setFont('helvetica', 'bold');
+              doc.setFontSize(Math.min(7.5, cardHeight * 0.52));
+              doc.setTextColor(30, 30, 30);
+              const qtyStr = `${Number(p.quantity).toLocaleString("es-AR")} ${p.unit || 'KG'}`;
+
+              if (isPartial) {
+                doc.text(qtyStr, cellX + (colWidth / 2) - 4, cellY + cardHeight * 0.88, { align: 'center' });
+                doc.setFillColor(251, 191, 36);
+                doc.setDrawColor(245, 158, 11);
+                doc.setLineWidth(0.15);
+                doc.roundedRect(cellX + colWidth - 8.5, cellY + cardHeight - 4, 8, 3.4, 0.8, 0.8, 'FD');
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(5.5);
+                doc.setTextColor(0, 0, 0);
+                doc.text(`${pct}%`, cellX + colWidth - 4.5, cellY + cardHeight - 1.4, { align: 'center' });
+              } else {
+                doc.text(qtyStr, cellX + colWidth / 2, cellY + cardHeight * 0.88, { align: 'center' });
+              }
+            } else {
+              doc.setDrawColor(180, 180, 185);
+              doc.setLineWidth(0.3);
+              doc.setLineDashPattern([1.2, 1.2], 0);
+              doc.roundedRect(cellX, cellY, colWidth, cardHeight, 1.5, 1.5, 'D');
+              doc.setLineDashPattern([], 0);
+            }
+          }
+        }
+      }
+
+      // 4. PIE DE PLANILLA
+      const footerY = pageHeight - 5;
+      doc.setDrawColor(0, 0, 0);
+      doc.setLineWidth(0.5);
+      doc.line(marginX, footerY - 3.5, pageWidth - marginX, footerY - 3.5);
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(6.5);
+      doc.setTextColor(50, 50, 50);
+      doc.text(t("countingOfficer"), marginX, footerY);
+      doc.text(t("signatureApproval"), marginX + 95, footerY);
+      doc.text(t("officialSheetFooter"), pageWidth - marginX, footerY, { align: 'right' });
+
+      const filename = `${lang === 'es' ? 'Diagrama_Zona_Productos' : 'Chemical_Products_Zone_Diagram'}_${(currentSector?.name || 'LMP').replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+
+      return { doc, pdf: doc, filename, blob: doc.output('blob') };
     } catch (err) {
-      if (isDark) document.documentElement.classList.add('dark');
-      console.error("PDF generation error:", err);
-      window.print();
+      console.error("Error generating vector PDF:", err);
+      return null;
     }
+  };
+
+  // Abrir directamente el PDF en una pestaña nueva para visualizarlo y decidir si guardarlo o imprimirlo
+  const handleOpenPdf = async () => {
+    showToast(lang === 'es' ? "Generando y abriendo PDF..." : "Generating and opening PDF...", "info");
+    const result = await generatePdfBlob();
+    if (!result) {
+      showToast(lang === 'es' ? "No se pudo generar el PDF. Reintente." : "Could not generate PDF.", "error");
+      return;
+    }
+
+    try {
+      const blobUrl = URL.createObjectURL(result.blob);
+      const newTab = window.open(blobUrl, '_blank');
+      if (!newTab || newTab.closed || typeof newTab.closed === 'undefined') {
+        // En caso de que el navegador bloquee popups, descargar directamente
+        result.pdf.save(result.filename);
+        showToast(lang === 'es' ? "Descargando PDF (popup bloqueado)." : "Downloading PDF (popup blocked).", "success");
+      } else {
+        showToast(lang === 'es' ? "PDF abierto en pantalla. Puede guardarlo o imprimirlo." : "PDF opened in new tab.", "success");
+      }
+    } catch (e) {
+      result.pdf.save(result.filename);
+    }
+  };
+
+  // Descargar / Guardar archivo PDF directamente en la computadora
+  const handleDownloadPdf = async () => {
+    showToast(lang === 'es' ? "Guardando archivo PDF..." : "Saving PDF file...", "info");
+    const result = await generatePdfBlob();
+    if (!result) {
+      showToast(lang === 'es' ? "Error generando PDF." : "Error generating PDF.", "error");
+      return;
+    }
+
+    result.pdf.save(result.filename);
+    showToast(t("pdfSuccessToast") || "PDF guardado con éxito.", "success");
   };
 
   // KPIs
@@ -3318,12 +3673,21 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
             <div className="flex items-center gap-2.5 flex-wrap">
               <button
                 type="button"
+                onClick={handleOpenPdf}
+                className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-md hover:scale-105 active:scale-95 cursor-pointer"
+                title={lang === 'es' ? "Abrir PDF en pantalla completa para previsualizarlo y decidir si guardarlo o imprimirlo" : "Open PDF in full screen"}
+              >
+                <Icon name="external-link" size={16} />
+                <span>{lang === 'es' ? "Abrir PDF" : "Open PDF"}</span>
+              </button>
+              <button
+                type="button"
                 onClick={handleDownloadPdf}
                 className="flex items-center gap-2 px-5 py-2.5 bg-halliburton-red hover:bg-red-700 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-md hover:scale-105 active:scale-95 cursor-pointer"
-                title={t("downloadPdfBtn")}
+                title={lang === 'es' ? "Guardar archivo PDF en la computadora" : "Save PDF"}
               >
                 <Icon name="download" size={16} />
-                <span>{t("downloadPdfBtn")}</span>
+                <span>{lang === 'es' ? "Guardar PDF" : "Save PDF"}</span>
               </button>
               <button
                 type="button"
