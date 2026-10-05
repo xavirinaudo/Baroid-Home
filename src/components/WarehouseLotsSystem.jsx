@@ -2037,41 +2037,41 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
     const totalRows = isDual ? (sRows + lRows) : sRows;
     const maxCols = Math.max(sDims.columns.length, isDual ? lDims.columns.length : 0);
 
-    let cardH = 38;
-    let titlePx = 8.5;
-    let lotPx = 9.5;
-    let qtyPx = 8;
+    let cardH = 46;
+    let titlePx = 7.5;
+    let lotPx = 8.5;
+    let qtyPx = 7.5;
     let gapPx = 3;
 
     if (totalRows <= 4) {
-      cardH = 72;
-      titlePx = 11.5;
-      lotPx = 13.5;
-      qtyPx = 10.5;
+      cardH = 75;
+      titlePx = 11;
+      lotPx = 13;
+      qtyPx = 10;
       gapPx = 5;
     } else if (totalRows <= 6) {
-      cardH = 54;
-      titlePx = 10;
-      lotPx = 11.5;
-      qtyPx = 9;
+      cardH = 58;
+      titlePx = 9.5;
+      lotPx = 11;
+      qtyPx = 8.5;
       gapPx = 4;
     } else if (totalRows <= 8) {
-      cardH = 45;
-      titlePx = 9;
-      lotPx = 10.5;
-      qtyPx = 8.5;
+      cardH = 50;
+      titlePx = 8.5;
+      lotPx = 9.5;
+      qtyPx = 8;
       gapPx = 3.5;
     } else if (totalRows <= 12) {
-      cardH = 38;
-      titlePx = 8.2;
-      lotPx = 9.5;
-      qtyPx = 7.8;
+      cardH = 46;
+      titlePx = 7.2;
+      lotPx = 8.2;
+      qtyPx = 7.2;
       gapPx = 3;
     } else {
-      cardH = Math.max(30, Math.floor(450 / totalRows));
-      titlePx = 7.5;
-      lotPx = 8.8;
-      qtyPx = 7.2;
+      cardH = Math.max(34, Math.floor(480 / totalRows));
+      titlePx = 6.8;
+      lotPx = 7.8;
+      qtyPx = 6.8;
       gapPx = 2;
     }
 
@@ -3659,24 +3659,15 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
               </div>
             </div>
 
-            <div className="flex items-center gap-2.5 flex-wrap">
-              <button
-                type="button"
-                onClick={handleOpenPdf}
-                className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-md hover:scale-105 active:scale-95 cursor-pointer"
-                title={lang === 'es' ? "Abrir PDF en pantalla completa para previsualizarlo y decidir si guardarlo o imprimirlo" : "Open PDF in full screen"}
-              >
-                <Icon name="external-link" size={16} />
-                <span>{lang === 'es' ? "Abrir PDF" : "Open PDF"}</span>
-              </button>
+            <div className="flex items-center gap-2.5">
               <button
                 type="button"
                 onClick={handleDownloadPdf}
-                className="flex items-center gap-2 px-5 py-2.5 bg-halliburton-red hover:bg-red-700 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-md hover:scale-105 active:scale-95 cursor-pointer"
-                title={lang === 'es' ? "Guardar archivo PDF en la computadora" : "Save PDF"}
+                className="flex items-center gap-2 px-6 py-2.5 bg-halliburton-red hover:bg-red-700 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-md hover:scale-105 active:scale-95 cursor-pointer"
+                title={lang === 'es' ? "Descargar archivo PDF en la computadora" : "Download PDF file"}
               >
                 <Icon name="download" size={16} />
-                <span>{lang === 'es' ? "Guardar PDF" : "Save PDF"}</span>
+                <span>{lang === 'es' ? "Descargar PDF" : "Download PDF"}</span>
               </button>
               <button
                 type="button"
@@ -3759,39 +3750,41 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
                                   borderStyle: 'solid',
                                   borderRadius: '6px',
                                   height: `${printMetrics.cardH}px`,
-                                  padding: '2px 3px',
+                                  padding: '2px 2px',
                                   display: 'flex',
                                   flexDirection: 'column',
-                                  justifyContent: 'space-between',
+                                  justifyContent: 'center',
                                   alignItems: 'center',
+                                  gap: '2px',
                                   textAlign: 'center',
                                   overflow: 'hidden',
+                                  boxSizing: 'border-box',
                                   fontFamily: 'Arial, Helvetica, sans-serif'
                                 }}
                                 className="page-break-avoid select-none shadow-none"
                               >
                                 {/* Línea 1: Nombre de producto */}
-                                <div style={{ width: '100%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: 1.1 }}>
-                                  <span style={{ fontSize: `${printMetrics.titlePx}px`, color: '#000000', fontWeight: 700, textTransform: 'uppercase' }}>
+                                <div style={{ width: '100%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: '1.0' }}>
+                                  <span style={{ fontSize: `${printMetrics.titlePx}px`, color: '#000000', fontWeight: 800, textTransform: 'uppercase' }}>
                                     {shortName}
                                   </span>
                                 </div>
 
                                 {/* Línea 2: Lote */}
-                                <div style={{ width: '100%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: 1.1 }}>
-                                  <span style={{ fontSize: `${printMetrics.lotPx}px`, color: '#09090b', fontWeight: 700 }}>
+                                <div style={{ width: '100%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: '1.0' }}>
+                                  <span style={{ fontSize: `${printMetrics.lotPx}px`, color: '#09090b', fontWeight: 800 }}>
                                     L: {p.lot}
                                   </span>
                                 </div>
 
                                 {/* Línea 3: Cantidad y parcial */}
-                                <div style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '3px', lineHeight: 1.1 }}>
-                                  <span style={{ fontSize: `${printMetrics.qtyPx}px`, color: '#18181b', fontWeight: 600, whiteSpace: 'nowrap' }}>
+                                <div style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '2px', lineHeight: '1.0' }}>
+                                  <span style={{ fontSize: `${printMetrics.qtyPx}px`, color: '#18181b', fontWeight: 700, whiteSpace: 'nowrap' }}>
                                     {Number(p.quantity).toLocaleString("es-AR")} {p.unit || 'KG'}
                                   </span>
                                   {isPartial && (
-                                    <span style={{ fontSize: '7.5px', backgroundColor: '#fbbf24', color: '#000000', fontWeight: 800, padding: '0.5px 3px', borderRadius: '3px', lineHeight: 1, flexShrink: 0 }}>
-                                      ⚠️ {pct}%
+                                    <span style={{ fontSize: '6.5px', backgroundColor: '#fbbf24', color: '#000000', fontWeight: 800, padding: '0.5px 2px', borderRadius: '2px', lineHeight: '1.0', flexShrink: 0 }}>
+                                      {pct}%
                                     </span>
                                   )}
                                 </div>
@@ -3805,7 +3798,8 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
                                   height: `${printMetrics.cardH}px`,
                                   border: '1.5px dashed #d4d4d8',
                                   borderRadius: '6px',
-                                  backgroundColor: 'transparent'
+                                  backgroundColor: 'transparent',
+                                  boxSizing: 'border-box'
                                 }}
                                 className="page-break-avoid select-none"
                               />
@@ -3860,39 +3854,41 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
                                   borderStyle: 'solid',
                                   borderRadius: '6px',
                                   height: `${printMetrics.cardH}px`,
-                                  padding: '2px 3px',
+                                  padding: '2px 2px',
                                   display: 'flex',
                                   flexDirection: 'column',
-                                  justifyContent: 'space-between',
+                                  justifyContent: 'center',
                                   alignItems: 'center',
+                                  gap: '2px',
                                   textAlign: 'center',
                                   overflow: 'hidden',
+                                  boxSizing: 'border-box',
                                   fontFamily: 'Arial, Helvetica, sans-serif'
                                 }}
                                 className="page-break-avoid select-none shadow-none"
                               >
                                 {/* Línea 1: Nombre de producto */}
-                                <div style={{ width: '100%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: 1.1 }}>
-                                  <span style={{ fontSize: `${printMetrics.titlePx}px`, color: '#000000', fontWeight: 700, textTransform: 'uppercase' }}>
+                                <div style={{ width: '100%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: '1.0' }}>
+                                  <span style={{ fontSize: `${printMetrics.titlePx}px`, color: '#000000', fontWeight: 800, textTransform: 'uppercase' }}>
                                     {shortName}
                                   </span>
                                 </div>
 
                                 {/* Línea 2: Lote */}
-                                <div style={{ width: '100%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: 1.1 }}>
-                                  <span style={{ fontSize: `${printMetrics.lotPx}px`, color: '#09090b', fontWeight: 700 }}>
+                                <div style={{ width: '100%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: '1.0' }}>
+                                  <span style={{ fontSize: `${printMetrics.lotPx}px`, color: '#09090b', fontWeight: 800 }}>
                                     L: {p.lot}
                                   </span>
                                 </div>
 
                                 {/* Línea 3: Cantidad y parcial */}
-                                <div style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '3px', lineHeight: 1.1 }}>
+                                <div style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '2px', lineHeight: '1.0' }}>
                                   <span style={{ fontSize: `${printMetrics.qtyPx}px`, color: '#18181b', fontWeight: 600, whiteSpace: 'nowrap' }}>
                                     {Number(p.quantity).toLocaleString("es-AR")} {p.unit || 'LT'}
                                   </span>
                                   {isPartial && (
-                                    <span style={{ fontSize: '7.5px', backgroundColor: '#fbbf24', color: '#000000', fontWeight: 800, padding: '0.5px 3px', borderRadius: '3px', lineHeight: 1, flexShrink: 0 }}>
-                                      ⚠️ {pct}%
+                                    <span style={{ fontSize: '6.5px', backgroundColor: '#fbbf24', color: '#000000', fontWeight: 800, padding: '0.5px 2px', borderRadius: '2px', lineHeight: '1.0', flexShrink: 0 }}>
+                                      {pct}%
                                     </span>
                                   )}
                                 </div>
@@ -3906,7 +3902,8 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
                                   height: `${printMetrics.cardH}px`,
                                   border: '1.5px dashed #d4d4d8',
                                   borderRadius: '6px',
-                                  backgroundColor: 'transparent'
+                                  backgroundColor: 'transparent',
+                                  boxSizing: 'border-box'
                                 }}
                                 className="page-break-avoid select-none"
                               />
