@@ -9437,8 +9437,8 @@ const OFFICIAL_BAROID_CATALOG = [
   { name: "SODA CÁUSTICA", type: "solido", defaultPackage: "Bolsa 25 kg", unitWeight: 25, unit: "KG", color: "#4338CA" },
   { name: "Potassium Chloride (KCl)", type: "solido", defaultPackage: "Bolsa 25 kg", unitWeight: 25, unit: "KG", color: "#3B82F6" },
   { name: "BARAVIS W-637", type: "solido", defaultPackage: "Bolsa 25 kg", unitWeight: 25, unit: "KG", color: "#10B981" },
-  { name: "Bentonita (Bolsón)", type: "solido", defaultPackage: "Big Bag 1000 kg", unitWeight: 1000, unit: "KG", color: "#71717A" },
-  { name: "BAROID® (Barita Bolsones)", type: "solido", defaultPackage: "Big Bag 1500 kg", unitWeight: 1500, unit: "KG", color: "#475569" },
+  { name: "Bentonita", type: "solido", defaultPackage: "Big Bag 1000 kg", unitWeight: 1000, unit: "KG", color: "#71717A" },
+  { name: "BAROID®", type: "solido", defaultPackage: "Big Bag 1500 kg", unitWeight: 1500, unit: "KG", color: "#475569" },
 
   // LÍQUIDOS - Emulsionantes, Humectantes y Acondicionadores OBM
   { name: "INVERMUL®", type: "liquido", defaultPackage: "Tambor 208 L", unitWeight: 208, unit: "LT", color: "#6B21A8" },
@@ -9658,7 +9658,7 @@ const I18N = {
     colAdded: "+ Columna {col} agregada",
     emptyConfirm: "¿Estás seguro de que deseas vaciar todos los lotes del almacén para comenzar desde cero? Podrás deshacer esta acción con Ctrl+Z.",
     warehouseCleared: "🗑️ Almacén vaciado. Listo para nuevo inventario.",
-    pdfPrintout: "Impresión PDF",
+    pdfPrintout: "VISTA DE IMPRESIÓN",
     warehouseSheetTitle: "Diagrama Almacén",
     fieldCountingSheetSubtitle: "Planilla conteo físico",
     lotProdSearch: "Buscador de Lote / Producto",
@@ -9681,7 +9681,7 @@ const I18N = {
     signatureApproval: "Firma / Aprobación: ___________________________",
     officialSheetFooter: "Baroid LMP • Planilla Oficial de Conteo Físico",
     printPreviewTitle: "Vista de Impresión • Diagrama de Zona de Productos",
-    printPreviewSubtitle: "Diseñado en formato horizontal A4 con máxima resolución para recuento y verificación física en almacén.",
+    printPreviewSubtitle: "Diseñado en formato horizontal A4 con máxima resolución para recuento, verificación física y captura de pantalla.",
     downloadPdfBtn: "Descargar PDF",
     printSavePdfBtn: "Imprimir / Guardar PDF",
     closeModal: "✕ Cerrar (Esc)",
@@ -9825,7 +9825,7 @@ const I18N = {
     colAdded: "+ Column {col} added",
     emptyConfirm: "Are you sure you want to empty all lots in this warehouse to start from scratch? You can undo with Ctrl+Z.",
     warehouseCleared: "🗑️ Warehouse cleared. Ready for fresh inventory.",
-    pdfPrintout: "PDF Printout",
+    pdfPrintout: "PRINT PREVIEW",
     warehouseSheetTitle: "Warehouse Sheet",
     fieldCountingSheetSubtitle: "Field counting sheet",
     lotProdSearch: "Lot / Product Search",
@@ -9848,7 +9848,7 @@ const I18N = {
     signatureApproval: "Signature / Approval: ___________________________",
     officialSheetFooter: "Baroid LMP • Official Counting Sheet",
     printPreviewTitle: "Print Preview • Chemical Products Zone Diagram",
-    printPreviewSubtitle: "Designed in high-resolution A4 landscape format for physical counting and field audits.",
+    printPreviewSubtitle: "Designed in high-resolution A4 landscape format for physical counting, verification, and screenshot.",
     downloadPdfBtn: "Download PDF",
     printSavePdfBtn: "Print / Save PDF",
     closeModal: "✕ Close (Esc)",
@@ -9907,35 +9907,45 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
 
   // 1. Estado persistente con Multi-Ring Vault y Rescate Automático
   const [data, setData] = useState(() => {
-    const candidateKeys = [
-      "lmp_warehouse_state",
-      "lmp_warehouse_state_vault",
-      "baroid_warehouse_backup_persistent",
-      "lmp_warehouse_last_known_good",
-      "lmp_warehouse_pre_update_snapshot",
-      "warehouse_lots_data_v1",
-      "baroid_warehouse_lots_v1",
-      "warehouse_lots_backup"
-    ];
-
     let bestCandidate = null;
-    let maxPallets = -1;
 
-    for (const key of candidateKeys) {
-      try {
-        const raw = localStorage.getItem(key);
-        if (!raw) continue;
-        const parsed = JSON.parse(raw);
-        if (!parsed) continue;
-
-        const count = Array.isArray(parsed.pallets) ? parsed.pallets.length : 0;
-        // Priorizar el candidato con más pallets para jamás perder datos por un estado vacío accidental
-        if (count > maxPallets) {
-          bestCandidate = parsed;
-          maxPallets = count;
+    // Prioridad 1: Leer el estado activo principal
+    try {
+      const primaryRaw = localStorage.getItem("lmp_warehouse_state");
+      if (primaryRaw) {
+        const parsedPrimary = JSON.parse(primaryRaw);
+        if (parsedPrimary && (Array.isArray(parsedPrimary.pallets) || Array.isArray(parsedPrimary.sectors))) {
+          bestCandidate = parsedPrimary;
         }
-      } catch (e) {
-        console.warn(`Error al leer almacenamiento ${key}:`, e);
+      }
+    } catch (e) {
+      console.warn("Error leyendo lmp_warehouse_state primario:", e);
+    }
+
+    // Prioridad 2: Fallback a vaults secundarios solo si no existe el estado primario
+    if (!bestCandidate) {
+      const fallbackKeys = [
+        "lmp_warehouse_state_vault",
+        "baroid_warehouse_backup_persistent",
+        "lmp_warehouse_last_known_good",
+        "lmp_warehouse_pre_update_snapshot",
+        "warehouse_lots_data_v1",
+        "baroid_warehouse_lots_v1",
+        "warehouse_lots_backup"
+      ];
+
+      for (const key of fallbackKeys) {
+        try {
+          const raw = localStorage.getItem(key);
+          if (!raw) continue;
+          const parsed = JSON.parse(raw);
+          if (parsed && (Array.isArray(parsed.pallets) || Array.isArray(parsed.sectors))) {
+            bestCandidate = parsed;
+            break;
+          }
+        } catch (e) {
+          console.warn(`Error al leer fallback ${key}:`, e);
+        }
       }
     }
 
@@ -9979,12 +9989,22 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
         if (Array.isArray(bestCandidate.pallets)) {
           bestCandidate.pallets = bestCandidate.pallets
             .filter(p => p && !(p.sectorId || "").toLowerCase().includes("1211"))
-            .map(p => ({
-              ...p,
-              col: String(p.col || p.column || '').trim().toUpperCase(),
-              column: String(p.col || p.column || '').trim().toUpperCase(),
-              row: Number(p.row)
-            }));
+            .map(p => {
+              let prodName = String(p.product || '').trim();
+              if (prodName === "Bentonita (Bolsón)" || prodName.toUpperCase().includes("BENTONITA")) {
+                prodName = "Bentonita";
+              } else if (prodName === "BAROID® (Barita Bolsones)" || prodName.includes("Barita Bolsones") || prodName.includes("BARITA EN BOLSONES") || prodName.toUpperCase() === "BAROID" || prodName.toUpperCase() === "BARITA") {
+                prodName = "BAROID®";
+              }
+
+              return {
+                ...p,
+                product: prodName,
+                col: String(p.col || p.column || '').trim().toUpperCase(),
+                column: String(p.col || p.column || '').trim().toUpperCase(),
+                row: Number(p.row)
+              };
+            });
         } else {
           bestCandidate.pallets = [];
         }
@@ -9995,6 +10015,9 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
             liquidos: { rows: 6, columns: ["A", "B", "C", "D", "E", "F", "G", "H"] }
           };
         }
+
+        // Siempre sincronizar con el catálogo maestro oficial Baroid
+        bestCandidate.productCatalog = OFFICIAL_BAROID_CATALOG;
 
         // Resincronizar de inmediato a todos los vaults para blindar persistencia
         try {
@@ -10013,7 +10036,8 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
         if (Array.isArray(bestCandidate.pallets) && bestCandidate.pallets.length > 0) {
           return {
             ...DEFAULT_FALLBACK_STATE,
-            pallets: bestCandidate.pallets
+            pallets: bestCandidate.pallets,
+            productCatalog: OFFICIAL_BAROID_CATALOG
           };
         }
       }
@@ -10288,18 +10312,43 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
           return;
         }
 
-        // Normalización preventiva de nombres de productos oficiales Baroid
+        // Normalización preventiva y preservación estricta de variantes de productos oficiales Baroid
         const normalizedPallets = imported.pallets.map(p => {
-          let prodName = p.product || "";
-          if (prodName.includes("Calcio") || prodName.includes("CaCl")) prodName = "Cloruro de Calcio (CaCl₂)";
-          else if (prodName.includes("BARABLOK")) prodName = "BARABLOK™ 400 NA";
-          else if (prodName.includes("BARACARB")) prodName = "BARACARB®-DF FINE";
-          else if (prodName.includes("INVERMUL")) prodName = "INVERMUL® LA";
-          else if (prodName.includes("EZ MUL")) prodName = "EZ MUL® LA";
-          else if (prodName.includes("DRILTREAT")) prodName = "DRILTREAT®";
-          else if (prodName.includes("GELTONE")) prodName = "GELTONE® II";
-          else if (prodName.includes("RM-63")) prodName = "RM-63™";
-          else if (prodName.includes("LIME")) prodName = "LIME FG";
+          let prodName = String(p.product || "").trim();
+
+          if (prodName === "Bentonita (Bolsón)" || prodName.toUpperCase().includes("BENTONITA")) {
+            prodName = "Bentonita";
+          } else if (prodName === "BAROID® (Barita Bolsones)" || prodName.includes("Barita Bolsones") || prodName.includes("BARITA EN BOLSONES") || prodName.toUpperCase() === "BAROID" || prodName.toUpperCase() === "BARITA") {
+            prodName = "BAROID®";
+          } else if (prodName.includes("Calcio") || prodName.includes("CaCl")) {
+            prodName = "Cloruro de Calcio (CaCl₂)";
+          } else if (prodName.includes("BARABLOK")) {
+            prodName = "BARABLOK™ 400 NA";
+          } else if (prodName.includes("BARACARB")) {
+            if (prodName.toUpperCase().includes("COARSE") || prodName.toUpperCase().includes("GRUESO")) prodName = "BARACARB®-DF COARSE";
+            else if (prodName.toUpperCase().includes("MEDIUM") || prodName.toUpperCase().includes("MEDIO")) prodName = "BARACARB®-DF MEDIUM";
+            else prodName = "BARACARB®-DF FINE";
+          } else if (prodName.includes("INVERMUL")) {
+            if (prodName.toUpperCase().includes("LA")) prodName = "INVERMUL® LA";
+            else prodName = "INVERMUL®";
+          } else if (prodName.includes("EZ MUL") || prodName.includes("EZMUL")) {
+            if (prodName.toUpperCase().includes("NT")) prodName = "EZ MUL® NT";
+            else prodName = "EZ MUL® LA";
+          } else if (prodName.includes("BARASHIELD") || prodName.includes("BaraShield")) {
+            if (prodName.includes("982")) prodName = "BaraShield®-982";
+            else prodName = "BaraShield®-981";
+          } else if (prodName.includes("BDF") || prodName.includes("bdf")) {
+            if (prodName.toUpperCase().includes("MEDIUM") || prodName.toUpperCase().includes("MEDIO")) prodName = "BDF™-965 MEDIUM";
+            else prodName = "BDF™-965 FINE";
+          } else if (prodName.includes("DRILTREAT")) {
+            prodName = "DRILTREAT®";
+          } else if (prodName.includes("GELTONE")) {
+            prodName = "GELTONE® II";
+          } else if (prodName.includes("RM-63") || prodName.includes("RM 63")) {
+            prodName = "RM-63™";
+          } else if (prodName.includes("LIME")) {
+            prodName = "LIME FG";
+          }
 
           return {
             ...p,
@@ -10324,7 +10373,7 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
           ...imported,
           pallets: normalizedPallets,
           sectors: importedSectors,
-          productCatalog: imported.productCatalog || data.productCatalog,
+          productCatalog: OFFICIAL_BAROID_CATALOG,
           warehouseDimensions: imported.warehouseDimensions || data.warehouseDimensions
         };
 
@@ -11889,7 +11938,7 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
               </div>
             </div>
             <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-lg bg-zinc-100 group-hover:bg-halliburton-red text-zinc-600 group-hover:text-white dark:bg-slate-800 dark:text-zinc-300 transition-all">
-              PDF
+              {lang === 'es' ? 'VISTA' : 'VIEW'}
             </span>
           </div>
 
@@ -12428,12 +12477,12 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
                 >
                   <optgroup label={t("solids")}>
                     {OFFICIAL_BAROID_CATALOG.filter(p => p.type === "solido").map(p => (
-                      <option key={p.name} value={p.name}>{p.name} ({p.defaultPackage})</option>
+                      <option key={p.name} value={p.name}>{p.name}</option>
                     ))}
                   </optgroup>
                   <optgroup label={t("liquids")}>
                     {OFFICIAL_BAROID_CATALOG.filter(p => p.type === "liquido").map(p => (
-                      <option key={p.name} value={p.name}>{p.name} ({p.defaultPackage})</option>
+                      <option key={p.name} value={p.name}>{p.name}</option>
                     ))}
                   </optgroup>
                   <option value="__CUSTOM__">{t("customProductOption")}</option>
@@ -13071,20 +13120,12 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
             <div className="flex items-center gap-2.5">
               <button
                 type="button"
-                onClick={handleDownloadPdf}
-                className="flex items-center gap-2 px-6 py-2.5 bg-halliburton-red hover:bg-red-700 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-md hover:scale-105 active:scale-95 cursor-pointer"
-                title={lang === 'es' ? "Descargar archivo PDF en la computadora" : "Download PDF file"}
-              >
-                <Icon name="download" size={16} />
-                <span>{lang === 'es' ? "Descargar PDF" : "Download PDF"}</span>
-              </button>
-              <button
-                type="button"
                 onClick={() => setShowPrintModal(false)}
-                className="px-4 py-2.5 bg-zinc-100 hover:bg-zinc-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-zinc-700 dark:text-zinc-200 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer"
+                className="flex items-center gap-2 px-5 py-2.5 bg-halliburton-red hover:bg-red-700 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-md hover:scale-105 active:scale-95 cursor-pointer"
                 title={t("closeModal")}
               >
-                {t("closeModal")}
+                <Icon name="x" size={16} />
+                <span>{t("closeModal")}</span>
               </button>
             </div>
           </div>
@@ -13804,7 +13845,7 @@ const MainContent = ({
 
 
 /* global __APP_VERSION__ */
-const CURRENT_CODE_VERSION = 'v-1791216746';
+const CURRENT_CODE_VERSION = 'v-1791377293';
 
 const mergeData = (localSectors, defaultSectors) => {
     const isCustomId = (id) => {
