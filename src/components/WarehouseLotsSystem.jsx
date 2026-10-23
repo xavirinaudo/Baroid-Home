@@ -1501,19 +1501,168 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
     ref.scrollBy({ left: delta, behavior: "smooth" });
   };
 
-  // Eliminar Sector Personalizado
+  // Agregar Fila dinámicamente con reactividad e inmutabilidad garantizada
+  const handleAddRow = (zone = "solidos") => {
+    const isDual = currentSector.type === "dual";
+    const targetZone = (zone === "liquidos" || zone === "liquido") ? "liquidos" : "solidos";
+
+    // 1. Clonar sectores asegurando inmutabilidad completa
+    const nextSectors = (data.sectors || []).map(s => {
+      if (s.id !== currentSector.id) return s;
+
+      const cloned = { ...s };
+      if (isDual) {
+        const whDims = cloned.warehouseDimensions ? { ...cloned.warehouseDimensions } : {};
+        const currentZoneDims = whDims[targetZone] || data.warehouseDimensions?.[targetZone] || {
+          rows: 6,
+          columns: targetZone === "liquidos" ? ["A","B","C","D","E","F","G","H"] : ["A","B","C","D","E","F","G","H","I","J"]
+        };
+        const currentRows = Math.max(1, Number(currentZoneDims.rows) || 6);
+        const newRows = Math.min(20, currentRows + 1);
+        whDims[targetZone] = {
+          ...currentZoneDims,
+          rows: newRows
+        };
+        cloned.warehouseDimensions = whDims;
+        cloned.rows = newRows;
+      } else {
+        const currentRows = Math.max(1, Number(cloned.rows) || 4);
+        cloned.rows = Math.min(20, currentRows + 1);
+      }
+      return cloned;
+    });
+
+    // 2. Sincronizar también root warehouseDimensions si es dual
+    const nextWhDims = {
+      ...(data.warehouseDimensions || {
+        solidos: { rows: 6, columns: ["A","B","C","D","E","F","G","H","I","J"] },
+        liquidos: { rows: 6, columns: ["A","B","C","D","E","F","G","H"] }
+      })
+    };
+    if (isDual && nextWhDims[targetZone]) {
+      const curRows = Math.max(1, Number(nextWhDims[targetZone].rows) || 6);
+      nextWhDims[targetZone] = {
+        ...nextWhDims[targetZone],
+        rows: Math.min(20, curRows + 1)
+      };
+    }
+
+    const nextData = {
+      ...data,
+      sectors: nextSectors,
+      warehouseDimensions: nextWhDims
+    };
+    persistData(nextData);
+    showToast(t("rowAdded"), "success");
+  };
+
+  // Agregar Columna dinámicamente con reactividad e inmutabilidad garantizada
+  const handleAddCol = (zone = "solidos") => {
+    const isDual = currentSector.type === "dual";
+    const targetZone = (zone === "liquidos" || zone === "liquido") ? "liquidos" : "solidos";
+    let addedLetter = null;
+
+    const nextSectors = (data.sectors || []).map(s => {
+      if (s.id !== currentSector.id) return s;
+
+      const cloned = { ...s };
+      if (isDual) {
+        const whDims = cloned.warehouseDimensions ? { ...cloned.warehouseDimensions } : {};
+        const currentZoneDims = whDims[targetZone] || data.warehouseDimensions?.[targetZone] || {
+          rows: 6,
+          columns: targetZone === "liquidos" ? ["A","B","C","D","E","F","G","H"] : ["A","B","C","D","E","F","G","H","I","J"]
+        };
+        const cols = Array.isArray(currentZoneDims.columns) ? [...currentZoneDims.columns] : ["A","B","C","D"];
+        const nextLetter = ALL_ALPHABET.find(l => !cols.includes(l));
+        if (nextLetter) {
+          cols.push(nextLetter);
+          cols.sort();
+          addedLetter = nextLetter;
+          whDims[targetZone] = {
+            ...currentZoneDims,
+            columns: cols
+          };
+          cloned.warehouseDimensions = whDims;
+        }
+      } else {
+        const cols = Array.isArray(cloned.columns) ? [...cloned.columns] : ["A","B","C","D","E","F","G","H","I","J","K","L"];
+        const nextLetter = ALL_ALPHABET.find(l => !cols.includes(l));
+        if (nextLetter) {
+          cols.push(nextLetter);
+          cols.sort();
+          addedLetter = nextLetter;
+          cloned.columns = cols;
+        }
+      }
+      return cloned;
+    });
+
+    const nextWhDims = {
+      ...(data.warehouseDimensions || {
+        solidos: { rows: 6, columns: ["A","B","C","D","E","F","G","H","I","J"] },
+        liquidos: { rows: 6, columns: ["A","B","C","D","E","F","G","H"] }
+      })
+    };
+    if (isDual && addedLetter && nextWhDims[targetZone]) {
+      const rootCols = Array.isArray(nextWhDims[targetZone].columns) ? [...nextWhDims[targetZone].columns] : [];
+      if (!rootCols.includes(addedLetter)) {
+        rootCols.push(addedLetter);
+        rootCols.sort();
+        nextWhDims[targetZone] = {
+          ...nextWhDims[targetZone],
+          columns: rootCols
+        };
+      }
+    }
+
+    if (addedLetter) {
+      const nextData = {
+        ...data,
+        sectors: nextSectors,
+        warehouseDimensions: nextWhDims
+      };
+      persistData(nextData);
+      showToast(t("colAdded", { col: addedLetter }), "success");
+    }
+  };
+
   // Eliminar Sector Personalizado
   const handleDeleteSector = (sectorId) => {
     if (sectorId === "principal") return;
     const sec = data.sectors.find(s => s.id === sectorId);
-    if (!window.confirm(t("confirmDeleteTab", { name: sec?.name || sectorId }))) return;
+    if (!sec) return;
+
+    const palletsInSector = data.pallets.filter(p => (p.sectorId || "principal") === sectorId && Number(p.quantity) > 0);
+    const count = palletsInSector.length;
+
+    const confirmMessage = count > 0
+      ? (lang === 'es'
+          ? `La pestaña "${sec.name}" contiene ${count} pallets con stock registrado.\n\n¿Estás seguro de que deseas eliminar esta pestaña y todos sus productos? Esta acción se puede deshacer con Ctrl+Z.`
+          : `Tab "${sec.name}" contains ${count} pallets with registered stock.\n\nAre you sure you want to delete this tab and all its products? You can undo with Ctrl+Z.`)
+      : (lang === 'es'
+          ? `¿Eliminar la pestaña "${sec.name}"?`
+          : `Delete tab "${sec.name}"?`);
+
+    if (!window.confirm(confirmMessage)) return;
+
     const nextSectors = data.sectors.filter(s => s.id !== sectorId);
     const nextPallets = data.pallets.filter(p => (p.sectorId || "principal") !== sectorId);
-    persistData({ ...data, sectors: nextSectors, pallets: nextPallets });
+
+    const nextData = {
+      ...data,
+      sectors: nextSectors,
+      pallets: nextPallets
+    };
+
+    persistData(nextData);
+
     if (activeSectorId === sectorId) {
-      setActiveSectorId("principal");
+      setActiveSectorId(nextSectors[0]?.id || "principal");
+      setSelectedPallet(null);
+      setCopiedPallet(null);
+      setActiveFilter(null);
     }
-    showToast(t("tabDeleted", { name: sec?.name || '' }), "info");
+    showToast(t("tabDeleted", { name: sec.name }), "info");
   };
 
   // Abrir Modal de Recepción / Ingreso
@@ -2337,40 +2486,52 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
           {data.sectors.map(sec => {
             const count = data.pallets.filter(p => (p.sectorId || "principal") === sec.id && p.quantity > 0).length;
             const isActive = sec.id === activeSectorId;
+            const canDelete = sec.id !== "principal" && data.sectors.length > 1;
             return (
-              <button
+              <div
                 key={sec.id}
-                onClick={() => { setActiveSectorId(sec.id); setSelectedPallet(null); setActiveFilter(null); }}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap ${
+                className={`flex items-center gap-1.5 pl-3.5 pr-1.5 py-1 rounded-xl text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap border ${
                   isActive
-                    ? 'bg-halliburton-red text-white shadow-md'
-                    : 'bg-white dark:bg-slate-800/60 text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-slate-800'
+                    ? 'bg-halliburton-red text-white border-halliburton-red shadow-md'
+                    : 'bg-white dark:bg-slate-800/60 text-zinc-600 dark:text-zinc-300 border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-slate-800'
                 }`}
               >
-                <span>{sec.name}</span>
-                <span className={`text-[10px] px-2 py-0.5 rounded-full font-black ${isActive ? 'bg-white/20 text-white' : 'bg-zinc-100 dark:bg-slate-700 text-zinc-500 dark:text-zinc-300'}`}>
-                  {count}
-                </span>
-                {sec.id !== "principal" && (
-                  <span
+                <button
+                  type="button"
+                  onClick={() => { setActiveSectorId(sec.id); setSelectedPallet(null); setActiveFilter(null); }}
+                  className="flex items-center gap-2 cursor-pointer outline-none py-1"
+                >
+                  <span>{sec.name}</span>
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-black ${isActive ? 'bg-white/20 text-white' : 'bg-zinc-100 dark:bg-slate-700 text-zinc-500 dark:text-zinc-300'}`}>
+                    {count}
+                  </span>
+                </button>
+                {canDelete && (
+                  <button
+                    type="button"
                     onClick={(e) => {
                       e.stopPropagation();
+                      e.preventDefault();
                       handleDeleteSector(sec.id);
                     }}
-                    className="ml-1 opacity-60 hover:opacity-100 hover:text-red-300 font-black cursor-pointer text-sm leading-none"
-                    title={`${t("closeTab")} "${sec.name}"`}
+                    className={`p-1 rounded-lg transition-all cursor-pointer ${
+                      isActive 
+                        ? 'hover:bg-red-800 text-white/80 hover:text-white' 
+                        : 'hover:bg-red-100 dark:hover:bg-red-950/50 text-zinc-400 hover:text-red-600'
+                    }`}
+                    title={lang === 'es' ? `Cerrar / Eliminar pestaña "${sec.name}"` : `Close / Delete tab "${sec.name}"`}
                   >
-                    &times;
-                  </span>
+                    <Icon name="x" size={13} />
+                  </button>
                 )}
-              </button>
+              </div>
             );
           })}
         </div>
 
         <button
           onClick={() => setShowNewSectorModal(true)}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-100 hover:bg-zinc-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-zinc-700 dark:text-zinc-300 rounded-xl text-xs font-black uppercase tracking-wider shrink-0 transition-all"
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-100 hover:bg-zinc-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-zinc-700 dark:text-zinc-300 rounded-xl text-xs font-black uppercase tracking-wider shrink-0 transition-all cursor-pointer shadow-sm hover:scale-102"
         >
           <Icon name="plus" size={14} className="text-halliburton-red" />
           <span>{t("newTab")}</span>
@@ -2609,50 +2770,34 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
 
                   {/* + Fila */}
                   <button
-                    onClick={() => {
-                      const next = { ...data };
-                      if (currentSector.type === "dual") {
-                        if (!next.warehouseDimensions) next.warehouseDimensions = { solidos: { rows: 6, columns: ["A","B","C","D"] } };
-                        next.warehouseDimensions.solidos.rows = Math.min(20, (next.warehouseDimensions.solidos.rows || 6) + 1);
-                      } else {
-                        const s = next.sectors.find(x => x.id === currentSector.id);
-                        if (s) s.rows = Math.min(20, (s.rows || 4) + 1);
-                      }
-                      persistData(next);
-                      showToast(t("rowAdded"), "success");
-                    }}
-                    className="px-2.5 py-1.5 rounded-lg bg-zinc-100 dark:bg-slate-800 hover:bg-zinc-200 dark:hover:bg-slate-700 text-zinc-700 dark:text-zinc-200 text-[10px] font-black uppercase tracking-wider transition-all"
+                    onClick={() => handleAddRow("solidos")}
+                    className="px-2.5 py-1.5 rounded-lg bg-zinc-100 dark:bg-slate-800 hover:bg-zinc-200 dark:hover:bg-slate-700 text-zinc-700 dark:text-zinc-200 text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer shadow-xs active:scale-95"
+                    title={t("addRow")}
                   >
                     {t("addRow")}
                   </button>
 
                   {/* + Col */}
                   <button
-                    onClick={() => {
-                      const next = { ...data };
-                      let targetCols;
-                      if (currentSector.type === "dual") {
-                        if (!next.warehouseDimensions) next.warehouseDimensions = { solidos: { rows: 6, columns: ["A","B","C","D"] } };
-                        targetCols = next.warehouseDimensions.solidos.columns;
-                      } else {
-                        const s = next.sectors.find(x => x.id === currentSector.id);
-                        if (s) {
-                          if (!s.columns) s.columns = ["A","B","C","D","E","F","G","H","I","J","K","L"];
-                          targetCols = s.columns;
-                        }
-                      }
-                      if (targetCols) {
-                        const nextLetter = ALL_ALPHABET.find(l => !targetCols.includes(l)) || "Z";
-                        targetCols.push(nextLetter);
-                        targetCols.sort();
-                        persistData(next);
-                        showToast(t("colAdded", { col: nextLetter }), "success");
-                      }
-                    }}
-                    className="px-2.5 py-1.5 rounded-lg bg-zinc-100 dark:bg-slate-800 hover:bg-zinc-200 dark:hover:bg-slate-700 text-zinc-700 dark:text-zinc-200 text-[10px] font-black uppercase tracking-wider transition-all"
+                    onClick={() => handleAddCol("solidos")}
+                    className="px-2.5 py-1.5 rounded-lg bg-zinc-100 dark:bg-slate-800 hover:bg-zinc-200 dark:hover:bg-slate-700 text-zinc-700 dark:text-zinc-200 text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer shadow-xs active:scale-95"
+                    title={t("addCol")}
                   >
                     {t("addCol")}
                   </button>
+
+                  {/* Eliminar Pestaña / Sector si es personalizado */}
+                  {currentSector.id !== "principal" && (
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteSector(currentSector.id)}
+                      className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 text-[10px] font-black uppercase tracking-wider transition-all border border-red-500/20 cursor-pointer ml-1 active:scale-95 shadow-xs"
+                      title={lang === 'es' ? `Cerrar y eliminar la pestaña "${currentSector.name}"` : `Close and delete tab "${currentSector.name}"`}
+                    >
+                      <Icon name="trash-2" size={12} />
+                      <span>{lang === 'es' ? "Eliminar Pestaña" : "Delete Tab"}</span>
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -2746,47 +2891,18 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
 
                   {/* + Fila */}
                   <button
-                    onClick={() => {
-                      const next = { ...data };
-                      if (currentSector.type === "dual") {
-                        if (!next.warehouseDimensions) next.warehouseDimensions = { liquidos: { rows: 6, columns: ["A","B","C","D"] } };
-                        next.warehouseDimensions.liquidos.rows = Math.min(20, (next.warehouseDimensions.liquidos.rows || 6) + 1);
-                      } else {
-                        const s = next.sectors.find(x => x.id === currentSector.id);
-                        if (s) s.rows = Math.min(20, (s.rows || 6) + 1);
-                      }
-                      persistData(next);
-                      showToast(t("rowAdded"), "success");
-                    }}
-                    className="px-2.5 py-1.5 rounded-lg bg-zinc-100 dark:bg-slate-800 hover:bg-zinc-200 dark:hover:bg-slate-700 text-zinc-700 dark:text-zinc-200 text-[10px] font-black uppercase tracking-wider transition-all"
+                    onClick={() => handleAddRow("liquidos")}
+                    className="px-2.5 py-1.5 rounded-lg bg-zinc-100 dark:bg-slate-800 hover:bg-zinc-200 dark:hover:bg-slate-700 text-zinc-700 dark:text-zinc-200 text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer shadow-xs active:scale-95"
+                    title={t("addRow")}
                   >
                     {t("addRow")}
                   </button>
 
                   {/* + Col */}
                   <button
-                    onClick={() => {
-                      const next = { ...data };
-                      let targetCols;
-                      if (currentSector.type === "dual") {
-                        if (!next.warehouseDimensions) next.warehouseDimensions = { liquidos: { rows: 6, columns: ["A","B","C","D"] } };
-                        targetCols = next.warehouseDimensions.liquidos.columns;
-                      } else {
-                        const s = next.sectors.find(x => x.id === currentSector.id);
-                        if (s) {
-                          if (!s.columns) s.columns = ["A","B","C","D","E","F","G","H"];
-                          targetCols = s.columns;
-                        }
-                      }
-                      if (targetCols) {
-                        const nextLetter = ALL_ALPHABET.find(l => !targetCols.includes(l)) || "Z";
-                        targetCols.push(nextLetter);
-                        targetCols.sort();
-                        persistData(next);
-                        showToast(t("colAdded", { col: nextLetter }), "success");
-                      }
-                    }}
-                    className="px-2.5 py-1.5 rounded-lg bg-zinc-100 dark:bg-slate-800 hover:bg-zinc-200 dark:hover:bg-slate-700 text-zinc-700 dark:text-zinc-200 text-[10px] font-black uppercase tracking-wider transition-all"
+                    onClick={() => handleAddCol("liquidos")}
+                    className="px-2.5 py-1.5 rounded-lg bg-zinc-100 dark:bg-slate-800 hover:bg-zinc-200 dark:hover:bg-slate-700 text-zinc-700 dark:text-zinc-200 text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer shadow-xs active:scale-95"
+                    title={t("addCol")}
                   >
                     {t("addCol")}
                   </button>
