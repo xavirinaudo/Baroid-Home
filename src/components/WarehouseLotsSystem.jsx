@@ -181,7 +181,9 @@ const I18N = {
     rows: "Filas",
     cols: "Cols",
     addRow: "+ Fila",
+    removeRow: "- Fila",
     addCol: "+ Col",
+    removeCol: "- Col",
     aisle: "PASILLO",
     copy: "Copiar",
     paste: "Pegar",
@@ -246,7 +248,13 @@ const I18N = {
     tabCreated: "✓ Pestaña \"{name}\" creada exitosamente.",
     tabDeleted: "Pestaña \"{name}\" eliminada.",
     rowAdded: "+1 Fila agregada",
+    rowRemoved: "-1 Fila eliminada",
     colAdded: "+ Columna {col} agregada",
+    colRemoved: "- Columna {col} eliminada",
+    minRowsReached: "No se pueden eliminar más filas (mínimo 1 fila).",
+    minColsReached: "No se pueden eliminar más columnas (mínimo 1 columna).",
+    deleteRowConfirm: "La fila {row} contiene {count} pallet(s) con stock registrado.\n\n¿Estás seguro de que deseas eliminar la fila y sus pallets asociados?",
+    deleteColConfirm: "La columna {col} contiene {count} pallet(s) con stock registrado.\n\n¿Estás seguro de que deseas eliminar la columna y sus pallets asociados?",
     emptyConfirm: "¿Estás seguro de que deseas vaciar todos los lotes del almacén para comenzar desde cero? Podrás deshacer esta acción con Ctrl+Z.",
     warehouseCleared: "🗑️ Almacén vaciado. Listo para nuevo inventario.",
     pdfPrintout: "VISTA DE IMPRESIÓN",
@@ -348,7 +356,9 @@ const I18N = {
     rows: "Rows",
     cols: "Cols",
     addRow: "+ Row",
+    removeRow: "- Row",
     addCol: "+ Col",
+    removeCol: "- Col",
     aisle: "AISLE",
     copy: "Copy",
     paste: "Paste",
@@ -413,7 +423,13 @@ const I18N = {
     tabCreated: "✓ Tab \"{name}\" successfully created.",
     tabDeleted: "Tab \"{name}\" deleted.",
     rowAdded: "+1 Row added",
+    rowRemoved: "-1 Row removed",
     colAdded: "+ Column {col} added",
+    colRemoved: "- Column {col} removed",
+    minRowsReached: "Cannot remove more rows (minimum 1 row).",
+    minColsReached: "Cannot remove more columns (minimum 1 column).",
+    deleteRowConfirm: "Row {row} contains {count} pallet(s) with registered stock.\n\nAre you sure you want to delete this row and its associated pallets?",
+    deleteColConfirm: "Column {col} contains {count} pallet(s) with registered stock.\n\nAre you sure you want to delete this column and its associated pallets?",
     emptyConfirm: "Are you sure you want to empty all lots in this warehouse to start from scratch? You can undo with Ctrl+Z.",
     warehouseCleared: "🗑️ Warehouse cleared. Ready for fresh inventory.",
     pdfPrintout: "PRINT PREVIEW",
@@ -1626,30 +1642,274 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
     }
   };
 
-  // Eliminar Sector Personalizado
-  const handleDeleteSector = (sectorId) => {
-    if (sectorId === "principal") return;
-    const sec = data.sectors.find(s => s.id === sectorId);
-    if (!sec) return;
+  // Eliminar Fila dinámicamente con reactividad e inmutabilidad garantizada
+  const handleRemoveRow = (zone = "solidos") => {
+    const isDual = currentSector.type === "dual";
+    const targetZone = (zone === "liquidos" || zone === "liquido") ? "liquidos" : "solidos";
 
-    const palletsInSector = data.pallets.filter(p => (p.sectorId || "principal") === sectorId && Number(p.quantity) > 0);
-    const count = palletsInSector.length;
+    // Obtener cantidad actual de filas
+    let currentRows = 4;
+    if (isDual) {
+      const whDims = currentSector.warehouseDimensions || data.warehouseDimensions || {};
+      const zDims = whDims[targetZone] || { rows: 6 };
+      currentRows = Math.max(1, Number(zDims.rows) || 6);
+    } else {
+      currentRows = Math.max(1, Number(currentSector.rows) || 4);
+    }
 
-    const confirmMessage = count > 0
-      ? (lang === 'es'
-          ? `La pestaña "${sec.name}" contiene ${count} pallets con stock registrado.\n\n¿Estás seguro de que deseas eliminar esta pestaña y todos sus productos? Esta acción se puede deshacer con Ctrl+Z.`
-          : `Tab "${sec.name}" contains ${count} pallets with registered stock.\n\nAre you sure you want to delete this tab and all its products? You can undo with Ctrl+Z.`)
-      : (lang === 'es'
-          ? `¿Eliminar la pestaña "${sec.name}"?`
-          : `Delete tab "${sec.name}"?`);
+    if (currentRows <= 1) {
+      showToast(t("minRowsReached"), "warning");
+      return;
+    }
 
-    if (!window.confirm(confirmMessage)) return;
+    const targetRowNumber = currentRows;
 
-    const nextSectors = data.sectors.filter(s => s.id !== sectorId);
-    const nextPallets = data.pallets.filter(p => (p.sectorId || "principal") !== sectorId);
+    // Verificar si hay pallets con stock en esta fila a eliminar
+    const affectedPallets = (data.pallets || []).filter(p => {
+      const matchesSector = (p.sectorId || "principal") === currentSector.id;
+      if (!matchesSector) return false;
+      if (isDual) {
+        const pZone = (p.zone === "liquidos" || p.zone === "liquido") ? "liquidos" : "solidos";
+        return pZone === targetZone && Number(p.row) === targetRowNumber && Number(p.quantity) > 0;
+      }
+      return Number(p.row) === targetRowNumber && Number(p.quantity) > 0;
+    });
+
+    if (affectedPallets.length > 0) {
+      const confirmMsg = t("deleteRowConfirm", { row: targetRowNumber, count: affectedPallets.length });
+      if (!window.confirm(confirmMsg)) return;
+    }
+
+    const newRows = currentRows - 1;
+
+    // 1. Clonar sectores asegurando inmutabilidad completa
+    const nextSectors = (data.sectors || []).map(s => {
+      if (s.id !== currentSector.id) return s;
+
+      const cloned = { ...s };
+      if (isDual) {
+        const whDims = cloned.warehouseDimensions ? { ...cloned.warehouseDimensions } : {};
+        const currentZoneDims = whDims[targetZone] || data.warehouseDimensions?.[targetZone] || {
+          rows: 6,
+          columns: targetZone === "liquidos" ? ["A","B","C","D","E","F","G","H"] : ["A","B","C","D","E","F","G","H","I","J"]
+        };
+        whDims[targetZone] = {
+          ...currentZoneDims,
+          rows: newRows
+        };
+        cloned.warehouseDimensions = whDims;
+        cloned.rows = newRows;
+      } else {
+        cloned.rows = newRows;
+        if (cloned.warehouseDimensions) {
+          cloned.warehouseDimensions = {
+            ...cloned.warehouseDimensions,
+            solidos: { ...cloned.warehouseDimensions.solidos, rows: newRows },
+            liquidos: { ...cloned.warehouseDimensions.liquidos, rows: newRows }
+          };
+        }
+      }
+      return cloned;
+    });
+
+    // 2. Sincronizar también root warehouseDimensions si es dual
+    const nextWhDims = {
+      ...(data.warehouseDimensions || {
+        solidos: { rows: 6, columns: ["A","B","C","D","E","F","G","H","I","J"] },
+        liquidos: { rows: 6, columns: ["A","B","C","D","E","F","G","H"] }
+      })
+    };
+    if (isDual && nextWhDims[targetZone]) {
+      nextWhDims[targetZone] = {
+        ...nextWhDims[targetZone],
+        rows: newRows
+      };
+    }
+
+    // 3. Filtrar pallets que estaban en la fila eliminada
+    const nextPallets = (data.pallets || []).filter(p => {
+      const matchesSector = (p.sectorId || "principal") === currentSector.id;
+      if (!matchesSector) return true;
+      if (isDual) {
+        const pZone = (p.zone === "liquidos" || p.zone === "liquido") ? "liquidos" : "solidos";
+        return !(pZone === targetZone && Number(p.row) === targetRowNumber);
+      }
+      return Number(p.row) !== targetRowNumber;
+    });
 
     const nextData = {
       ...data,
+      sectors: nextSectors,
+      warehouseDimensions: nextWhDims,
+      pallets: nextPallets
+    };
+    persistData(nextData);
+    showToast(t("rowRemoved"), "info");
+  };
+
+  // Eliminar Columna dinámicamente con reactividad e inmutabilidad garantizada
+  const handleRemoveCol = (zone = "solidos") => {
+    const isDual = currentSector.type === "dual";
+    const targetZone = (zone === "liquidos" || zone === "liquido") ? "liquidos" : "solidos";
+
+    // Obtener columnas actuales
+    let currentCols = [];
+    if (isDual) {
+      const whDims = currentSector.warehouseDimensions || data.warehouseDimensions || {};
+      const zDims = whDims[targetZone] || { columns: targetZone === "liquidos" ? ["A","B","C","D","E","F","G","H"] : ["A","B","C","D","E","F","G","H","I","J"] };
+      currentCols = Array.isArray(zDims.columns) ? [...zDims.columns] : ["A","B","C","D"];
+    } else {
+      currentCols = Array.isArray(currentSector.columns) ? [...currentSector.columns] : ["A","B","C","D","E","F","G","H","I","J","K","L"];
+    }
+
+    if (currentCols.length <= 1) {
+      showToast(t("minColsReached"), "warning");
+      return;
+    }
+
+    const removedLetter = currentCols[currentCols.length - 1];
+
+    // Verificar si hay pallets con stock en esta columna a eliminar
+    const affectedPallets = (data.pallets || []).filter(p => {
+      const matchesSector = (p.sectorId || "principal") === currentSector.id;
+      if (!matchesSector) return false;
+      const pCol = String(p.col || p.column || '').toUpperCase();
+      if (isDual) {
+        const pZone = (p.zone === "liquidos" || p.zone === "liquido") ? "liquidos" : "solidos";
+        return pZone === targetZone && pCol === removedLetter && Number(p.quantity) > 0;
+      }
+      return pCol === removedLetter && Number(p.quantity) > 0;
+    });
+
+    if (affectedPallets.length > 0) {
+      const confirmMsg = t("deleteColConfirm", { col: removedLetter, count: affectedPallets.length });
+      if (!window.confirm(confirmMsg)) return;
+    }
+
+    const nextCols = currentCols.slice(0, -1);
+
+    // 1. Clonar sectores asegurando inmutabilidad completa
+    const nextSectors = (data.sectors || []).map(s => {
+      if (s.id !== currentSector.id) return s;
+
+      const cloned = { ...s };
+      if (isDual) {
+        const whDims = cloned.warehouseDimensions ? { ...cloned.warehouseDimensions } : {};
+        const currentZoneDims = whDims[targetZone] || data.warehouseDimensions?.[targetZone] || {
+          rows: 6,
+          columns: targetZone === "liquidos" ? ["A","B","C","D","E","F","G","H"] : ["A","B","C","D","E","F","G","H","I","J"]
+        };
+        whDims[targetZone] = {
+          ...currentZoneDims,
+          columns: nextCols
+        };
+        cloned.warehouseDimensions = whDims;
+      } else {
+        cloned.columns = nextCols;
+      }
+      return cloned;
+    });
+
+    // 2. Sincronizar también root warehouseDimensions si es dual
+    const nextWhDims = {
+      ...(data.warehouseDimensions || {
+        solidos: { rows: 6, columns: ["A","B","C","D","E","F","G","H","I","J"] },
+        liquidos: { rows: 6, columns: ["A","B","C","D","E","F","G","H"] }
+      })
+    };
+    if (isDual && nextWhDims[targetZone]) {
+      nextWhDims[targetZone] = {
+        ...nextWhDims[targetZone],
+        columns: nextCols
+      };
+    }
+
+    // 3. Filtrar pallets que estaban en la columna eliminada
+    const nextPallets = (data.pallets || []).filter(p => {
+      const matchesSector = (p.sectorId || "principal") === currentSector.id;
+      if (!matchesSector) return true;
+      const pCol = String(p.col || p.column || '').toUpperCase();
+      if (isDual) {
+        const pZone = (p.zone === "liquidos" || p.zone === "liquido") ? "liquidos" : "solidos";
+        return !(pZone === targetZone && pCol === removedLetter);
+      }
+      return pCol !== removedLetter;
+    });
+
+    const nextData = {
+      ...data,
+      sectors: nextSectors,
+      warehouseDimensions: nextWhDims,
+      pallets: nextPallets
+    };
+    persistData(nextData);
+    showToast(t("colRemoved", { col: removedLetter }), "info");
+  };
+
+  // Eliminar Sector / Pestaña (Cualquiera, incluyendo la predeterminada "principal")
+  const handleDeleteSector = (sectorId) => {
+    const sec = data.sectors.find(s => s.id === sectorId);
+    if (!sec) return;
+
+    const isOnlySector = (data.sectors || []).length <= 1;
+    const palletsInSector = (data.pallets || []).filter(p => (p.sectorId || "principal") === sectorId && Number(p.quantity) > 0);
+    const count = palletsInSector.length;
+
+    let confirmMessage = "";
+    if (isOnlySector) {
+      confirmMessage = lang === 'es'
+        ? `"${sec.name}" es la única pestaña existente.\n\nAl eliminarla, se vaciará y reiniciará el almacén a un sector predeterminado limpio.${count > 0 ? ` Se eliminarán los ${count} pallets registrados.` : ''}\n\n¿Deseas continuar?`
+        : `"${sec.name}" is the only existing tab.\n\nDeleting it will clear and reset the warehouse to a clean default sector.${count > 0 ? ` ${count} registered pallets will be removed.` : ''}\n\nDo you want to proceed?`;
+    } else {
+      confirmMessage = count > 0
+        ? (lang === 'es'
+            ? `La pestaña "${sec.name}" contiene ${count} pallets con stock registrado.\n\n¿Estás seguro de que deseas eliminar esta pestaña y todos sus productos? Esta acción se puede deshacer con Ctrl+Z.`
+            : `Tab "${sec.name}" contains ${count} pallets with registered stock.\n\nAre you sure you want to delete this tab and all its products? You can undo with Ctrl+Z.`)
+        : (lang === 'es'
+            ? `¿Eliminar la pestaña "${sec.name}"?`
+            : `Delete tab "${sec.name}"?`);
+    }
+
+    if (!window.confirm(confirmMessage)) return;
+
+    if (isOnlySector) {
+      const freshDefaultSector = {
+        id: "principal",
+        name: lang === 'es' ? "Zona de Productos Químicos" : "Chemical Products Area",
+        type: "dual",
+        rows: 6,
+        columns: ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"],
+        warehouseDimensions: {
+          solidos: { rows: 6, columns: ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"] },
+          liquidos: { rows: 6, columns: ["A", "B", "C", "D", "E", "F", "G", "H"] }
+        }
+      };
+      const nextData = {
+        ...data,
+        activeSectorId: "principal",
+        sectors: [freshDefaultSector],
+        pallets: [],
+        warehouseDimensions: {
+          solidos: { rows: 6, columns: ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"] },
+          liquidos: { rows: 6, columns: ["A", "B", "C", "D", "E", "F", "G", "H"] }
+        }
+      };
+      persistData(nextData);
+      setActiveSectorId("principal");
+      setSelectedPallet(null);
+      setCopiedPallet(null);
+      setActiveFilter(null);
+      showToast(lang === 'es' ? "Almacén reiniciado con éxito." : "Warehouse reset successfully.", "info");
+      return;
+    }
+
+    const nextSectors = (data.sectors || []).filter(s => s.id !== sectorId);
+    const nextPallets = (data.pallets || []).filter(p => (p.sectorId || "principal") !== sectorId);
+    const nextActiveId = activeSectorId === sectorId ? (nextSectors[0]?.id || "principal") : activeSectorId;
+
+    const nextData = {
+      ...data,
+      activeSectorId: nextActiveId,
       sectors: nextSectors,
       pallets: nextPallets
     };
@@ -1657,7 +1917,7 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
     persistData(nextData);
 
     if (activeSectorId === sectorId) {
-      setActiveSectorId(nextSectors[0]?.id || "principal");
+      setActiveSectorId(nextActiveId);
       setSelectedPallet(null);
       setCopiedPallet(null);
       setActiveFilter(null);
@@ -2486,7 +2746,7 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
           {data.sectors.map(sec => {
             const count = data.pallets.filter(p => (p.sectorId || "principal") === sec.id && p.quantity > 0).length;
             const isActive = sec.id === activeSectorId;
-            const canDelete = sec.id !== "principal" && data.sectors.length > 1;
+            const canDelete = true;
             return (
               <div
                 key={sec.id}
@@ -2777,6 +3037,15 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
                     {t("addRow")}
                   </button>
 
+                  {/* - Fila */}
+                  <button
+                    onClick={() => handleRemoveRow("solidos")}
+                    className="px-2.5 py-1.5 rounded-lg bg-zinc-100 dark:bg-slate-800 hover:bg-red-500/10 text-zinc-700 dark:text-zinc-200 hover:text-red-600 dark:hover:text-red-400 text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer shadow-xs active:scale-95 border border-transparent hover:border-red-500/20"
+                    title={t("removeRow")}
+                  >
+                    {t("removeRow")}
+                  </button>
+
                   {/* + Col */}
                   <button
                     onClick={() => handleAddCol("solidos")}
@@ -2786,18 +3055,25 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
                     {t("addCol")}
                   </button>
 
-                  {/* Eliminar Pestaña / Sector si es personalizado */}
-                  {currentSector.id !== "principal" && (
-                    <button
-                      type="button"
-                      onClick={() => handleDeleteSector(currentSector.id)}
-                      className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 text-[10px] font-black uppercase tracking-wider transition-all border border-red-500/20 cursor-pointer ml-1 active:scale-95 shadow-xs"
-                      title={lang === 'es' ? `Cerrar y eliminar la pestaña "${currentSector.name}"` : `Close and delete tab "${currentSector.name}"`}
-                    >
-                      <Icon name="trash-2" size={12} />
-                      <span>{lang === 'es' ? "Eliminar Pestaña" : "Delete Tab"}</span>
-                    </button>
-                  )}
+                  {/* - Col */}
+                  <button
+                    onClick={() => handleRemoveCol("solidos")}
+                    className="px-2.5 py-1.5 rounded-lg bg-zinc-100 dark:bg-slate-800 hover:bg-red-500/10 text-zinc-700 dark:text-zinc-200 hover:text-red-600 dark:hover:text-red-400 text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer shadow-xs active:scale-95 border border-transparent hover:border-red-500/20"
+                    title={t("removeCol")}
+                  >
+                    {t("removeCol")}
+                  </button>
+
+                  {/* Eliminar Pestaña / Sector */}
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteSector(currentSector.id)}
+                    className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 text-[10px] font-black uppercase tracking-wider transition-all border border-red-500/20 cursor-pointer ml-1 active:scale-95 shadow-xs"
+                    title={lang === 'es' ? `Cerrar y eliminar la pestaña "${currentSector.name}"` : `Close and delete tab "${currentSector.name}"`}
+                  >
+                    <Icon name="trash-2" size={12} />
+                    <span>{lang === 'es' ? "Eliminar Pestaña" : "Delete Tab"}</span>
+                  </button>
                 </div>
               </div>
 
@@ -2898,6 +3174,15 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
                     {t("addRow")}
                   </button>
 
+                  {/* - Fila */}
+                  <button
+                    onClick={() => handleRemoveRow("liquidos")}
+                    className="px-2.5 py-1.5 rounded-lg bg-zinc-100 dark:bg-slate-800 hover:bg-red-500/10 text-zinc-700 dark:text-zinc-200 hover:text-red-600 dark:hover:text-red-400 text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer shadow-xs active:scale-95 border border-transparent hover:border-red-500/20"
+                    title={t("removeRow")}
+                  >
+                    {t("removeRow")}
+                  </button>
+
                   {/* + Col */}
                   <button
                     onClick={() => handleAddCol("liquidos")}
@@ -2905,6 +3190,15 @@ const WarehouseLotsSystem = ({ isEditing, lang = 'es', setLang, darkMode, setDar
                     title={t("addCol")}
                   >
                     {t("addCol")}
+                  </button>
+
+                  {/* - Col */}
+                  <button
+                    onClick={() => handleRemoveCol("liquidos")}
+                    className="px-2.5 py-1.5 rounded-lg bg-zinc-100 dark:bg-slate-800 hover:bg-red-500/10 text-zinc-700 dark:text-zinc-200 hover:text-red-600 dark:hover:text-red-400 text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer shadow-xs active:scale-95 border border-transparent hover:border-red-500/20"
+                    title={t("removeCol")}
+                  >
+                    {t("removeCol")}
                   </button>
                 </div>
               </div>
