@@ -34,7 +34,7 @@ foreach ($file in $files) {
         continue
     }
     
-    $content = [System.IO.File]::ReadAllText($fullPath)
+    $content = [System.IO.File]::ReadAllText($fullPath, [System.Text.Encoding]::UTF8)
     
     # Replace import.meta.env before import stripping
     $content = $content -replace 'import\.meta\.env\.BASE_URL', "'/'"
@@ -78,7 +78,7 @@ if (-not (Test-Path $htmlPath)) {
     exit 1
 }
 
-$htmlContent = [System.IO.File]::ReadAllText($htmlPath)
+$htmlContent = [System.IO.File]::ReadAllText($htmlPath, [System.Text.Encoding]::UTF8)
 
 $scriptStartTag = '<script type="text/babel">'
 $scriptEndTag = '</script>'
@@ -93,6 +93,6 @@ if ($startIdx -eq -1 -or $endIdx -eq -1) {
 
 $newHtml = $htmlContent.Substring(0, $startIdx + $scriptStartTag.Length) + "`n" + $compiledJs + "`n    " + $htmlContent.Substring($endIdx)
 
-[System.IO.File]::WriteAllText($htmlPath, $newHtml)
+[System.IO.File]::WriteAllText($htmlPath, $newHtml, [System.Text.Encoding]::UTF8)
 
 Write-Output "Successfully compiled all components into Baroid Home.html (version: $commitHash)!"
