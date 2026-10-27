@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import Icon from './Icon';
 import { translations } from '../data/translations';
 
@@ -32,7 +32,19 @@ const FluidCalculator = ({ isEditing, lang, unitMode, setUnitMode }) => {
       default: return '';
     }
   };
-  const [activeSubTab, setActiveSubTab] = useState('conv'); // 'conv', 'barite', 'mixing', 'eng', 'owr', 'slug', 'fit', 'pfmf', 'lgs'
+  const [activeSubTab, setActiveSubTab] = useState(() => {
+    try {
+      return localStorage.getItem('baroid_fluid_calc_active_subtab') || 'conv';
+    } catch (e) {
+      return 'conv';
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('baroid_fluid_calc_active_subtab', activeSubTab);
+    } catch (e) {}
+  }, [activeSubTab]);
 
 
   // Engineering State
@@ -62,39 +74,113 @@ const FluidCalculator = ({ isEditing, lang, unitMode, setUnitMode }) => {
   const [titration, setTitration] = useState({ pf: '', mf: '', ca: '', pom: '' });
 
   // LGS Dilution State
-  const [lgs, setLgs] = useState({ v1: '', c1: '', c2: '', cf: '' });
-
-  // LGS Advanced Retort State
-  const [lgsRetort, setLgsRetort] = useState({
-    vWater: '30',
-    vOil: '50',
-    mudWeight: '10.0',
-    mlAgNo3: '12.0',
-    normality: '0.282',
-    mlSample: '2.0',
-    mlEdta: '2.5',
-    mlSampleCa: '2.0',
-    sgLgs: '2.60',
-    sgBarite: '4.20',
-    sgOil: '0.84',
-    hasBarite: true
+  const [lgs, setLgs] = useState(() => {
+    try {
+      const saved = localStorage.getItem('baroid_lgs_dilution_inputs_v1');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return { v1: '', c1: '', c2: '', cf: '' };
   });
 
-  // WPS Salinity Adjustment State
-  const [wpsAdj, setWpsAdj] = useState({
-    systemVol: '',
-    currentWps: '',
-    desiredWps: '',
-    retortWater: '',
-    retortOil: '',
-    saltPurity: '97',
-    sackWeightSalt: unitMode === 'metric' ? '25' : '80',
-    sackWeightBarite: unitMode === 'metric' ? '50' : '100',
-    targetOilRatio: '80',
-    dieselDensity: unitMode === 'metric' ? '0.84' : '7.0',
-    mudWeight: '',
-    maintainOwr: true
+  useEffect(() => {
+    try {
+      localStorage.setItem('baroid_lgs_dilution_inputs_v1', JSON.stringify(lgs));
+    } catch (e) {}
+  }, [lgs]);
+
+  // LGS Advanced Retort State (Persistente con Ãºltimos valores de Retorta y TitulaciÃ³n)
+  const [lgsRetort, setLgsRetort] = useState(() => {
+    try {
+      const saved = localStorage.getItem('baroid_lgs_retort_inputs_v1');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && typeof parsed === 'object') {
+          return {
+            vWater: parsed.vWater !== undefined ? parsed.vWater : '30',
+            vOil: parsed.vOil !== undefined ? parsed.vOil : '50',
+            mudWeight: parsed.mudWeight !== undefined ? parsed.mudWeight : (unitMode === 'metric' ? '1200' : '10.0'),
+            mlAgNo3: parsed.mlAgNo3 !== undefined ? parsed.mlAgNo3 : '12.0',
+            normality: parsed.normality !== undefined ? parsed.normality : '0.282',
+            mlSample: parsed.mlSample !== undefined ? parsed.mlSample : '2.0',
+            mlEdta: parsed.mlEdta !== undefined ? parsed.mlEdta : '2.5',
+            mlSampleCa: parsed.mlSampleCa !== undefined ? parsed.mlSampleCa : '2.0',
+            sgLgs: parsed.sgLgs !== undefined ? parsed.sgLgs : '2.60',
+            sgBarite: parsed.sgBarite !== undefined ? parsed.sgBarite : '4.20',
+            sgOil: parsed.sgOil !== undefined ? parsed.sgOil : '0.84',
+            hasBarite: parsed.hasBarite !== undefined ? parsed.hasBarite : true
+          };
+        }
+      }
+    } catch (e) {
+      console.warn('Error reading saved lgsRetort state:', e);
+    }
+    return {
+      vWater: '30',
+      vOil: '50',
+      mudWeight: unitMode === 'metric' ? '1200' : '10.0',
+      mlAgNo3: '12.0',
+      normality: '0.282',
+      mlSample: '2.0',
+      mlEdta: '2.5',
+      mlSampleCa: '2.0',
+      sgLgs: '2.60',
+      sgBarite: '4.20',
+      sgOil: '0.84',
+      hasBarite: true
+    };
   });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('baroid_lgs_retort_inputs_v1', JSON.stringify(lgsRetort));
+    } catch (e) {}
+  }, [lgsRetort]);
+
+  // WPS Salinity Adjustment State (Persistente con Ãºltimos valores de Ajuste WPS)
+  const [wpsAdj, setWpsAdj] = useState(() => {
+    try {
+      const saved = localStorage.getItem('baroid_wps_adj_inputs_v1');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && typeof parsed === 'object') {
+          return {
+            systemVol: parsed.systemVol !== undefined ? parsed.systemVol : '',
+            currentWps: parsed.currentWps !== undefined ? parsed.currentWps : '',
+            desiredWps: parsed.desiredWps !== undefined ? parsed.desiredWps : '',
+            retortWater: parsed.retortWater !== undefined ? parsed.retortWater : '',
+            retortOil: parsed.retortOil !== undefined ? parsed.retortOil : '',
+            saltPurity: parsed.saltPurity !== undefined ? parsed.saltPurity : '97',
+            sackWeightSalt: parsed.sackWeightSalt !== undefined ? parsed.sackWeightSalt : (unitMode === 'metric' ? '25' : '80'),
+            sackWeightBarite: parsed.sackWeightBarite !== undefined ? parsed.sackWeightBarite : (unitMode === 'metric' ? '50' : '100'),
+            targetOilRatio: parsed.targetOilRatio !== undefined ? parsed.targetOilRatio : '80',
+            dieselDensity: parsed.dieselDensity !== undefined ? parsed.dieselDensity : (unitMode === 'metric' ? '0.84' : '7.0'),
+            mudWeight: parsed.mudWeight !== undefined ? parsed.mudWeight : '',
+            maintainOwr: parsed.maintainOwr !== undefined ? parsed.maintainOwr : true
+          };
+        }
+      }
+    } catch (e) {}
+    return {
+      systemVol: '',
+      currentWps: '',
+      desiredWps: '',
+      retortWater: '',
+      retortOil: '',
+      saltPurity: '97',
+      sackWeightSalt: unitMode === 'metric' ? '25' : '80',
+      sackWeightBarite: unitMode === 'metric' ? '50' : '100',
+      targetOilRatio: '80',
+      dieselDensity: unitMode === 'metric' ? '0.84' : '7.0',
+      mudWeight: '',
+      maintainOwr: true
+    };
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('baroid_wps_adj_inputs_v1', JSON.stringify(wpsAdj));
+    } catch (e) {}
+  }, [wpsAdj]);
 
 
 
@@ -2005,7 +2091,35 @@ const FluidCalculator = ({ isEditing, lang, unitMode, setUnitMode }) => {
 
           {activeSubTab === 'lgs_retort' && (
             <div className="space-y-6">
-              <h4 className="text-[14px] font-black text-halliburton-red uppercase tracking-widest mb-4 italic">{t.retortTitle}</h4>
+              <div className="flex items-center justify-between mb-4">
+                <h4 className="text-[14px] font-black text-halliburton-red uppercase tracking-widest italic">{t.retortTitle}</h4>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (window.confirm(lang === 'es' ? 'Â¿Restablecer los datos de Retorta y TitulaciÃ³n a los valores iniciales de fÃ¡brica?' : 'Reset Retort and Titration data to initial factory defaults?')) {
+                      setLgsRetort({
+                        vWater: '30',
+                        vOil: '50',
+                        mudWeight: unitMode === 'metric' ? '1200' : '10.0',
+                        mlAgNo3: '12.0',
+                        normality: '0.282',
+                        mlSample: '2.0',
+                        mlEdta: '2.5',
+                        mlSampleCa: '2.0',
+                        sgLgs: '2.60',
+                        sgBarite: '4.20',
+                        sgOil: '0.84',
+                        hasBarite: true
+                      });
+                    }
+                  }}
+                  className="px-3 py-1 bg-zinc-100 hover:bg-zinc-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-zinc-500 rounded-lg text-[10px] font-bold uppercase transition-colors"
+                  title={lang === 'es' ? 'Volver a los valores iniciales por defecto' : 'Reset to default values'}
+                >
+                  <Icon name="refresh-ccw" size={11} className="inline mr-1" />
+                  {lang === 'es' ? 'Restablecer Valores' : 'Reset Values'}
+                </button>
+              </div>
               
               {/* Section 1: Retorta */}
               <div className="space-y-4">

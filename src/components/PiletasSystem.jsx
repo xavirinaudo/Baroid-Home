@@ -4,7 +4,19 @@ import { translations, defaultSpanishNames } from '../data/translations';
 
 const PiletasSystem = ({ isEditing, lang }) => {
     const t = translations[lang || 'es'] || translations.es;
-    const [unitMode, setUnitMode] = useState('metric'); // 'field', 'metric'
+    const [unitMode, setUnitMode] = useState(() => {
+        try {
+            return localStorage.getItem('baroid_preferred_unit_mode') || 'metric';
+        } catch (e) {
+            return 'metric';
+        }
+    });
+
+    useEffect(() => {
+        try {
+            localStorage.setItem('baroid_preferred_unit_mode', unitMode);
+        } catch (e) {}
+    }, [unitMode]);
     const [isConfiguringFluids, setIsConfiguringFluids] = useState(false);
     const [showFluidStats, setShowFluidStats] = useState(false);
     const [draggingPitId, setDraggingPitId] = useState(null);

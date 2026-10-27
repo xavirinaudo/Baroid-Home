@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Icon from './Icon';
 import GreetingDashboard from './GreetingDashboard';
 import FluidCalculator from './FluidCalculator';
@@ -119,7 +119,19 @@ const MainContent = ({
     setShowUpdateBanner,
     onUpdateApp
 }) => {
-    const [unitMode, setUnitMode] = useState('field');
+    const [unitMode, setUnitMode] = useState(() => {
+        try {
+            return localStorage.getItem('baroid_preferred_unit_mode') || 'metric';
+        } catch (e) {
+            return 'metric';
+        }
+    });
+
+    useEffect(() => {
+        try {
+            localStorage.setItem('baroid_preferred_unit_mode', unitMode);
+        } catch (e) {}
+    }, [unitMode]);
     const t = translations[lang] || translations['es'];
     return (
         <main className={`flex-1 min-h-screen overflow-x-hidden relative text-left ${activeSector === 'warehouse' ? 'p-2 sm:p-3 md:p-4' : 'p-3 md:p-6 lg:p-8'}`}>
